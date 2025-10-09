@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model CorporateAccount {
+  id           String   @id @default(cuid())
+  address      String   @unique
+  owners       Json
+  threshold    Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  delegations  Delegation[]
+}
+
+model Delegation {
+  id                    String   @id @default(cuid())
+  corporateId           String
+  delegate              String
+  dailyLimitUsd         Float
+  whitelist             String[]
+  caveats               Json
+  active                Boolean  @default(true)
+  
+  // Hybrid AI execution fields
+  autoExecutionEnabled  Boolean  @default(false)
+  portfolioPercentage   Float    @default(0)
+  autoExecutedUsd       Float    @default(0)
+  lastAutoExecutionAt   DateTime?
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  corporate CorporateAccount @relation(fields: [corporateId], references: [id], onDelete: Cascade)
+
+  @@unique([corporateId, delegate])
+}
+
+model PortfolioSnapshot {
+  id          String   @id @default(cuid())
+  accountId   String
+  data        Json
+  capturedAt  DateTime @default(now())
+}
+
+model AIExecutionLog {
+  id                      String   @id @default(cuid())
+  accountAddress          String
+  delegateAddress         String
+  summary                 String
+  totalExecutedUsd        Float
+  remainingDailyLimitUsd  Float
+  actions                 Json
+  generatedAt             DateTime @default(now())
+  createdAt               DateTime @default(now())
+  analysis                String?
+  suggestedActions        Json?
+  evaluation              Json?
+  governanceSummary       String?
+  warnings                Json?
+  model                   String?
+  provider                String?
+  
+  // Enhanced execution tracking
+  executionMode           String   @default("manual")
+  txHashes                Json?
+  profitLossUsd           Float?
+  reasoning               String?
+  userApproved            Boolean  @default(false)
+
+  @@index([accountAddress, generatedAt(sort: Desc)])
+  @@index([accountAddress, executionMode])
+}
+
+model AIRecommendationLog {
+  id              String   @id @default(cuid())
+  accountAddress  String
+  delegateAddress String
+  model           String
+  provider        String?
+  status          String
+  latencyMs       Int
+  fallbackUsed    Boolean  @default(false)
+  prompt          String
+  response        String
+  evaluation      Json?
+  errorMessage    String?
+  createdAt       DateTime @default(now())
+
+  @@index([accountAddress, createdAt(sort: Desc)])
+}
+
+model AISimulationLog {
+  id                     String   @id @default(cuid())
+  accountAddress         String
+  delegateAddress        String
+  summary                String
+  totalExecutableUsd     Float
+  remainingDailyLimitUsd Float
+  actions                Json
+  analysis               String?
+  evaluation             Json?
+  governanceSummary      String?
+  warnings               Json?
+  model                  String?
+  provider               String?
+  generatedAt            DateTime @default(now())
+  createdAt              DateTime @default(now())
+
+  @@index([accountAddress, generatedAt(sort: Desc)])
+}

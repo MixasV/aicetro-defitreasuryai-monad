@@ -1,0 +1,33 @@
+type TrustlessDeFiTreasury_Delegation {
+  id: ID!
+  user: String!
+  aiAgent: String!
+  dailyLimitUsd: BigInt!
+  spentTodayUsd: BigInt!
+  validUntil: BigInt!
+  active: Boolean!
+  allowedProtocols: [String!]!
+  txHash: String!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+}
+
+type TrustlessDeFiTreasury_SpendRecorded {
+  id: ID!
+  user: String!
+  protocol: String!
+  valueUsd: BigInt!
+  spentTodayUsd: BigInt!
+  txHash: String!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+}
+
+type EmergencyController_EmergencyStatusChanged {
+  id: ID!
+  paused: Boolean!
+  txHash: String!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+}
+

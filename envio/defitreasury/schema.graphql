@@ -1,0 +1,72 @@
+# Schema for DeFiTreasury AI indexer
+
+type CorporateAccount @entity {
+  id: ID!
+  smartAccount: String!
+  owners: [String!]!
+  threshold: BigInt!
+  createdAt: BigInt!
+  txHash: String!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  delegations: [Delegation!]! @derivedFrom(field: "account")
+  spendEvents: [DelegationSpending!]! @derivedFrom(field: "account")
+}
+
+type Delegation @entity {
+  id: ID!
+  account: CorporateAccount!
+  delegate: String!
+  dailyLimit: BigInt!
+  spent24h: BigInt!
+  active: Boolean!
+  whitelist: [String!]!
+  txHash: String!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+}
+
+type DelegationSpending @entity {
+  id: ID!
+  account: CorporateAccount!
+  amount: BigInt!
+  newSpent: BigInt!
+  txHash: String!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+}
+
+type EmergencyStatus @entity {
+  id: ID!
+  paused: Boolean!
+  txHash: String!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+}
+type CorporateTreasuryManager_CorporateAccountCreated {
+  id: ID!
+  account: String!
+  owners: [String!]!
+  threshold: BigInt!
+}
+
+type CorporateTreasuryManager_DelegationSpending {
+  id: ID!
+  account: String!
+  amount: BigInt!
+  newSpent: BigInt!
+}
+
+type CorporateTreasuryManager_DelegationUpdated {
+  id: ID!
+  account: String!
+  delegate: String!
+  limit: BigInt!
+  active: Boolean!
+}
+
+type EmergencyController_EmergencyStatusChanged {
+  id: ID!
+  paused: Boolean!
+}
+

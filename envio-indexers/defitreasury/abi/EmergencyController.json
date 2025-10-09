@@ -1,0 +1,18 @@
+{
+  "contractName": "EmergencyController",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "paused",
+          "type": "bool"
+        }
+      ],
+      "name": "EmergencyStatusChanged",
+      "type": "event"
+    }
+  ]
+}

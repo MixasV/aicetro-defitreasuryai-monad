@@ -1,0 +1,14 @@
+node_modules
+apps/*/node_modules
+packages/*/node_modules
+.git
+.github
+dist
+apps/frontend/.next
+apps/backend/dist
+envio-indexers/*/node_modules
+envio-indexers/*/build
+envio-indexers/*/.env.local
+*.log
+.env
+.env.*

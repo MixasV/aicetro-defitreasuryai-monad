@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=./node_modules/envio/evm.schema.json
+name: defitreasuryai-indexer
+description: HyperIndex configuration for DeFiTreasury AI on Monad testnet
+schema: ./schema.graphql
+networks:
+- id: 10143
+  start_block: 0
+  rpc: https://testnet-rpc.monad.xyz
+  contracts:
+  - name: TrustlessDeFiTreasury
+    address: 0x98691ae190682dddBde3cd4c493B2249D2086E5B
+    abi_file_path: ./abi/TrustlessDeFiTreasury.json
+    handler: ./src/mappings/trustlessDeFiTreasury.ts
+    events:
+      - name: DelegationGranted
+        event: DelegationGranted(address indexed user, address indexed aiAgent, uint256 dailyLimitUSD, uint256 validUntil, address[] protocolWhitelist)
+      - name: DelegationUpdated
+        event: DelegationUpdated(address indexed user, address indexed aiAgent, uint256 dailyLimitUSD, uint256 validUntil, address[] protocolWhitelist)
+      - name: DelegationRevoked
+        event: DelegationRevoked(address indexed user, address indexed aiAgent)
+      - name: DelegationPaused
+        event: DelegationPaused(address indexed user)
+      - name: DelegationResumed
+        event: DelegationResumed(address indexed user, uint256 validUntil)
+      - name: SpendRecorded
+        event: SpendRecorded(address indexed user, address indexed protocol, uint256 valueUsd, uint256 spentToday)
+  - name: EmergencyController
+    address: 0x4BE4FE572bAce94aaFF05e4a0c03ff79212C20e5
+    abi_file_path: ./abi/EmergencyController.json
+    handler: ./src/mappings/emergencyController.ts
+    events:
+      - name: EmergencyStatusChanged
+        event: EmergencyStatusChanged(bool paused)
+unordered_multichain_mode: false

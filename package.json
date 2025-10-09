@@ -1,0 +1,33 @@
+{
+  "name": "defitreasuryai-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/frontend",
+    "apps/backend",
+    "packages/*",
+    "contracts",
+    "envio",
+    "generated"
+  ],
+  "scripts": {
+    "dev:frontend": "npm run dev --workspace defitreasuryai-frontend",
+    "dev:backend": "npm run dev --workspace defitreasuryai-backend",
+    "build": "npm run build --workspace defitreasuryai-frontend && npm run build --workspace defitreasuryai-backend",
+    "lint": "npm run lint --workspace defitreasuryai-frontend && npm run lint --workspace defitreasuryai-backend",
+    "format": "npm run format --workspace defitreasuryai-backend",
+    "test": "npm test --workspace defitreasuryai-backend"
+  },
+  "engines": {
+    "node": ">=18.18",
+    "npm": ">=9"
+  },
+  "dependencies": {
+    "fake-indexeddb": "^6.2.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "generated": "workspace:*"
+    }
+  }
+}

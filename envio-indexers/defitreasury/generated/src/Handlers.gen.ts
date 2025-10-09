@@ -1,0 +1,103 @@
+/* TypeScript file generated from Handlers.res by genType. */
+
+/* eslint-disable */
+/* tslint:disable */
+
+const HandlersJS = require('./Handlers.res.js');
+
+import type {CorporateTreasuryManager_CorporateAccountCreated_eventFilters as Types_CorporateTreasuryManager_CorporateAccountCreated_eventFilters} from './Types.gen';
+
+import type {CorporateTreasuryManager_CorporateAccountCreated_event as Types_CorporateTreasuryManager_CorporateAccountCreated_event} from './Types.gen';
+
+import type {CorporateTreasuryManager_DelegationSpending_eventFilters as Types_CorporateTreasuryManager_DelegationSpending_eventFilters} from './Types.gen';
+
+import type {CorporateTreasuryManager_DelegationSpending_event as Types_CorporateTreasuryManager_DelegationSpending_event} from './Types.gen';
+
+import type {CorporateTreasuryManager_DelegationUpdated_eventFilters as Types_CorporateTreasuryManager_DelegationUpdated_eventFilters} from './Types.gen';
+
+import type {CorporateTreasuryManager_DelegationUpdated_event as Types_CorporateTreasuryManager_DelegationUpdated_event} from './Types.gen';
+
+import type {EmergencyController_EmergencyStatusChanged_eventFilters as Types_EmergencyController_EmergencyStatusChanged_eventFilters} from './Types.gen';
+
+import type {EmergencyController_EmergencyStatusChanged_event as Types_EmergencyController_EmergencyStatusChanged_event} from './Types.gen';
+
+import type {HandlerTypes_eventConfig as Types_HandlerTypes_eventConfig} from './Types.gen';
+
+import type {chain as Types_chain} from './Types.gen';
+
+import type {contractRegistrations as Types_contractRegistrations} from './Types.gen';
+
+import type {fnWithEventConfig as Types_fnWithEventConfig} from './Types.gen';
+
+import type {genericContractRegisterArgs as Internal_genericContractRegisterArgs} from 'envio/src/Internal.gen';
+
+import type {genericContractRegister as Internal_genericContractRegister} from 'envio/src/Internal.gen';
+
+import type {genericHandlerArgs as Internal_genericHandlerArgs} from 'envio/src/Internal.gen';
+
+import type {genericHandlerWithLoader as Internal_genericHandlerWithLoader} from 'envio/src/Internal.gen';
+
+import type {genericHandler as Internal_genericHandler} from 'envio/src/Internal.gen';
+
+import type {genericLoaderArgs as Internal_genericLoaderArgs} from 'envio/src/Internal.gen';
+
+import type {genericLoader as Internal_genericLoader} from 'envio/src/Internal.gen';
+
+import type {handlerContext as Types_handlerContext} from './Types.gen';
+
+import type {loaderContext as Types_loaderContext} from './Types.gen';
+
+import type {onBlockArgs as Envio_onBlockArgs} from 'envio/src/Envio.gen';
+
+import type {onBlockOptions as Envio_onBlockOptions} from 'envio/src/Envio.gen';
+
+export const CorporateTreasuryManager_CorporateAccountCreated_contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_CorporateTreasuryManager_CorporateAccountCreated_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_CorporateTreasuryManager_CorporateAccountCreated_eventFilters>> = HandlersJS.CorporateTreasuryManager.CorporateAccountCreated.contractRegister as any;
+
+export const CorporateTreasuryManager_CorporateAccountCreated_handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_CorporateTreasuryManager_CorporateAccountCreated_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_CorporateTreasuryManager_CorporateAccountCreated_eventFilters>> = HandlersJS.CorporateTreasuryManager.CorporateAccountCreated.handler as any;
+
+export const CorporateTreasuryManager_CorporateAccountCreated_handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_CorporateTreasuryManager_CorporateAccountCreated_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_CorporateTreasuryManager_CorporateAccountCreated_event,Types_handlerContext,loaderReturn>>,Types_CorporateTreasuryManager_CorporateAccountCreated_eventFilters>) => void = HandlersJS.CorporateTreasuryManager.CorporateAccountCreated.handlerWithLoader as any;
+
+export const CorporateTreasuryManager_DelegationSpending_contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_CorporateTreasuryManager_DelegationSpending_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_CorporateTreasuryManager_DelegationSpending_eventFilters>> = HandlersJS.CorporateTreasuryManager.DelegationSpending.contractRegister as any;
+
+export const CorporateTreasuryManager_DelegationSpending_handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_CorporateTreasuryManager_DelegationSpending_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_CorporateTreasuryManager_DelegationSpending_eventFilters>> = HandlersJS.CorporateTreasuryManager.DelegationSpending.handler as any;
+
+export const CorporateTreasuryManager_DelegationSpending_handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_CorporateTreasuryManager_DelegationSpending_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_CorporateTreasuryManager_DelegationSpending_event,Types_handlerContext,loaderReturn>>,Types_CorporateTreasuryManager_DelegationSpending_eventFilters>) => void = HandlersJS.CorporateTreasuryManager.DelegationSpending.handlerWithLoader as any;
+
+export const CorporateTreasuryManager_DelegationUpdated_contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_CorporateTreasuryManager_DelegationUpdated_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_CorporateTreasuryManager_DelegationUpdated_eventFilters>> = HandlersJS.CorporateTreasuryManager.DelegationUpdated.contractRegister as any;
+
+export const CorporateTreasuryManager_DelegationUpdated_handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_CorporateTreasuryManager_DelegationUpdated_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_CorporateTreasuryManager_DelegationUpdated_eventFilters>> = HandlersJS.CorporateTreasuryManager.DelegationUpdated.handler as any;
+
+export const CorporateTreasuryManager_DelegationUpdated_handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_CorporateTreasuryManager_DelegationUpdated_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_CorporateTreasuryManager_DelegationUpdated_event,Types_handlerContext,loaderReturn>>,Types_CorporateTreasuryManager_DelegationUpdated_eventFilters>) => void = HandlersJS.CorporateTreasuryManager.DelegationUpdated.handlerWithLoader as any;
+
+export const EmergencyController_EmergencyStatusChanged_contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_EmergencyController_EmergencyStatusChanged_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_EmergencyController_EmergencyStatusChanged_eventFilters>> = HandlersJS.EmergencyController.EmergencyStatusChanged.contractRegister as any;
+
+export const EmergencyController_EmergencyStatusChanged_handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_EmergencyController_EmergencyStatusChanged_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_EmergencyController_EmergencyStatusChanged_eventFilters>> = HandlersJS.EmergencyController.EmergencyStatusChanged.handler as any;
+
+export const EmergencyController_EmergencyStatusChanged_handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_EmergencyController_EmergencyStatusChanged_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_EmergencyController_EmergencyStatusChanged_event,Types_handlerContext,loaderReturn>>,Types_EmergencyController_EmergencyStatusChanged_eventFilters>) => void = HandlersJS.EmergencyController.EmergencyStatusChanged.handlerWithLoader as any;
+
+/** Register a Block Handler. It'll be called for every block by default. */
+export const onBlock: (_1:Envio_onBlockOptions<Types_chain>, _2:((_1:Envio_onBlockArgs<Types_handlerContext>) => Promise<void>)) => void = HandlersJS.onBlock as any;
+
+export const EmergencyController: { EmergencyStatusChanged: {
+  handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_EmergencyController_EmergencyStatusChanged_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_EmergencyController_EmergencyStatusChanged_event,Types_handlerContext,loaderReturn>>,Types_EmergencyController_EmergencyStatusChanged_eventFilters>) => void; 
+  handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_EmergencyController_EmergencyStatusChanged_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_EmergencyController_EmergencyStatusChanged_eventFilters>>; 
+  contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_EmergencyController_EmergencyStatusChanged_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_EmergencyController_EmergencyStatusChanged_eventFilters>>
+} } = HandlersJS.EmergencyController as any;
+
+export const CorporateTreasuryManager: {
+  CorporateAccountCreated: {
+    handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_CorporateTreasuryManager_CorporateAccountCreated_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_CorporateTreasuryManager_CorporateAccountCreated_event,Types_handlerContext,loaderReturn>>,Types_CorporateTreasuryManager_CorporateAccountCreated_eventFilters>) => void; 
+    handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_CorporateTreasuryManager_CorporateAccountCreated_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_CorporateTreasuryManager_CorporateAccountCreated_eventFilters>>; 
+    contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_CorporateTreasuryManager_CorporateAccountCreated_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_CorporateTreasuryManager_CorporateAccountCreated_eventFilters>>
+  }; 
+  DelegationSpending: {
+    handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_CorporateTreasuryManager_DelegationSpending_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_CorporateTreasuryManager_DelegationSpending_event,Types_handlerContext,loaderReturn>>,Types_CorporateTreasuryManager_DelegationSpending_eventFilters>) => void; 
+    handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_CorporateTreasuryManager_DelegationSpending_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_CorporateTreasuryManager_DelegationSpending_eventFilters>>; 
+    contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_CorporateTreasuryManager_DelegationSpending_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_CorporateTreasuryManager_DelegationSpending_eventFilters>>
+  }; 
+  DelegationUpdated: {
+    handlerWithLoader: <loaderReturn>(_1:Internal_genericHandlerWithLoader<Internal_genericLoader<Internal_genericLoaderArgs<Types_CorporateTreasuryManager_DelegationUpdated_event,Types_loaderContext>,loaderReturn>,Internal_genericHandler<Internal_genericHandlerArgs<Types_CorporateTreasuryManager_DelegationUpdated_event,Types_handlerContext,loaderReturn>>,Types_CorporateTreasuryManager_DelegationUpdated_eventFilters>) => void; 
+    handler: Types_fnWithEventConfig<Internal_genericHandler<Internal_genericHandlerArgs<Types_CorporateTreasuryManager_DelegationUpdated_event,Types_handlerContext,void>>,Types_HandlerTypes_eventConfig<Types_CorporateTreasuryManager_DelegationUpdated_eventFilters>>; 
+    contractRegister: Types_fnWithEventConfig<Internal_genericContractRegister<Internal_genericContractRegisterArgs<Types_CorporateTreasuryManager_DelegationUpdated_event,Types_contractRegistrations>>,Types_HandlerTypes_eventConfig<Types_CorporateTreasuryManager_DelegationUpdated_eventFilters>>
+  }
+} = HandlersJS.CorporateTreasuryManager as any;

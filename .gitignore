@@ -1,0 +1,67 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# Build outputs
+.turbo
+.next
+dist
+build
+out
+coverage
+
+# Lock files (keep pnpm-lock.yaml for reproducibility)
+package-lock.json
+yarn.lock
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Smart contracts
+contracts/cache
+contracts/artifacts
+contracts/typechain-types
+
+# Database
+apps/backend/prisma/dev.db
+apps/backend/prisma/migrations/*.db
+*.sqlite
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Internal documentation (not for public GitHub)
+handover*.md
+cpc-guide.md
+gpt5-interface-inst.md
+cursor-claude-ref-ins.md
+mvp-instructions.md
+mvp-ending.md
+pre-deploy*.md
+Index.res.js
+lockfile
+
+# Temporary files
+*.tmp
+.cache

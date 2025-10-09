@@ -1,0 +1,15 @@
+packages:
+  - apps/frontend
+  - apps/backend
+  - packages/*
+  - contracts
+  - envio
+  - generated
+
+ignoredBuiltDependencies:
+  - '@prisma/client'
+
+onlyBuiltDependencies:
+  - bufferutil
+  - rescript
+  - utf-8-validate

@@ -1,0 +1,76 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: defitreasury
+      POSTGRES_USER: monad
+      POSTGRES_PASSWORD: monad
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U monad -d defitreasury"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - apps/backend/.env.production
+    environment:
+      DATABASE_URL: postgres://monad:monad@postgres:5432/defitreasury?schema=public
+      REDIS_URL: redis://redis:6379
+    ports:
+      - '4000:4000'
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://backend:4000/api
+        NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: ${NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID:-demo-project}
+        NEXT_PUBLIC_TRUSTLESS_TREASURY_ADDRESS: ${NEXT_PUBLIC_TRUSTLESS_TREASURY_ADDRESS:-0x0000000000000000000000000000000000000000}
+    depends_on:
+      backend:
+        condition: service_started
+    env_file:
+      - apps/frontend/.env.production
+    environment:
+      NEXT_PUBLIC_API_URL: http://backend:4000/api
+    ports:
+      - '3000:3000'
+    restart: unless-stopped
+
+  envio-indexer:
+    build:
+      context: envio-indexers/defitreasury
+      dockerfile: Dockerfile
+    env_file:
+      - envio-indexers/defitreasury/.env.production
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  redis-data:

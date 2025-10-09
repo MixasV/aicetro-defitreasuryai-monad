@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=./node_modules/envio/evm.schema.json
+name: defitreasuryai-indexer
+description: HyperIndex configuration for DeFiTreasury AI on Monad testnet
+schema: ./schema.graphql
+networks:
+- id: 10143
+  start_block: 0
+  rpc: https://testnet-rpc.monad.xyz
+  contracts:
+  - name: CorporateTreasuryManager
+    address: 0x98691ae190682dddBde3cd4c493B2249D2086E5B
+    abi_file_path: ./abi/CorporateTreasuryManager.json
+    handler: ./src/mappings/corporateTreasuryManager.ts
+    events:
+      - name: CorporateAccountCreated
+        event: CorporateAccountCreated(address indexed account, address[] owners, uint256 threshold)
+      - name: DelegationSpending
+        event: DelegationSpending(address indexed account, uint256 amount, uint256 newSpent)
+      - name: DelegationUpdated
+        event: DelegationUpdated(address indexed account, address delegate, uint256 limit, bool active)
+  - name: EmergencyController
+    address: 0x4BE4FE572bAce94aaFF05e4a0c03ff79212C20e5
+    abi_file_path: ./abi/EmergencyController.json
+    handler: ./src/mappings/emergencyController.ts
+    events:
+      - name: EmergencyStatusChanged
+        event: EmergencyStatusChanged(bool paused)
+unordered_multichain_mode: false
