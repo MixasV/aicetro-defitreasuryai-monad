@@ -7,6 +7,7 @@ import demoRouter from './modules/demo.routes'
 import previewRouter from './modules/preview.routes'
 import modeRouter from './modules/mode.routes'
 import delegationRouter from './modules/delegation.routes'
+import poolsRouter from './modules/pools.routes'
 
 export const registerRoutes = (app: Express) => {
   app.use('/api/health', healthRouter)
@@ -17,4 +18,5 @@ export const registerRoutes = (app: Express) => {
   app.use('/api/mode', modeRouter)
   app.use('/api/preview', previewRouter)
   app.use('/api/delegation', delegationRouter)
+  app.use('/api/pools', poolsRouter)
 }

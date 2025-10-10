@@ -13,7 +13,7 @@ export default function AIControlsPage() {
   const accountAddress = account.address ?? DEMO_CORPORATE_ACCOUNT;
   const usingDemo = !account.address;
 
-  const { portfolio } = usePortfolio(accountAddress);
+  const { portfolio, isLoading, isError } = usePortfolio(accountAddress);
 
   const handleStreamError = useCallback((error: unknown) => {
     console.error('[monitoring] SSE stream error', error);
@@ -24,19 +24,55 @@ export default function AIControlsPage() {
     onError: handleStreamError
   });
 
-  if (!portfolio) {
-    return (
-      <AppShell>
-        <div className="flex h-[60vh] items-center justify-center text-slate-400">
-          Synchronising HyperIndex portfolio…
-        </div>
-      </AppShell>
-    );
-  }
+  // Show demo portfolio if loading or error
+  const demoPortfolio = {
+    totalValueUSD: 100000,
+    netAPY: 8.2,
+    positions: [
+      {
+        protocol: "Aave Monad",
+        asset: "USDC",
+        amount: 50000,
+        valueUSD: 50000,
+        currentAPY: 8.4,
+        riskScore: 2
+      },
+      {
+        protocol: "Yearn Monad",
+        asset: "USDT",
+        amount: 25000,
+        valueUSD: 24900,
+        currentAPY: 11.8,
+        riskScore: 4
+      },
+      {
+        protocol: "Nabla Finance",
+        asset: "USDC",
+        amount: 25000,
+        valueUSD: 25100,
+        currentAPY: 15.6,
+        riskScore: 6
+      }
+    ]
+  };
+
+  const displayPortfolio = portfolio || demoPortfolio;
+  const showDemoWarning = !portfolio || isError;
 
   return (
     <AppShell>
-      <AIControlsPanel portfolio={portfolio} accountAddress={accountAddress} usingDemo={usingDemo} />
+      {showDemoWarning && (
+        <div className="mb-4 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4">
+          <div className="flex items-center gap-3 text-sm text-amber-200">
+            <span className="text-xl">ℹ️</span>
+            <div>
+              <strong className="font-semibold">Demo Mode</strong> — 
+              {isLoading ? ' Loading your portfolio data...' : ' Showing demo portfolio. Connect wallet to see real data.'}
+            </div>
+          </div>
+        </div>
+      )}
+      <AIControlsPanel portfolio={displayPortfolio} accountAddress={accountAddress} usingDemo={usingDemo} />
     </AppShell>
   );
 }

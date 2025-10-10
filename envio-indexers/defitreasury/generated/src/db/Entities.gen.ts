@@ -7,34 +7,41 @@ export type id = string;
 
 export type whereOperations<entity,fieldType> = { readonly eq: (_1:fieldType) => Promise<entity[]>; readonly gt: (_1:fieldType) => Promise<entity[]> };
 
-export type CorporateTreasuryManager_CorporateAccountCreated_t = {
-  readonly account: string; 
+export type EmergencyController_EmergencyStatusChanged_t = {
+  readonly blockNumber: bigint; 
   readonly id: id; 
-  readonly owners: string[]; 
-  readonly threshold: bigint
+  readonly paused: boolean; 
+  readonly timestamp: bigint; 
+  readonly txHash: string
 };
-
-export type CorporateTreasuryManager_CorporateAccountCreated_indexedFieldOperations = {};
-
-export type CorporateTreasuryManager_DelegationSpending_t = {
-  readonly account: string; 
-  readonly amount: bigint; 
-  readonly id: id; 
-  readonly newSpent: bigint
-};
-
-export type CorporateTreasuryManager_DelegationSpending_indexedFieldOperations = {};
-
-export type CorporateTreasuryManager_DelegationUpdated_t = {
-  readonly account: string; 
-  readonly active: boolean; 
-  readonly delegate: string; 
-  readonly id: id; 
-  readonly limit: bigint
-};
-
-export type CorporateTreasuryManager_DelegationUpdated_indexedFieldOperations = {};
-
-export type EmergencyController_EmergencyStatusChanged_t = { readonly id: id; readonly paused: boolean };
 
 export type EmergencyController_EmergencyStatusChanged_indexedFieldOperations = {};
+
+export type TrustlessDeFiTreasury_Delegation_t = {
+  readonly active: boolean; 
+  readonly aiAgent: string; 
+  readonly allowedProtocols: string[]; 
+  readonly blockNumber: bigint; 
+  readonly dailyLimitUsd: bigint; 
+  readonly id: id; 
+  readonly spentTodayUsd: bigint; 
+  readonly timestamp: bigint; 
+  readonly txHash: string; 
+  readonly user: string; 
+  readonly validUntil: bigint
+};
+
+export type TrustlessDeFiTreasury_Delegation_indexedFieldOperations = {};
+
+export type TrustlessDeFiTreasury_SpendRecorded_t = {
+  readonly blockNumber: bigint; 
+  readonly id: id; 
+  readonly protocol: string; 
+  readonly spentTodayUsd: bigint; 
+  readonly timestamp: bigint; 
+  readonly txHash: string; 
+  readonly user: string; 
+  readonly valueUsd: bigint
+};
+
+export type TrustlessDeFiTreasury_SpendRecorded_indexedFieldOperations = {};

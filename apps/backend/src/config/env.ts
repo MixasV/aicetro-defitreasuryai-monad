@@ -10,7 +10,7 @@ const requiredEnvVars = ['DATABASE_URL', 'OPENROUTER_API_KEY']
 for (const key of requiredEnvVars) {
   const value = process.env[key]
   if (value === undefined || value === '') {
-    console.warn(`[env] Переменная ${key} не задана. Используются значения по умолчанию для разработки.`)
+    console.warn(`[env] Variable ${key} is not set. Using default values for development.`)
   }
 }
 
@@ -84,29 +84,29 @@ const parseProviders = (raw: string | undefined, defaults: { model: string, base
 
     return providers
   } catch (error) {
-    console.warn('[env] Не удалось распарсить OPENROUTER_PROVIDERS, используется дефолтный провайдер.', error)
+    console.warn('[env] Failed to parse OPENROUTER_PROVIDERS, using default provider.', error)
     return []
   }
 }
 
 const rawAiExecutionInterval = parsePositiveInt(process.env.AI_EXECUTION_INTERVAL_MS, 120_000)
 if (rawAiExecutionInterval < 15_000) {
-  console.warn('[env] AI_EXECUTION_INTERVAL_MS меньше 15 секунд. Используется значение 15 000 мс.')
+  console.warn('[env] AI_EXECUTION_INTERVAL_MS is less than 15 seconds. Using 15,000 ms.')
 }
 const aiExecutionIntervalMs = Math.max(rawAiExecutionInterval, 15_000)
 
 const rawMonitoringPollInterval = parsePositiveInt(process.env.MONITORING_POLL_INTERVAL_MS, 30_000)
 if (rawMonitoringPollInterval < 5_000) {
-  console.warn('[env] MONITORING_POLL_INTERVAL_MS меньше 5 секунд. Используется значение 5 000 мс.')
+  console.warn('[env] MONITORING_POLL_INTERVAL_MS is less than 5 seconds. Using 5,000 ms.')
 }
 const monitoringPollIntervalMs = Math.max(rawMonitoringPollInterval, 5_000)
 
 const rawOpenRouterTimeout = parsePositiveInt(process.env.OPENROUTER_TIMEOUT_MS, 30_000)
 const openRouterTimeoutMs = Math.min(Math.max(rawOpenRouterTimeout, 5_000), 120_000)
 
-const openRouterMaxRetries = parseNonNegativeInt(process.env.OPENROUTER_MAX_RETRIES, 2)
-const rawOpenRouterRetryDelay = parsePositiveInt(process.env.OPENROUTER_RETRY_DELAY_MS, 1_000)
-const openRouterRetryDelayMs = Math.min(Math.max(rawOpenRouterRetryDelay, 250), 10_000)
+const openRouterMaxRetries = parseNonNegativeInt(process.env.OPENROUTER_MAX_RETRIES, 3)
+const rawOpenRouterRetryDelay = parsePositiveInt(process.env.OPENROUTER_RETRY_DELAY_MS, 5_000)
+const openRouterRetryDelayMs = Math.min(Math.max(rawOpenRouterRetryDelay, 1_000), 20_000)
 
 const rawEnvioStreamStartBlock = parseNonNegativeInt(process.env.ENVIO_STREAM_START_BLOCK, 0)
 const rawEnvioStreamRefreshMs = parsePositiveInt(process.env.ENVIO_STREAM_REFRESH_INTERVAL_MS, 60_000)

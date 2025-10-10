@@ -53,11 +53,11 @@ export const getAIRecommendationHandler = async (req: Request, res: Response) =>
     res.json(recommendation)
   } catch (error) {
     if (error instanceof Joi.ValidationError) {
-      res.status(400).json({ message: 'Некорректные данные', details: error.details })
+      res.status(400).json({ message: 'Invalid input data', details: error.details })
       return
     }
     console.error(error)
-    res.status(500).json({ message: 'Ошибка генерации AI-рекомендации' })
+    res.status(500).json({ message: 'Failed to generate AI recommendation' })
   }
 }
 
@@ -69,11 +69,11 @@ export const executeAIPlanHandler = async (req: Request, res: Response) => {
     res.json(result)
   } catch (error) {
     if (error instanceof Joi.ValidationError) {
-      res.status(400).json({ message: 'Некорректные данные запуска AI', details: error.details })
+      res.status(400).json({ message: 'Invalid AI execution data', details: error.details })
       return
     }
     console.error(error)
-    res.status(500).json({ message: 'Ошибка исполнения AI стратегии' })
+    res.status(500).json({ message: 'Failed to execute AI strategy' })
   }
 }
 
@@ -85,11 +85,11 @@ export const previewAIPlanHandler = async (req: Request, res: Response) => {
     res.json(preview)
   } catch (error) {
     if (error instanceof Joi.ValidationError) {
-      res.status(400).json({ message: 'Некорректные данные запуска AI', details: error.details })
+      res.status(400).json({ message: 'Invalid AI execution data', details: error.details })
       return
     }
     console.error(error)
-    res.status(500).json({ message: 'Не удалось построить AI preview' })
+    res.status(500).json({ message: 'Failed to build AI preview' })
   }
 }
 
@@ -98,7 +98,7 @@ export const getAIExecutionHistoryHandler = async (req: Request, res: Response) 
     const { account } = req.params
     const normalized = account.toLowerCase()
     if (!/^0x[a-f0-9]{4,}$/.test(normalized)) {
-      res.status(400).json({ message: 'Некорректный адрес аккаунта' })
+      res.status(400).json({ message: 'Invalid account address' })
       return
     }
 
@@ -114,7 +114,7 @@ export const getAIExecutionHistoryHandler = async (req: Request, res: Response) 
     res.json(history)
   } catch (error) {
     console.error(error)
-    res.status(500).json({ message: 'Не удалось получить историю AI-исполнений' })
+    res.status(500).json({ message: 'Failed to get AI execution history' })
   }
 }
 
@@ -123,7 +123,7 @@ export const getAIExecutionSummaryHandler = async (req: Request, res: Response) 
     const { account } = req.params
     const normalized = account.toLowerCase()
     if (!/^0x[a-f0-9]{4,}$/.test(normalized)) {
-      res.status(400).json({ message: 'Некорректный адрес аккаунта' })
+      res.status(400).json({ message: 'Invalid account address' })
       return
     }
 
@@ -131,7 +131,7 @@ export const getAIExecutionSummaryHandler = async (req: Request, res: Response) 
     res.json(summary)
   } catch (error) {
     console.error(error)
-    res.status(500).json({ message: 'Не удалось построить сводку AI-исполнений' })
+    res.status(500).json({ message: 'Failed to build AI execution summary' })
   }
 }
 
@@ -140,7 +140,7 @@ export const getAISimulationHistoryHandler = async (req: Request, res: Response)
     const { account } = req.params
     const normalized = account.toLowerCase()
     if (!/^0x[a-f0-9]{4,}$/.test(normalized)) {
-      res.status(400).json({ message: 'Некорректный адрес аккаунта' })
+      res.status(400).json({ message: 'Invalid account address' })
       return
     }
 
@@ -157,7 +157,7 @@ export const getAISimulationHistoryHandler = async (req: Request, res: Response)
     res.json(logs)
   } catch (error) {
     console.error(error)
-    res.status(500).json({ message: 'Не удалось получить историю AI симуляций' })
+    res.status(500).json({ message: 'Failed to get AI simulation history' })
   }
 }
 
@@ -166,7 +166,7 @@ export const getAIExecutionAnalyticsHandler = async (req: Request, res: Response
     const { account } = req.params
     const normalized = account.toLowerCase()
     if (!/^0x[a-f0-9]{4,}$/.test(normalized)) {
-      res.status(400).json({ message: 'Некорректный адрес аккаунта' })
+      res.status(400).json({ message: 'Invalid account address' })
       return
     }
 
@@ -174,7 +174,7 @@ export const getAIExecutionAnalyticsHandler = async (req: Request, res: Response
     res.json(analytics)
   } catch (error) {
     console.error(error)
-    res.status(500).json({ message: 'Не удалось построить аналитику AI-исполнений' })
+    res.status(500).json({ message: 'Failed to build AI execution analytics' })
   }
 }
 
@@ -217,7 +217,7 @@ export const runAISchedulerOnceHandler = async (_req: Request, res: Response) =>
     const summary = await runSchedulerOnce()
     if (summary == null) {
       res.status(202).json({
-        message: 'Запуск пропущен: предыдущая итерация ещё выполняется.',
+        message: 'Execution skipped: previous iteration still running.',
         status: getSchedulerStatus()
       })
       return
@@ -228,12 +228,12 @@ export const runAISchedulerOnceHandler = async (_req: Request, res: Response) =>
       status: getSchedulerStatus()
     })
   } catch (error) {
-    if (error instanceof Error && error.message.includes('уже выполняется')) {
+    if (error instanceof Error && error.message.includes('already running')) {
       res.status(409).json({ message: error.message, status: getSchedulerStatus() })
       return
     }
 
     console.error(error)
-    res.status(500).json({ message: 'Не удалось выполнить AI scheduler вручную', status: getSchedulerStatus() })
+    res.status(500).json({ message: 'Failed to manually trigger AI scheduler', status: getSchedulerStatus() })
   }
 }

@@ -35,12 +35,28 @@ import type {
   SecurityDashboardSummary
 } from '@defitreasuryai/types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
+const resolveApiBase = (): string => {
+  const envBase = process.env.NEXT_PUBLIC_API_URL;
+  if (envBase && envBase.length > 0) {
+    return envBase;
+  }
 
-export const apiBaseUrl = API_BASE;
+  // Fallback for development only
+  if (process.env.NODE_ENV === 'development') {
+    return 'http://localhost:4000/api';
+  }
+
+  // In production, NEXT_PUBLIC_API_URL must be set
+  throw new Error('NEXT_PUBLIC_API_URL is not configured');
+};
+
+const apiBaseUrl = resolveApiBase();
+
+export { apiBaseUrl };
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const base = resolveApiBase();
+  const res = await fetch(`${base}${path}`, {
     headers: { 'Content-Type': 'application/json' },
     cache: 'no-store',
     ...init
@@ -56,7 +72,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export const apiClient = {
   getHealthStatus() {
     return (async () => {
-      const res = await fetch(`${API_BASE}/health`, {
+      const base = resolveApiBase();
+      const res = await fetch(`${base}/health`, {
         headers: { 'Content-Type': 'application/json' },
         cache: 'no-store'
       });
@@ -102,7 +119,8 @@ export const apiClient = {
   },
   getMonitoringStreamUrl(account?: string) {
     const suffix = account != null ? `/monitoring/stream/${account}` : '/monitoring/stream';
-    return `${API_BASE}${suffix}`;
+    const base = resolveApiBase();
+    return `${base}${suffix}`;
   },
   triggerEmergencyStop(account: string) {
     return request<EmergencyStopResponse>(`/treasury/emergency-stop/${account}`, {
@@ -116,7 +134,8 @@ export const apiClient = {
   },
   getEmergencyStreamUrl(account?: string) {
     const suffix = account != null ? `/treasury/emergency-stream/${account}` : '/treasury/emergency-stream';
-    return `${API_BASE}${suffix}`;
+    const base = resolveApiBase();
+    return `${base}${suffix}`;
   },
   getDemoSummary(account?: string) {
     const suffix = account != null ? `/demo/summary/${account}` : '/demo/summary';
@@ -127,18 +146,19 @@ export const apiClient = {
       method: 'POST'
     });
   },
-  createCorporateAccount(body: { owners: string[]; threshold: number }) {
-    return request<{ address: string; owners: string[]; threshold: number }>(`/treasury/accounts`, {
+  createCorporateAccount(body: { owners: string[]; threshold: number; agentName?: string }) {
+    return request<{ address: string; owners: string[]; threshold: number; aiAgentAddress: string; aiAgentName: string }>(`/treasury/accounts`, {
       method: 'POST',
       body: JSON.stringify(body)
     });
   },
   configureDelegation(body: {
     account: string;
-    delegate: string;
+    delegate?: string;
     dailyLimitUsd: number;
     whitelist: string[];
     maxRiskScore: number;
+    agentName?: string;
   }) {
     return request<DelegationConfig>(`/treasury/delegations`, {
       method: 'POST',
@@ -256,5 +276,44 @@ export const apiClient = {
   },
   getSecurityDashboard(account: string) {
     return request<SecurityDashboardSummary>(`/treasury/security/${account}`);
+  },
+
+  // Pool Discovery API
+  getPools(): Promise<any> {
+    return request(`/pools`);
+  },
+  getPoolCategories(): Promise<any> {
+    return request(`/pools/categories`);
+  },
+  getPoolsByChain(chain: string): Promise<any> {
+    return request(`/pools/chain/${chain}`);
+  },
+  getPoolsByCategory(category: string): Promise<any> {
+    return request(`/pools/category/${category}`);
+  },
+  getPoolsByRisk(minRisk: number, maxRisk: number): Promise<any> {
+    return request(`/pools/risk?min=${minRisk}&max=${maxRisk}`);
+  },
+  searchPools(query: string): Promise<any> {
+    return request(`/pools/search?q=${encodeURIComponent(query)}`);
+  },
+  
+  // Whitelist API
+  addPoolToWhitelist(poolId: string): Promise<any> {
+    return request(`/pools/whitelist`, {
+      method: 'POST',
+      body: JSON.stringify({ poolId })
+    });
+  },
+  removePoolFromWhitelist(poolId: string): Promise<any> {
+    return request(`/pools/whitelist/${poolId}`, {
+      method: 'DELETE'
+    });
+  },
+  getWhitelistedPools(): Promise<any> {
+    return request(`/pools/whitelist`);
+  },
+  checkPoolWhitelisted(poolId: string): Promise<any> {
+    return request(`/pools/whitelist/check/${poolId}`);
   }
 };

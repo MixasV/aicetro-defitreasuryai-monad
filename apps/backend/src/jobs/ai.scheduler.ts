@@ -39,7 +39,7 @@ export class AIScheduler {
 
   start (): boolean {
     if (this.enabled) {
-      logger.info('AI scheduler уже запущен, пропуск старта.')
+      logger.info('AI scheduler already running, skipping start.')
       return false
     }
 
@@ -55,7 +55,7 @@ export class AIScheduler {
 
     void this.runCycle('automatic')
     void this.runAutoExecutionCycle()
-    logger.info({ interval: this.intervalMs }, 'AI execution scheduler запущен (with auto-execution).')
+    logger.info({ interval: this.intervalMs }, 'AI execution scheduler started (with auto-execution).')
     return true
   }
 
@@ -121,7 +121,7 @@ export class AIScheduler {
 
   stop (): boolean {
     if (!this.enabled) {
-      logger.info('AI scheduler уже остановлен, пропуск.')
+      logger.info('AI scheduler already stopped, skipping.')
       return false
     }
 
@@ -131,13 +131,13 @@ export class AIScheduler {
     }
 
     this.enabled = false
-    logger.info('AI execution scheduler остановлен.')
+    logger.info('AI execution scheduler stopped.')
     return true
   }
 
   private async runCycle (source: AISchedulerTrigger): Promise<AISchedulerRunSummary | null> {
     if (this.running) {
-      const message = 'AI scheduler iteration уже выполняется.'
+      const message = 'AI scheduler iteration already running.'
       if (source === 'manual') {
         throw new Error(message)
       }

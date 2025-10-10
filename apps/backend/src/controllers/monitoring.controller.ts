@@ -35,11 +35,11 @@ export const getPortfolioSnapshotHandler = async (req: Request, res: Response) =
     res.json(snapshot)
   } catch (error) {
     if (error instanceof Joi.ValidationError) {
-      res.status(400).json({ message: 'Некорректный адрес', details: error.details })
+      res.status(400).json({ message: 'Invalid address', details: error.details })
       return
     }
     console.error(error)
-    res.status(500).json({ message: 'Не удалось получить данные портфеля' })
+    res.status(500).json({ message: 'Failed to get portfolio data' })
   }
 }
 
@@ -50,11 +50,11 @@ export const getRiskAlertsHandler = async (req: Request, res: Response) => {
     res.json(alerts)
   } catch (error) {
     if (error instanceof Joi.ValidationError) {
-      res.status(400).json({ message: 'Некорректный адрес', details: error.details })
+      res.status(400).json({ message: 'Invalid address', details: error.details })
       return
     }
     console.error(error)
-    res.status(500).json({ message: 'Не удалось получить риск-алерты' })
+    res.status(500).json({ message: 'Failed to get risk alerts' })
   }
 }
 
@@ -65,11 +65,11 @@ export const getRiskInsightsHandler = async (req: Request, res: Response) => {
     res.json(insights)
   } catch (error) {
     if (error instanceof Joi.ValidationError) {
-      res.status(400).json({ message: 'Некорректный адрес', details: error.details })
+      res.status(400).json({ message: 'Invalid address', details: error.details })
       return
     }
     console.error(error)
-    res.status(500).json({ message: 'Не удалось рассчитать риск-профиль' })
+    res.status(500).json({ message: 'Failed to calculate risk profile' })
   }
 }
 
@@ -79,7 +79,7 @@ export const getProtocolMetricsHandler = async (_req: Request, res: Response) =>
     res.json(metrics)
   } catch (error) {
     console.error(error)
-    res.status(500).json({ message: 'Не удалось получить метрики протоколов' })
+    res.status(500).json({ message: 'Failed to get protocol metrics' })
   }
 }
 
@@ -90,11 +90,11 @@ export const getPortfolioProjectionHandler = async (req: Request, res: Response)
     res.json(projection)
   } catch (error) {
     if (error instanceof Joi.ValidationError) {
-      res.status(400).json({ message: 'Некорректный адрес', details: error.details })
+      res.status(400).json({ message: 'Invalid address', details: error.details })
       return
     }
     console.error(error)
-    res.status(500).json({ message: 'Не удалось построить проекцию портфеля' })
+    res.status(500).json({ message: 'Failed to build portfolio projection' })
   }
 }
 
@@ -108,11 +108,11 @@ export const monitoringStreamHandler = async (req: Request, res: Response) => {
     }
   } catch (error) {
     if (error instanceof Joi.ValidationError) {
-      res.status(400).json({ message: 'Некорректный адрес', details: error.details })
+      res.status(400).json({ message: 'Invalid address', details: error.details })
       return
     }
     console.error(error)
-    res.status(500).json({ message: 'Не удалось открыть поток событий мониторинга' })
+    res.status(500).json({ message: 'Failed to open monitoring event stream' })
     return
   }
 
@@ -246,7 +246,7 @@ export const getMonitoringPollerHistoryHandler = (req: Request, res: Response) =
   if (typeof limitParam === 'string') {
     const parsed = Number.parseInt(limitParam, 10)
     if (Number.isNaN(parsed) || parsed <= 0) {
-      res.status(400).json({ message: 'Некорректное значение limit' })
+      res.status(400).json({ message: 'Invalid limit value' })
       return
     }
 
@@ -294,13 +294,13 @@ export const runMonitoringPollerOnceHandler = async (_req: Request, res: Respons
       status: getMonitoringPollerStatus()
     })
   } catch (error) {
-    if (error instanceof Error && error.message.includes('уже выполняется')) {
+    if (error instanceof Error && error.message.includes('already running')) {
       res.status(409).json({ message: error.message, status: getMonitoringPollerStatus() })
       return
     }
 
     console.error(error)
-    res.status(500).json({ message: 'Не удалось выполнить мониторинговый poller вручную', status: getMonitoringPollerStatus() })
+    res.status(500).json({ message: 'Failed to manually trigger monitoring poller', status: getMonitoringPollerStatus() })
   }
 }
 

@@ -6,6 +6,8 @@ export interface CorporateAccountState {
   address?: string;
   owners: string[];
   threshold: number;
+  aiAgentAddress?: string;
+  aiAgentName?: string;
 }
 
 interface CorporateAccountContextValue {
@@ -14,6 +16,8 @@ interface CorporateAccountContextValue {
   setAccountAddress: (address?: string | null) => void;
   setOwners: (owners: string[]) => void;
   setThreshold: (threshold: number) => void;
+  setAgentAddress: (address?: string | null) => void;
+  setAgentName: (name?: string | null) => void;
   resetAccount: () => void;
   connectedEOA?: string;
   setConnectedEOA: (address?: string | null) => void;
@@ -102,6 +106,20 @@ export const CorporateAccountProvider = ({ children }: { children: React.ReactNo
     }));
   }, []);
 
+  const setAgentAddress = useCallback<CorporateAccountContextValue['setAgentAddress']>((address) => {
+    setAccountState((prev) => ({
+      ...prev,
+      aiAgentAddress: address ?? undefined
+    }));
+  }, []);
+
+  const setAgentName = useCallback<CorporateAccountContextValue['setAgentName']>((name) => {
+    setAccountState((prev) => ({
+      ...prev,
+      aiAgentName: name ?? undefined
+    }));
+  }, []);
+
   const resetAccount = useCallback(() => {
     setAccountState(defaultState);
   }, []);
@@ -116,10 +134,12 @@ export const CorporateAccountProvider = ({ children }: { children: React.ReactNo
     setAccountAddress,
     setOwners,
     setThreshold,
+    setAgentAddress,
+    setAgentName,
     resetAccount,
     connectedEOA,
     setConnectedEOA
-  }), [account, connectedEOA, resetAccount, setAccount, setAccountAddress, setConnectedEOA, setOwners, setThreshold]);
+  }), [account, connectedEOA, resetAccount, setAccount, setAccountAddress, setAgentAddress, setAgentName, setConnectedEOA, setOwners, setThreshold]);
 
   return <CorporateAccountContext.Provider value={value}>{children}</CorporateAccountContext.Provider>;
 };

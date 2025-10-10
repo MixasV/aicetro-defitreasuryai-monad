@@ -66,7 +66,8 @@ export const CorporateSetupWizard = () => {
     isLoading,
     error,
     updateOwners,
-    updateThreshold
+    updateThreshold,
+    updateAgentName
   } = useSmartAccount();
   const { sdk } = useSDK();
   const { createDelegation } = useDelegationToolkit();
@@ -80,7 +81,8 @@ export const CorporateSetupWizard = () => {
     });
     return Array.from(registry);
   }, [delegations]);
-  const [delegate, setDelegate] = useState<string>(DEMO_AI_DELEGATE);
+  const [delegate, setDelegate] = useState<string>(account.aiAgentAddress ?? DEMO_AI_DELEGATE);
+  const [agentName, setAgentNameState] = useState<string>(account.aiAgentName ?? '');
   const [dailyLimit, setDailyLimit] = useState<number>(10_000);
   const [maxRiskScore, setMaxRiskScore] = useState<number>(3);
   const [whitelist, setWhitelist] = useState<string[]>(() => [...DEMO_PROTOCOLS]);
@@ -155,6 +157,18 @@ export const CorporateSetupWizard = () => {
   }, [account.threshold]);
 
   useEffect(() => {
+    if (typeof account.aiAgentAddress === 'string' && account.aiAgentAddress !== '') {
+      setDelegate(account.aiAgentAddress);
+    }
+  }, [account.aiAgentAddress]);
+
+  useEffect(() => {
+    if (typeof account.aiAgentName === 'string') {
+      setAgentNameState(account.aiAgentName);
+    }
+  }, [account.aiAgentName]);
+
+  useEffect(() => {
     if (!connectedEOA) return;
     setOwners((prev) => {
       const next = ensureOwnerList(prev);
@@ -173,12 +187,18 @@ export const CorporateSetupWizard = () => {
       return;
     }
 
+    const trimmedAgentName = agentName.trim();
+    if (trimmedAgentName.length === 0) {
+      setDelegationError('Provide a name for your AI agent.');
+      return;
+    }
+
     const normalizedAccount = account.address.toLowerCase();
-    const normalizedDelegate = delegate.toLowerCase();
+    const resolvedDelegate = (account.aiAgentAddress ?? delegate).toLowerCase();
     const isHexAddress = /^0x[a-f0-9]{40}$/;
 
-    if (!isHexAddress.test(normalizedDelegate)) {
-      setDelegationError('Provide a valid AI agent address.');
+    if (!isHexAddress.test(resolvedDelegate)) {
+      setDelegationError('AI agent address is invalid.');
       return;
     }
 
@@ -227,14 +247,14 @@ export const CorporateSetupWizard = () => {
       const normalizedLimit = Math.round(dailyLimit);
       const validitySeconds = DEFAULT_DELEGATION_VALIDITY_SECONDS;
       const validUntil = Math.floor(Date.now() / 1000) + validitySeconds;
-      const hasExistingDelegation = delegationConfig?.delegate?.toLowerCase() === normalizedDelegate;
+      const hasExistingDelegation = delegationConfig?.delegate?.toLowerCase() === resolvedDelegate;
 
       const encodedCall = encodeFunctionData({
         abi: trustlessTreasuryAbi,
         functionName: hasExistingDelegation ? 'updateDelegation' : 'grantDelegation',
         args: hasExistingDelegation
           ? [BigInt(normalizedLimit), protocolTargets, BigInt(validUntil)]
-          : [normalizedDelegate as Hex, BigInt(normalizedLimit), protocolTargets, BigInt(validUntil)]
+          : [resolvedDelegate as Hex, BigInt(normalizedLimit), protocolTargets, BigInt(validUntil)]
       });
 
       const transactionHash = await provider.request({
@@ -259,12 +279,15 @@ export const CorporateSetupWizard = () => {
         }
       }
 
+      updateAgentName(trimmedAgentName);
+
       const response = await apiClient.configureDelegation({
         account: normalizedAccount,
-        delegate: normalizedDelegate,
+        delegate: resolvedDelegate,
         dailyLimitUsd: normalizedLimit,
         whitelist,
-        maxRiskScore
+        maxRiskScore,
+        agentName: trimmedAgentName
       });
 
       const fallbackValidUntil = new Date(validUntil * 1000).toISOString();
@@ -277,6 +300,7 @@ export const CorporateSetupWizard = () => {
 
       setDelegationConfig(nextConfig);
       setDelegate(nextConfig.delegate);
+      setAgentNameState(trimmedAgentName);
       const parsedLimit = Number.parseFloat(nextConfig.dailyLimit);
       setDailyLimit(Number.isFinite(parsedLimit) ? parsedLimit : dailyLimit);
       setMaxRiskScore(nextConfig.maxRiskScore);
@@ -288,7 +312,7 @@ export const CorporateSetupWizard = () => {
           : 'Delegation parameters stored on-chain.'
       );
 
-      const draft = await createDelegation(normalizedAccount, normalizedDelegate, whitelist);
+      const draft = await createDelegation(normalizedAccount, resolvedDelegate, whitelist);
       setDelegationDraft(draft);
 
       const typedData = (draft.delegation as any)?.typedData;
@@ -530,7 +554,11 @@ export const CorporateSetupWizard = () => {
         onOwnerChange={handleOwnerChange}
         onThresholdChange={handleThresholdChange}
         delegate={delegate}
-        onDelegateChange={setDelegate}
+        agentName={agentName}
+        onAgentNameChange={(value) => {
+          setAgentNameState(value);
+          updateAgentName(value);
+        }}
         dailyLimit={dailyLimit}
         onDailyLimitChange={setDailyLimit}
         maxRiskScore={maxRiskScore}
@@ -658,7 +686,8 @@ const WizardContent = ({
   onOwnerChange,
   onThresholdChange,
   delegate,
-  onDelegateChange,
+  agentName,
+  onAgentNameChange,
   dailyLimit,
   onDailyLimitChange,
   maxRiskScore,
@@ -686,8 +715,8 @@ const WizardContent = ({
   isResumingDelegation
 }: {
   step: number;
-  createCorporateAccount: (owners: string[], threshold?: number) => Promise<void> | void;
-  account: { address?: string; owners: string[]; threshold: number };
+  createCorporateAccount: (owners: string[], threshold?: number, agentName?: string) => Promise<void> | void;
+  account: { address?: string; owners: string[]; threshold: number; aiAgentAddress?: string; aiAgentName?: string };
   isLoading: boolean;
   error: string | null;
   owners: string[];
@@ -695,7 +724,8 @@ const WizardContent = ({
   onOwnerChange: (index: number, value: string) => void;
   onThresholdChange: (threshold: number) => void;
   delegate: string;
-  onDelegateChange: (value: string) => void;
+  agentName: string;
+  onAgentNameChange: (value: string) => void;
   dailyLimit: number;
   onDailyLimitChange: (value: number) => void;
   maxRiskScore: number;
@@ -809,14 +839,14 @@ const WizardContent = ({
         isResumingDelegation;
 
       return (
-        <WizardCard title="AI delegation" description="Select the AI agent and define daily execution limits.">
+        <WizardCard title="AI delegation" description="Name your AI agent and define the execution guardrails.">
           <div className="grid gap-4 md:grid-cols-2">
             <label className="block text-xs font-medium uppercase tracking-wide text-slate-300">
-              AI agent address
+              AI agent name
               <input
-                value={delegate}
-                onChange={(event) => onDelegateChange(event.target.value.trim())}
-                placeholder="0x..."
+                value={agentName}
+                onChange={(event) => onAgentNameChange(event.target.value)}
+                placeholder="Treasury copilot"
                 className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white focus:border-primary-500 focus:outline-none"
               />
             </label>
@@ -834,6 +864,16 @@ const WizardContent = ({
                 className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white focus:border-primary-500 focus:outline-none"
               />
             </label>
+          </div>
+
+          <div className="mt-4 rounded-lg border border-white/10 bg-black/20 p-4 text-xs text-slate-300">
+            <p className="font-medium text-primary-100">Auto-generated agent address</p>
+            <p className="mt-2 font-mono text-[11px] text-slate-200">
+              {delegate || 'AI agent address will be generated after account provisioning'}
+            </p>
+            <p className="mt-1 text-[11px] text-slate-400">
+              The platform issues a dedicated smart account for this treasury. You only need to provide the agent name.
+            </p>
           </div>
 
           {delegationConfig && (

@@ -8,7 +8,7 @@ networks:
   rpc: https://testnet-rpc.monad.xyz
   contracts:
   - name: TrustlessDeFiTreasury
-    address: 0x98691ae190682dddBde3cd4c493B2249D2086E5B
+    address: 0x5a531079eCe02e2bBF83853027d135d9f80fEdDA
     abi_file_path: ./abi/TrustlessDeFiTreasury.json
     handler: ./src/mappings/trustlessDeFiTreasury.ts
     events:
@@ -25,7 +25,7 @@ networks:
       - name: SpendRecorded
         event: SpendRecorded(address indexed user, address indexed protocol, uint256 valueUsd, uint256 spentToday)
   - name: EmergencyController
-    address: 0x4BE4FE572bAce94aaFF05e4a0c03ff79212C20e5
+    address: 0x720ea3508f015768df891E2692437D1C60725F02
     abi_file_path: ./abi/EmergencyController.json
     handler: ./src/mappings/emergencyController.ts
     events:

@@ -1,13 +1,13 @@
 module ContractType = {
   @genType
   type t = 
-    | @as("CorporateTreasuryManager") CorporateTreasuryManager
     | @as("EmergencyController") EmergencyController
+    | @as("TrustlessDeFiTreasury") TrustlessDeFiTreasury
 
   let name = "CONTRACT_TYPE"
   let variants = [
-    CorporateTreasuryManager,
     EmergencyController,
+    TrustlessDeFiTreasury,
   ]
   let config = Internal.makeEnumConfig(~name, ~variants)
 }
@@ -15,18 +15,16 @@ module ContractType = {
 module EntityType = {
   @genType
   type t = 
-    | @as("CorporateTreasuryManager_CorporateAccountCreated") CorporateTreasuryManager_CorporateAccountCreated
-    | @as("CorporateTreasuryManager_DelegationSpending") CorporateTreasuryManager_DelegationSpending
-    | @as("CorporateTreasuryManager_DelegationUpdated") CorporateTreasuryManager_DelegationUpdated
     | @as("EmergencyController_EmergencyStatusChanged") EmergencyController_EmergencyStatusChanged
+    | @as("TrustlessDeFiTreasury_Delegation") TrustlessDeFiTreasury_Delegation
+    | @as("TrustlessDeFiTreasury_SpendRecorded") TrustlessDeFiTreasury_SpendRecorded
     | @as("dynamic_contract_registry") DynamicContractRegistry
 
   let name = "ENTITY_TYPE"
   let variants = [
-    CorporateTreasuryManager_CorporateAccountCreated,
-    CorporateTreasuryManager_DelegationSpending,
-    CorporateTreasuryManager_DelegationUpdated,
     EmergencyController_EmergencyStatusChanged,
+    TrustlessDeFiTreasury_Delegation,
+    TrustlessDeFiTreasury_SpendRecorded,
     DynamicContractRegistry,
   ]
   let config = Internal.makeEnumConfig(~name, ~variants)

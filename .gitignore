@@ -65,3 +65,10 @@ lockfile
 # Temporary files
 *.tmp
 .cache
+
+# Documentation (exclude all .md except README.md)
+*.md
+!README.md
+
+# Update folder (local updates collection)
+/update/

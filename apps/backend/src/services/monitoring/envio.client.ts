@@ -69,7 +69,7 @@ class EnvioClient {
         positions
       }
     } catch (error) {
-      logger.warn({ err: error }, '[envio] Не удалось получить данные портфеля')
+      logger.warn({ err: error }, '[envio] Failed to fetch portfolio data')
       return null
     }
   }
@@ -89,7 +89,7 @@ class EnvioClient {
         createdAt: alert.detectedAt ?? new Date().toISOString()
       }))
     } catch (error) {
-      logger.warn({ err: error }, '[envio] Не удалось получить алерты')
+      logger.warn({ err: error }, '[envio] Failed to fetch alerts')
       return null
     }
   }
@@ -105,13 +105,13 @@ class EnvioClient {
       })
 
       if (data.errors != null && data.errors.length > 0) {
-        logger.warn({ errors: data.errors }, '[envio] GraphQL вернул ошибки')
+        logger.warn({ errors: data.errors }, '[envio] GraphQL returned errors')
         return null
       }
 
       return data.data ?? null
     } catch (error) {
-      logger.warn({ err: error }, '[envio] Ошибка GraphQL запроса')
+      logger.warn({ err: error }, '[envio] GraphQL query error')
       return null
     }
   }
@@ -130,11 +130,11 @@ const toAlertSeverity = (severity?: string): AlertEvent['severity'] => {
 
 const PORTFOLIO_QUERY = `
   query CorporatePortfolio($address: String!) {
-    portfolio: corporatePortfolio(address: $address) {
+    portfolio: corporatePortfolio(args: { address: $address }) {
       totalValueUsd
       netApy
     }
-    positions: corporatePositions(address: $address) {
+    positions: corporatePositions(args: { address: $address }) {
       protocol
       asset
       amount
@@ -147,7 +147,7 @@ const PORTFOLIO_QUERY = `
 
 const ALERTS_QUERY = `
   query RiskAlerts($address: String!) {
-    alerts: riskAlerts(address: $address) {
+    alerts: riskAlerts(args: { address: $address }) {
       protocol
       severity
       message

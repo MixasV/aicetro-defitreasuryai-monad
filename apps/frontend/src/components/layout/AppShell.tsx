@@ -6,6 +6,7 @@ import { useAppMode } from '../../hooks/useAppMode';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard' },
+  { href: '/pools', label: 'Pools' },
   { href: '/wizard', label: 'Onboarding' },
   { href: '/ai-controls', label: 'AI Orchestration' },
   { href: '/emergency', label: 'Emergency' },
@@ -124,40 +125,48 @@ const ModeToggle = ({
   mode: ApplicationMode;
   isSwitching: boolean;
   onSwitch: (mode: ApplicationMode) => Promise<void>;
-}) => (
-  <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-[11px] text-slate-300">
-    <span className="uppercase tracking-wide text-slate-400">Mode</span>
-    <button
-      type="button"
-      onClick={() => {
-        if (mode !== 'real') {
-          void onSwitch('real');
-        }
-      }}
-      disabled={isSwitching || mode === 'real'}
-      className={`rounded-full px-3 py-1 font-medium transition ${
-        mode === 'real'
-          ? 'bg-primary-500/20 text-primary-100'
-          : 'text-slate-300 hover:text-white'
-      } disabled:opacity-50`}
-    >
-      Real Trading
-    </button>
-    <button
-      type="button"
-      onClick={() => {
-        if (mode !== 'preview') {
-          void onSwitch('preview');
-        }
-      }}
-      disabled={isSwitching || mode === 'preview'}
-      className={`rounded-full px-3 py-1 font-medium transition ${
-        mode === 'preview'
-          ? 'bg-amber-400/20 text-amber-100'
-          : 'text-slate-300 hover:text-white'
-      } disabled:opacity-50`}
-    >
-      Preview
-    </button>
-  </div>
-);
+}) => {
+  console.log('[ModeToggle] Current mode:', mode, 'isSwitching:', isSwitching);
+  
+  return (
+    <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-[11px] text-slate-300">
+      <span className="uppercase tracking-wide text-slate-400">Mode</span>
+      <button
+        type="button"
+        onClick={() => {
+          console.log('[ModeToggle] Real Trading clicked, current mode:', mode);
+          if (mode !== 'real') {
+            console.log('[ModeToggle] Switching to real...');
+            void onSwitch('real');
+          }
+        }}
+        disabled={isSwitching || mode === 'real'}
+        className={`rounded-full px-3 py-1 font-medium transition ${
+          mode === 'real'
+            ? 'bg-primary-500/20 text-primary-100'
+            : 'text-slate-300 hover:text-white'
+        } disabled:opacity-50`}
+      >
+        Real Trading
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          console.log('[ModeToggle] Preview clicked, current mode:', mode);
+          if (mode !== 'preview') {
+            console.log('[ModeToggle] Switching to preview...');
+            void onSwitch('preview');
+          }
+        }}
+        disabled={isSwitching || mode === 'preview'}
+        className={`rounded-full px-3 py-1 font-medium transition ${
+          mode === 'preview'
+            ? 'bg-amber-400/20 text-amber-100'
+            : 'text-slate-300 hover:text-white'
+        } disabled:opacity-50`}
+      >
+        Preview
+      </button>
+    </div>
+  );
+};

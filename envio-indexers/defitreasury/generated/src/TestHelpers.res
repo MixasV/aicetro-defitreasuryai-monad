@@ -142,140 +142,6 @@ module EventFunctions = {
 }
 
 
-module CorporateTreasuryManager = {
-  module CorporateAccountCreated = {
-    @genType
-    let processEvent: EventFunctions.eventProcessor<Types.CorporateTreasuryManager.CorporateAccountCreated.event> = EventFunctions.makeEventProcessor(
-      ~register=(Types.CorporateTreasuryManager.CorporateAccountCreated.register :> unit => Internal.eventConfig),
-    )
-
-    @genType
-    type createMockArgs = {
-      @as("account")
-      account?: Address.t,
-      @as("owners")
-      owners?: array<Address.t>,
-      @as("threshold")
-      threshold?: bigint,
-      mockEventData?: EventFunctions.mockEventData,
-    }
-
-    @genType
-    let createMockEvent = args => {
-      let {
-        ?account,
-        ?owners,
-        ?threshold,
-        ?mockEventData,
-      } = args
-
-      let params = 
-      {
-       account: account->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
-       owners: owners->Belt.Option.getWithDefault([]),
-       threshold: threshold->Belt.Option.getWithDefault(0n),
-      }
-->(Utils.magic: Types.CorporateTreasuryManager.CorporateAccountCreated.eventArgs => Internal.eventParams)
-
-      EventFunctions.makeEventMocker(
-        ~params,
-        ~mockEventData,
-        ~register=(Types.CorporateTreasuryManager.CorporateAccountCreated.register :> unit => Internal.eventConfig),
-      )->(Utils.magic: Internal.event => Types.CorporateTreasuryManager.CorporateAccountCreated.event)
-    }
-  }
-
-  module DelegationSpending = {
-    @genType
-    let processEvent: EventFunctions.eventProcessor<Types.CorporateTreasuryManager.DelegationSpending.event> = EventFunctions.makeEventProcessor(
-      ~register=(Types.CorporateTreasuryManager.DelegationSpending.register :> unit => Internal.eventConfig),
-    )
-
-    @genType
-    type createMockArgs = {
-      @as("account")
-      account?: Address.t,
-      @as("amount")
-      amount?: bigint,
-      @as("newSpent")
-      newSpent?: bigint,
-      mockEventData?: EventFunctions.mockEventData,
-    }
-
-    @genType
-    let createMockEvent = args => {
-      let {
-        ?account,
-        ?amount,
-        ?newSpent,
-        ?mockEventData,
-      } = args
-
-      let params = 
-      {
-       account: account->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
-       amount: amount->Belt.Option.getWithDefault(0n),
-       newSpent: newSpent->Belt.Option.getWithDefault(0n),
-      }
-->(Utils.magic: Types.CorporateTreasuryManager.DelegationSpending.eventArgs => Internal.eventParams)
-
-      EventFunctions.makeEventMocker(
-        ~params,
-        ~mockEventData,
-        ~register=(Types.CorporateTreasuryManager.DelegationSpending.register :> unit => Internal.eventConfig),
-      )->(Utils.magic: Internal.event => Types.CorporateTreasuryManager.DelegationSpending.event)
-    }
-  }
-
-  module DelegationUpdated = {
-    @genType
-    let processEvent: EventFunctions.eventProcessor<Types.CorporateTreasuryManager.DelegationUpdated.event> = EventFunctions.makeEventProcessor(
-      ~register=(Types.CorporateTreasuryManager.DelegationUpdated.register :> unit => Internal.eventConfig),
-    )
-
-    @genType
-    type createMockArgs = {
-      @as("account")
-      account?: Address.t,
-      @as("delegate")
-      delegate?: Address.t,
-      @as("limit")
-      limit?: bigint,
-      @as("active")
-      active?: bool,
-      mockEventData?: EventFunctions.mockEventData,
-    }
-
-    @genType
-    let createMockEvent = args => {
-      let {
-        ?account,
-        ?delegate,
-        ?limit,
-        ?active,
-        ?mockEventData,
-      } = args
-
-      let params = 
-      {
-       account: account->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
-       delegate: delegate->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
-       limit: limit->Belt.Option.getWithDefault(0n),
-       active: active->Belt.Option.getWithDefault(false),
-      }
-->(Utils.magic: Types.CorporateTreasuryManager.DelegationUpdated.eventArgs => Internal.eventParams)
-
-      EventFunctions.makeEventMocker(
-        ~params,
-        ~mockEventData,
-        ~register=(Types.CorporateTreasuryManager.DelegationUpdated.register :> unit => Internal.eventConfig),
-      )->(Utils.magic: Internal.event => Types.CorporateTreasuryManager.DelegationUpdated.event)
-    }
-  }
-
-}
-
-
 module EmergencyController = {
   module EmergencyStatusChanged = {
     @genType
@@ -308,6 +174,266 @@ module EmergencyController = {
         ~mockEventData,
         ~register=(Types.EmergencyController.EmergencyStatusChanged.register :> unit => Internal.eventConfig),
       )->(Utils.magic: Internal.event => Types.EmergencyController.EmergencyStatusChanged.event)
+    }
+  }
+
+}
+
+
+module TrustlessDeFiTreasury = {
+  module DelegationGranted = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.TrustlessDeFiTreasury.DelegationGranted.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.TrustlessDeFiTreasury.DelegationGranted.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("user")
+      user?: Address.t,
+      @as("aiAgent")
+      aiAgent?: Address.t,
+      @as("dailyLimitUSD")
+      dailyLimitUSD?: bigint,
+      @as("validUntil")
+      validUntil?: bigint,
+      @as("protocolWhitelist")
+      protocolWhitelist?: array<Address.t>,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?user,
+        ?aiAgent,
+        ?dailyLimitUSD,
+        ?validUntil,
+        ?protocolWhitelist,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       user: user->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       aiAgent: aiAgent->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       dailyLimitUSD: dailyLimitUSD->Belt.Option.getWithDefault(0n),
+       validUntil: validUntil->Belt.Option.getWithDefault(0n),
+       protocolWhitelist: protocolWhitelist->Belt.Option.getWithDefault([]),
+      }
+->(Utils.magic: Types.TrustlessDeFiTreasury.DelegationGranted.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.TrustlessDeFiTreasury.DelegationGranted.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.TrustlessDeFiTreasury.DelegationGranted.event)
+    }
+  }
+
+  module DelegationUpdated = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.TrustlessDeFiTreasury.DelegationUpdated.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.TrustlessDeFiTreasury.DelegationUpdated.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("user")
+      user?: Address.t,
+      @as("aiAgent")
+      aiAgent?: Address.t,
+      @as("dailyLimitUSD")
+      dailyLimitUSD?: bigint,
+      @as("validUntil")
+      validUntil?: bigint,
+      @as("protocolWhitelist")
+      protocolWhitelist?: array<Address.t>,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?user,
+        ?aiAgent,
+        ?dailyLimitUSD,
+        ?validUntil,
+        ?protocolWhitelist,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       user: user->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       aiAgent: aiAgent->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       dailyLimitUSD: dailyLimitUSD->Belt.Option.getWithDefault(0n),
+       validUntil: validUntil->Belt.Option.getWithDefault(0n),
+       protocolWhitelist: protocolWhitelist->Belt.Option.getWithDefault([]),
+      }
+->(Utils.magic: Types.TrustlessDeFiTreasury.DelegationUpdated.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.TrustlessDeFiTreasury.DelegationUpdated.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.TrustlessDeFiTreasury.DelegationUpdated.event)
+    }
+  }
+
+  module DelegationRevoked = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.TrustlessDeFiTreasury.DelegationRevoked.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.TrustlessDeFiTreasury.DelegationRevoked.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("user")
+      user?: Address.t,
+      @as("aiAgent")
+      aiAgent?: Address.t,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?user,
+        ?aiAgent,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       user: user->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       aiAgent: aiAgent->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+      }
+->(Utils.magic: Types.TrustlessDeFiTreasury.DelegationRevoked.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.TrustlessDeFiTreasury.DelegationRevoked.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.TrustlessDeFiTreasury.DelegationRevoked.event)
+    }
+  }
+
+  module DelegationPaused = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.TrustlessDeFiTreasury.DelegationPaused.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.TrustlessDeFiTreasury.DelegationPaused.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("user")
+      user?: Address.t,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?user,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       user: user->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+      }
+->(Utils.magic: Types.TrustlessDeFiTreasury.DelegationPaused.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.TrustlessDeFiTreasury.DelegationPaused.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.TrustlessDeFiTreasury.DelegationPaused.event)
+    }
+  }
+
+  module DelegationResumed = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.TrustlessDeFiTreasury.DelegationResumed.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.TrustlessDeFiTreasury.DelegationResumed.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("user")
+      user?: Address.t,
+      @as("validUntil")
+      validUntil?: bigint,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?user,
+        ?validUntil,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       user: user->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       validUntil: validUntil->Belt.Option.getWithDefault(0n),
+      }
+->(Utils.magic: Types.TrustlessDeFiTreasury.DelegationResumed.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.TrustlessDeFiTreasury.DelegationResumed.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.TrustlessDeFiTreasury.DelegationResumed.event)
+    }
+  }
+
+  module SpendRecorded = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.TrustlessDeFiTreasury.SpendRecorded.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.TrustlessDeFiTreasury.SpendRecorded.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("user")
+      user?: Address.t,
+      @as("protocol")
+      protocol?: Address.t,
+      @as("valueUsd")
+      valueUsd?: bigint,
+      @as("spentToday")
+      spentToday?: bigint,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?user,
+        ?protocol,
+        ?valueUsd,
+        ?spentToday,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       user: user->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       protocol: protocol->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       valueUsd: valueUsd->Belt.Option.getWithDefault(0n),
+       spentToday: spentToday->Belt.Option.getWithDefault(0n),
+      }
+->(Utils.magic: Types.TrustlessDeFiTreasury.SpendRecorded.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.TrustlessDeFiTreasury.SpendRecorded.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.TrustlessDeFiTreasury.SpendRecorded.event)
     }
   }
 

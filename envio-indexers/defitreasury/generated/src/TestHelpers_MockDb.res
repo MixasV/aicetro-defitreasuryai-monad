@@ -69,10 +69,9 @@ type rec t = {
 // Each user defined entity will be in this record with all the store or "mockdb" operators
 @genType
 and entities = {
-    @as("CorporateTreasuryManager_CorporateAccountCreated") corporateTreasuryManager_CorporateAccountCreated: entityStoreOperations<Entities.CorporateTreasuryManager_CorporateAccountCreated.t>,
-    @as("CorporateTreasuryManager_DelegationSpending") corporateTreasuryManager_DelegationSpending: entityStoreOperations<Entities.CorporateTreasuryManager_DelegationSpending.t>,
-    @as("CorporateTreasuryManager_DelegationUpdated") corporateTreasuryManager_DelegationUpdated: entityStoreOperations<Entities.CorporateTreasuryManager_DelegationUpdated.t>,
     @as("EmergencyController_EmergencyStatusChanged") emergencyController_EmergencyStatusChanged: entityStoreOperations<Entities.EmergencyController_EmergencyStatusChanged.t>,
+    @as("TrustlessDeFiTreasury_Delegation") trustlessDeFiTreasury_Delegation: entityStoreOperations<Entities.TrustlessDeFiTreasury_Delegation.t>,
+    @as("TrustlessDeFiTreasury_SpendRecorded") trustlessDeFiTreasury_SpendRecorded: entityStoreOperations<Entities.TrustlessDeFiTreasury_SpendRecorded.t>,
   }
 // User defined entities always have a string for an id which is used as the
 // key for entity stores
@@ -285,48 +284,6 @@ let rec makeWithInMemoryStore: InMemoryStore.t => t = (inMemoryStore: InMemorySt
   )
 
   let entities = {
-      corporateTreasuryManager_CorporateAccountCreated: {
-        makeStoreOperatorEntity(
-          ~inMemoryStore,
-          ~makeMockDb=makeWithInMemoryStore,
-          ~getStore=db => db->InMemoryStore.getInMemTable(
-            ~entityConfig=module(Entities.CorporateTreasuryManager_CorporateAccountCreated)->Entities.entityModToInternal,
-          )->(
-            Utils.magic: InMemoryTable.Entity.t<Internal.entity> => InMemoryTable.Entity.t<
-              Entities.CorporateTreasuryManager_CorporateAccountCreated.t,
-            >
-          ),
-          ~getKey=({id}) => id,
-        )
-      },
-      corporateTreasuryManager_DelegationSpending: {
-        makeStoreOperatorEntity(
-          ~inMemoryStore,
-          ~makeMockDb=makeWithInMemoryStore,
-          ~getStore=db => db->InMemoryStore.getInMemTable(
-            ~entityConfig=module(Entities.CorporateTreasuryManager_DelegationSpending)->Entities.entityModToInternal,
-          )->(
-            Utils.magic: InMemoryTable.Entity.t<Internal.entity> => InMemoryTable.Entity.t<
-              Entities.CorporateTreasuryManager_DelegationSpending.t,
-            >
-          ),
-          ~getKey=({id}) => id,
-        )
-      },
-      corporateTreasuryManager_DelegationUpdated: {
-        makeStoreOperatorEntity(
-          ~inMemoryStore,
-          ~makeMockDb=makeWithInMemoryStore,
-          ~getStore=db => db->InMemoryStore.getInMemTable(
-            ~entityConfig=module(Entities.CorporateTreasuryManager_DelegationUpdated)->Entities.entityModToInternal,
-          )->(
-            Utils.magic: InMemoryTable.Entity.t<Internal.entity> => InMemoryTable.Entity.t<
-              Entities.CorporateTreasuryManager_DelegationUpdated.t,
-            >
-          ),
-          ~getKey=({id}) => id,
-        )
-      },
       emergencyController_EmergencyStatusChanged: {
         makeStoreOperatorEntity(
           ~inMemoryStore,
@@ -336,6 +293,34 @@ let rec makeWithInMemoryStore: InMemoryStore.t => t = (inMemoryStore: InMemorySt
           )->(
             Utils.magic: InMemoryTable.Entity.t<Internal.entity> => InMemoryTable.Entity.t<
               Entities.EmergencyController_EmergencyStatusChanged.t,
+            >
+          ),
+          ~getKey=({id}) => id,
+        )
+      },
+      trustlessDeFiTreasury_Delegation: {
+        makeStoreOperatorEntity(
+          ~inMemoryStore,
+          ~makeMockDb=makeWithInMemoryStore,
+          ~getStore=db => db->InMemoryStore.getInMemTable(
+            ~entityConfig=module(Entities.TrustlessDeFiTreasury_Delegation)->Entities.entityModToInternal,
+          )->(
+            Utils.magic: InMemoryTable.Entity.t<Internal.entity> => InMemoryTable.Entity.t<
+              Entities.TrustlessDeFiTreasury_Delegation.t,
+            >
+          ),
+          ~getKey=({id}) => id,
+        )
+      },
+      trustlessDeFiTreasury_SpendRecorded: {
+        makeStoreOperatorEntity(
+          ~inMemoryStore,
+          ~makeMockDb=makeWithInMemoryStore,
+          ~getStore=db => db->InMemoryStore.getInMemTable(
+            ~entityConfig=module(Entities.TrustlessDeFiTreasury_SpendRecorded)->Entities.entityModToInternal,
+          )->(
+            Utils.magic: InMemoryTable.Entity.t<Internal.entity> => InMemoryTable.Entity.t<
+              Entities.TrustlessDeFiTreasury_SpendRecorded.t,
             >
           ),
           ~getKey=({id}) => id,

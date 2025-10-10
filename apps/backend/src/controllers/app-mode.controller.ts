@@ -20,10 +20,10 @@ export const updateAppModeHandler = async (req: Request, res: Response) => {
     res.status(200).json(state)
   } catch (error) {
     if (error instanceof Joi.ValidationError) {
-      res.status(400).json({ message: 'Некорректный режим приложения', details: error.details })
+      res.status(400).json({ message: 'Invalid application mode', details: error.details })
       return
     }
     console.error('[mode] Failed to update mode', error)
-    res.status(500).json({ message: 'Не удалось переключить режим приложения' })
+    res.status(500).json({ message: 'Failed to switch application mode' })
   }
 }

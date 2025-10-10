@@ -48,19 +48,19 @@ class DemoService {
       mode: 'simulated'
     }
     const pausedStatus = emergencyStateService.setPaused(account.address, stopMetadata)
-    emergencyLogService.recordSuccess(account.address, 'Demo: AI операции приостановлены для ручной проверки.', {
+    emergencyLogService.recordSuccess(account.address, 'Demo: AI operations paused for manual review.', {
       ...stopMetadata,
       status: pausedStatus.state
     })
 
     const resumeMetadata: EmergencyStatusMetadata = {
       action: 'resume',
-      reason: 'Demo: Контроль завершён, AI снова активен.',
+      reason: 'Demo: Control completed, AI active again.',
       simulated: true,
       mode: 'simulated'
     }
     const activeStatus = emergencyStateService.setActive(account.address, resumeMetadata)
-    emergencyLogService.recordSuccess(account.address, 'Demo: AI операции возобновлены после проверки.', {
+    emergencyLogService.recordSuccess(account.address, 'Demo: AI operations resumed after review.', {
       ...resumeMetadata,
       status: activeStatus.state
     })
@@ -189,45 +189,45 @@ class DemoService {
 
     steps.push({
       id: 'delegation-setup',
-      title: 'Настройка делегирования',
+      title: 'Delegation configuration',
       status: 'completed',
-      description: `AI-агенту доступно ${delegation.whitelist.length} протоколов с дневным лимитом ${delegation.dailyLimitUsd.toLocaleString('en-US')} USD.`,
+      description: `AI agent has access to ${delegation.whitelist.length} protocols with daily limit ${delegation.dailyLimitUsd.toLocaleString('en-US')} USD.`,
       timestamp: delegation.updatedAt
     })
 
     const lastExecution = execution ?? aiSummary.lastExecution
     steps.push({
       id: 'ai-execution',
-      title: 'Запуск AI-стратегии',
+      title: 'AI strategy execution',
       status: aiSummary.totalExecutions > 0 ? 'completed' : 'pending',
       description:
         aiSummary.totalExecutions > 0
-          ? `Последний запуск обработал ${roundCurrency(lastExecution?.totalExecutedUsd ?? 0).toLocaleString('en-US')} USD.`
-          : 'AI ещё не запускался — выполните демо, чтобы увидеть результат.',
+          ? `Last execution processed ${roundCurrency(lastExecution?.totalExecutedUsd ?? 0).toLocaleString('en-US')} USD.`
+          : 'AI has not been executed yet — run demo to see results.',
       timestamp: lastExecution?.generatedAt
     })
 
     const riskStatus = risk.guardrails.violations.length > 0 ? 'error' : 'completed'
     steps.push({
       id: 'risk-review',
-      title: 'Анализ рисков',
+      title: 'Risk analysis',
       status: riskStatus,
       description:
         riskStatus === 'error'
-          ? risk.guardrails.violations[0] ?? 'Обнаружены нарушения guardrails.'
-          : 'Guardrails в норме, риск-профиль соответствует лимитам.',
+          ? risk.guardrails.violations[0] ?? 'Guardrails violations detected.'
+          : 'Guardrails are within limits, risk profile is acceptable.',
       timestamp: risk.updatedAt
     })
 
     const lastEmergency = emergencyLog[0]
     steps.push({
       id: 'emergency-control',
-      title: 'Контроль emergency stop',
+      title: 'Emergency stop control',
       status: lastEmergency != null ? 'completed' : 'pending',
       description:
         lastEmergency != null
-          ? `Последнее событие: ${lastEmergency.status === 'success' ? 'успешная пауза AI' : 'ошибка при остановке'}.`
-          : 'Emergency stop ещё не инициировался в демо-сценарии.',
+          ? `Last event: ${lastEmergency.status === 'success' ? 'successful AI pause' : 'stop error'}.`
+          : 'Emergency stop has not been triggered in the demo scenario yet.',
       timestamp: lastEmergency?.createdAt
     })
 
@@ -237,8 +237,8 @@ class DemoService {
       status: alerts.length > 0 ? 'completed' : 'pending',
       description:
         alerts.length > 0
-          ? `Активных алертов: ${alerts.length}. Последний сигнал: ${alerts[0].title}.`
-          : 'Alert-система отклонений не обнаружила.',
+          ? `Active alerts: ${alerts.length}. Last signal: ${alerts[0].title}.`
+          : 'Alert system detected no deviations.',
       timestamp: alerts[0]?.createdAt
     })
 

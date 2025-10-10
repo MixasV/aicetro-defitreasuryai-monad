@@ -28,16 +28,19 @@ let registerContractHandlers = (
       {
         let contracts = [
           {
-            InternalConfig.name: "CorporateTreasuryManager",
-            abi: Types.CorporateTreasuryManager.abi,
+            InternalConfig.name: "TrustlessDeFiTreasury",
+            abi: Types.TrustlessDeFiTreasury.abi,
             addresses: [
-              "0x98691ae190682dddBde3cd4c493B2249D2086E5B"->Address.Evm.fromStringOrThrow
+              "0x5a531079eCe02e2bBF83853027d135d9f80fEdDA"->Address.Evm.fromStringOrThrow
 ,
             ],
             events: [
-              (Types.CorporateTreasuryManager.CorporateAccountCreated.register() :> Internal.eventConfig),
-              (Types.CorporateTreasuryManager.DelegationSpending.register() :> Internal.eventConfig),
-              (Types.CorporateTreasuryManager.DelegationUpdated.register() :> Internal.eventConfig),
+              (Types.TrustlessDeFiTreasury.DelegationGranted.register() :> Internal.eventConfig),
+              (Types.TrustlessDeFiTreasury.DelegationUpdated.register() :> Internal.eventConfig),
+              (Types.TrustlessDeFiTreasury.DelegationRevoked.register() :> Internal.eventConfig),
+              (Types.TrustlessDeFiTreasury.DelegationPaused.register() :> Internal.eventConfig),
+              (Types.TrustlessDeFiTreasury.DelegationResumed.register() :> Internal.eventConfig),
+              (Types.TrustlessDeFiTreasury.SpendRecorded.register() :> Internal.eventConfig),
             ],
             startBlock: None,
           },
@@ -45,7 +48,7 @@ let registerContractHandlers = (
             InternalConfig.name: "EmergencyController",
             abi: Types.EmergencyController.abi,
             addresses: [
-              "0x4BE4FE572bAce94aaFF05e4a0c03ff79212C20e5"->Address.Evm.fromStringOrThrow
+              "0x720ea3508f015768df891E2692437D1C60725F02"->Address.Evm.fromStringOrThrow
 ,
             ],
             events: [
@@ -60,7 +63,7 @@ let registerContractHandlers = (
           startBlock: 0,
           id: 10143,
           contracts,
-          sources: NetworkSources.evm(~chain, ~contracts=[{name: "CorporateTreasuryManager",events: [Types.CorporateTreasuryManager.CorporateAccountCreated.register(), Types.CorporateTreasuryManager.DelegationSpending.register(), Types.CorporateTreasuryManager.DelegationUpdated.register()],abi: Types.CorporateTreasuryManager.abi}, {name: "EmergencyController",events: [Types.EmergencyController.EmergencyStatusChanged.register()],abi: Types.EmergencyController.abi}], ~hyperSync=Some("https://10143.hypersync.xyz"), ~allEventSignatures=[Types.CorporateTreasuryManager.eventSignatures, Types.EmergencyController.eventSignatures]->Belt.Array.concatMany, ~shouldUseHypersyncClientDecoder=true, ~rpcs=[{url: "https://testnet-rpc.monad.xyz", sourceFor: Fallback, syncConfig: {}}], ~lowercaseAddresses=false)
+          sources: NetworkSources.evm(~chain, ~contracts=[{name: "TrustlessDeFiTreasury",events: [Types.TrustlessDeFiTreasury.DelegationGranted.register(), Types.TrustlessDeFiTreasury.DelegationUpdated.register(), Types.TrustlessDeFiTreasury.DelegationRevoked.register(), Types.TrustlessDeFiTreasury.DelegationPaused.register(), Types.TrustlessDeFiTreasury.DelegationResumed.register(), Types.TrustlessDeFiTreasury.SpendRecorded.register()],abi: Types.TrustlessDeFiTreasury.abi}, {name: "EmergencyController",events: [Types.EmergencyController.EmergencyStatusChanged.register()],abi: Types.EmergencyController.abi}], ~hyperSync=Some("https://10143.hypersync.xyz"), ~allEventSignatures=[Types.TrustlessDeFiTreasury.eventSignatures, Types.EmergencyController.eventSignatures]->Belt.Array.concatMany, ~shouldUseHypersyncClientDecoder=true, ~rpcs=[{url: "https://testnet-rpc.monad.xyz", sourceFor: Fallback, syncConfig: {}}], ~lowercaseAddresses=false)
         }
       },
     ]
@@ -90,14 +93,14 @@ let registerAllHandlers = () => {
   )
 
   registerContractHandlers(
-    ~contractName="CorporateTreasuryManager",
-    ~handlerPathRelativeToRoot="src/mappings/corporateTreasuryManager.ts",
-    ~handlerPathRelativeToConfig="src/mappings/corporateTreasuryManager.ts",
-  )
-  registerContractHandlers(
     ~contractName="EmergencyController",
     ~handlerPathRelativeToRoot="src/mappings/emergencyController.ts",
     ~handlerPathRelativeToConfig="src/mappings/emergencyController.ts",
+  )
+  registerContractHandlers(
+    ~contractName="TrustlessDeFiTreasury",
+    ~handlerPathRelativeToRoot="src/mappings/trustlessDeFiTreasury.ts",
+    ~handlerPathRelativeToConfig="src/mappings/trustlessDeFiTreasury.ts",
   )
 
   let generatedConfig = {

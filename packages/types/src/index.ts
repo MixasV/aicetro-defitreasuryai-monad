@@ -99,6 +99,8 @@ export interface AllocationRecommendation {
   expectedAPY: number;
   rationale: string;
   riskScore: number;
+  amountUsd?: number;
+  reasoning?: string;
 }
 
 export interface AIRecommendationEvaluation {

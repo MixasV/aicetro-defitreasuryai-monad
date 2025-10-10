@@ -28,6 +28,18 @@
   "pnpm": {
     "overrides": {
       "generated": "workspace:*"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "bufferutil",
+      "esbuild",
+      "keccak",
+      "prisma",
+      "rescript",
+      "secp256k1",
+      "unrs-resolver",
+      "utf-8-validate"
+    ]
   }
 }

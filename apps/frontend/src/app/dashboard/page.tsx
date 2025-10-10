@@ -5,6 +5,7 @@ import { AppShell } from '../../components/layout/AppShell';
 import { ExecutiveDashboard } from '../../components/dashboard/ExecutiveDashboard';
 import { MonitoringOperationsPanel } from '../../components/dashboard/MonitoringOperationsPanel';
 import { PreviewOverviewPanel } from '../../components/dashboard/PreviewOverviewPanel';
+import { DemoWelcome } from '../../components/dashboard/DemoWelcome';
 import { useAlerts, usePortfolio, usePortfolioProjection } from '../../hooks/usePortfolio';
 import { useRiskInsights } from '../../hooks/useRiskInsights';
 import { useMonitoringEvents } from '../../hooks/useMonitoringEvents';
@@ -82,10 +83,99 @@ export default function DashboardPage() {
     onError: handleStreamError
   });
 
+  // Show demo welcome + demo dashboard when wallet not connected
+  const showDemoWelcome = !account.address && (isLoading || !portfolio);
+
+  if (showDemoWelcome) {
+    // Import demo data
+    const demoPortfolio = {
+      totalValueUSD: 100000,
+      netAPY: 8.2,
+      positions: [
+        {
+          protocol: "Aave Monad",
+          asset: "USDC",
+          amount: 50000,
+          valueUSD: 50000,
+          currentAPY: 8.4,
+          riskScore: 2
+        },
+        {
+          protocol: "Yearn Monad",
+          asset: "USDT",
+          amount: 25000,
+          valueUSD: 24900,
+          currentAPY: 11.8,
+          riskScore: 4
+        },
+        {
+          protocol: "Nabla Finance",
+          asset: "USDC",
+          amount: 25000,
+          valueUSD: 25100,
+          currentAPY: 15.6,
+          riskScore: 6
+        }
+      ]
+    };
+
+    const demoAlerts: AlertEvent[] = [
+      {
+        id: "demo-1",
+        title: "Aave APY Increased",
+        severity: "info",
+        description: "USDC lending APY increased to 8.4% (+0.5%)",
+        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: "demo-2", 
+        title: "Portfolio Rebalance Recommended",
+        severity: "warning",
+        description: "AI suggests shifting 15% to higher-yield protocols",
+        createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()
+      }
+    ];
+
+    return (
+      <AppShell>
+        <div className="space-y-8">
+          <DemoWelcome />
+          
+          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4">
+            <div className="flex items-center gap-3 text-sm text-amber-200">
+              <span className="text-xl">👇</span>
+              <div>
+                <strong className="font-semibold">Demo Dashboard Below</strong> — 
+                Explore the interface with simulated data. Connect your wallet above to see your real treasury.
+              </div>
+            </div>
+          </div>
+
+          <ExecutiveDashboard
+            totalValueUSD={demoPortfolio.totalValueUSD}
+            netAPY={demoPortfolio.netAPY}
+            positions={demoPortfolio.positions}
+            alerts={demoAlerts}
+            metrics={buildFallbackProjection(demoPortfolio.totalValueUSD, demoPortfolio.netAPY)}
+            projectionLoading={false}
+            riskInsights={null}
+            riskLoading={false}
+            onRefreshRisk={() => {}}
+            delegationSummary={null}
+            emergencyStatus={null}
+          />
+        </div>
+      </AppShell>
+    );
+  }
+
+  // Normal loading state for connected wallet
   if (isLoading || !portfolio) {
     return (
       <AppShell>
-        <div className="flex h-[60vh] items-center justify-center text-slate-400">Synchronising HyperIndex telemetry…</div>
+        <div className="flex h-[60vh] items-center justify-center text-slate-400">
+          Loading your treasury data...
+        </div>
       </AppShell>
     );
   }

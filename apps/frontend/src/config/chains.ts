@@ -1,7 +1,7 @@
 import type { Chain } from 'viem';
 
 export const monadTestnet: Chain = {
-  id: 2814,
+  id: 10143,
   name: 'Monad Testnet',
   nativeCurrency: { name: 'Monad', symbol: 'MON', decimals: 18 },
   rpcUrls: {

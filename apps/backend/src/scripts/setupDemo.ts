@@ -8,7 +8,8 @@ async function main () {
 
   const account = await blockchainService.createCorporateAccount(
     ['0xOwner1', '0xOwner2', '0xOwner3'],
-    2
+    2,
+    'MockCorp Copilot'
   )
   console.log('Corporate account prepared:', account)
 
@@ -31,7 +32,7 @@ async function main () {
     protocolMetrics,
     context: {
       account: account.address.toLowerCase(),
-      delegate: account.address.toLowerCase(),
+      delegate: account.aiAgentAddress.toLowerCase(),
       chainId: 10143,
       scenario: 'demo-setup'
     }

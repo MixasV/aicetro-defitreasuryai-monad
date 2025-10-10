@@ -8,6 +8,6 @@ export const getPreviewOverviewHandler = async (req: Request, res: Response) => 
     res.json(overview)
   } catch (error) {
     console.error('[preview] Failed to build overview', error)
-    res.status(500).json({ message: 'Не удалось получить данные режима Preview' })
+    res.status(500).json({ message: 'Failed to get Preview mode data' })
   }
 }

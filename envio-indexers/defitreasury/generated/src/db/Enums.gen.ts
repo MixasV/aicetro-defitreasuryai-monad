@@ -4,12 +4,11 @@
 /* tslint:disable */
 
 export type ContractType_t = 
-    "CorporateTreasuryManager"
-  | "EmergencyController";
+    "EmergencyController"
+  | "TrustlessDeFiTreasury";
 
 export type EntityType_t = 
-    "CorporateTreasuryManager_CorporateAccountCreated"
-  | "CorporateTreasuryManager_DelegationSpending"
-  | "CorporateTreasuryManager_DelegationUpdated"
-  | "EmergencyController_EmergencyStatusChanged"
+    "EmergencyController_EmergencyStatusChanged"
+  | "TrustlessDeFiTreasury_Delegation"
+  | "TrustlessDeFiTreasury_SpendRecorded"
   | "dynamic_contract_registry";

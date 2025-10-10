@@ -1,13 +1,16 @@
   @genType
-module CorporateTreasuryManager = {
-  module CorporateAccountCreated = Types.MakeRegister(Types.CorporateTreasuryManager.CorporateAccountCreated)
-  module DelegationSpending = Types.MakeRegister(Types.CorporateTreasuryManager.DelegationSpending)
-  module DelegationUpdated = Types.MakeRegister(Types.CorporateTreasuryManager.DelegationUpdated)
+module EmergencyController = {
+  module EmergencyStatusChanged = Types.MakeRegister(Types.EmergencyController.EmergencyStatusChanged)
 }
 
   @genType
-module EmergencyController = {
-  module EmergencyStatusChanged = Types.MakeRegister(Types.EmergencyController.EmergencyStatusChanged)
+module TrustlessDeFiTreasury = {
+  module DelegationGranted = Types.MakeRegister(Types.TrustlessDeFiTreasury.DelegationGranted)
+  module DelegationUpdated = Types.MakeRegister(Types.TrustlessDeFiTreasury.DelegationUpdated)
+  module DelegationRevoked = Types.MakeRegister(Types.TrustlessDeFiTreasury.DelegationRevoked)
+  module DelegationPaused = Types.MakeRegister(Types.TrustlessDeFiTreasury.DelegationPaused)
+  module DelegationResumed = Types.MakeRegister(Types.TrustlessDeFiTreasury.DelegationResumed)
+  module SpendRecorded = Types.MakeRegister(Types.TrustlessDeFiTreasury.SpendRecorded)
 }
 
 @genType /** Register a Block Handler. It'll be called for every block by default. */

@@ -36,25 +36,25 @@ async function main (): Promise<void> {
       }
     },
     update: {
-      dailyLimitUsd: 10_000,
+      dailyLimitUsd: 50_000,
       whitelist: ['Aave Monad', 'Yearn Monad', 'Compound Monad'],
       caveats: {
-        spent24h: 2_500,
+        spent24h: 0,
         spent24hUpdatedAt: new Date().toISOString(),
-        maxRiskScore: 3,
-        notes: 'seed: default delegation'
+        maxRiskScore: 4,
+        notes: 'seed: default delegation with $50k daily limit for demo'
       }
     },
     create: {
       corporateId: corporateAccount.id,
       delegate: DEFAULT_DELEGATE_ADDRESS,
-      dailyLimitUsd: 10_000,
+      dailyLimitUsd: 50_000,
       whitelist: ['Aave Monad', 'Yearn Monad', 'Compound Monad'],
       caveats: {
-        spent24h: 2_500,
+        spent24h: 0,
         spent24hUpdatedAt: new Date().toISOString(),
-        maxRiskScore: 3,
-        notes: 'seed: default delegation'
+        maxRiskScore: 4,
+        notes: 'seed: default delegation with $50k daily limit for demo'
       }
     }
   })

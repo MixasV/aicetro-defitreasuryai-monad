@@ -50,13 +50,13 @@ export class EnvioStreamService {
 
   async start (): Promise<boolean> {
     if (this.enabled) {
-      logger.info('Envio stream уже запущен, пропуск старта.')
+      logger.info('Envio stream already running, skipping start.')
       return false
     }
 
     if (!this.isConfigured()) {
-      this.lastError = 'Envio stream не настроен'
-      logger.warn('Envio stream не настроен, запуск невозможен.')
+      this.lastError = 'Envio stream not configured'
+      logger.warn('Envio stream not configured, cannot start.')
       return false
     }
 
@@ -71,7 +71,7 @@ export class EnvioStreamService {
           if (signal.aborted) {
             return
           }
-          logger.error({ err: error }, 'Envio stream loop завершился с ошибкой')
+          logger.error({ err: error }, 'Envio stream loop finished with error')
         })
         .finally(() => {
           this.running = false
@@ -80,13 +80,13 @@ export class EnvioStreamService {
         })
     }
 
-    logger.info('Envio stream стартовал.')
+    logger.info('Envio stream started.')
     return true
   }
 
   async stop (): Promise<boolean> {
     if (!this.enabled && this.loopPromise == null) {
-      logger.info('Envio stream уже остановлен, пропуск.')
+      logger.info('Envio stream already stopped, skipping.')
       return false
     }
 
@@ -102,7 +102,7 @@ export class EnvioStreamService {
       try {
         await this.loopPromise
       } catch (error) {
-        logger.warn({ err: error }, 'Envio stream loop завершился ошибкой при остановке')
+        logger.warn({ err: error }, 'Envio stream loop finished with error during stop')
       }
     }
 
@@ -110,7 +110,7 @@ export class EnvioStreamService {
     this.reconnectAttempts = 0
     this.observedAccounts.clear()
     this.initialPrimed = false
-    logger.info('Envio stream остановлен.')
+    logger.info('Envio stream stopped.')
     return true
   }
 
@@ -124,7 +124,7 @@ export class EnvioStreamService {
         }
 
         if (this.observedAccounts.size === 0) {
-          this.lastError = 'Нет корпоративных аккаунтов для отслеживания'
+          this.lastError = 'No corporate accounts to monitor'
           await this.delay(env.envioStreamRefreshIntervalMs, signal)
           continue
         }
@@ -150,7 +150,7 @@ export class EnvioStreamService {
         }
 
         if (response == null) {
-          await this.resetStream('Поток закрыт удалённой стороной')
+          await this.resetStream('Stream closed by remote side')
           this.reconnectAttempts += 1
           const backoffDelay = Math.min(STREAM_BACKOFF_BASE_MS * this.reconnectAttempts, STREAM_BACKOFF_MAX_MS)
           await this.delay(backoffDelay, signal)
@@ -185,7 +185,7 @@ export class EnvioStreamService {
 
         this.lastError = extractErrorMessage(error)
         logger.error({ err: error }, 'Envio stream iteration failed')
-        await this.resetStream('Ошибка в обработке потока')
+        await this.resetStream('Error in stream processing')
         const nextDelay = Math.min(STREAM_BACKOFF_BASE_MS * (this.reconnectAttempts + 1), STREAM_BACKOFF_MAX_MS)
         this.reconnectAttempts += 1
         await this.delay(nextDelay, signal)
@@ -202,7 +202,7 @@ export class EnvioStreamService {
 
     if (this.client == null) {
       this.client = HypersyncClient.new({
-        url: env.envioWsUrl,
+        url: env.envioGraphqlUrl,
         bearerToken: env.envioApiKey,
         enableChecksumAddresses: true
       })
@@ -267,7 +267,7 @@ export class EnvioStreamService {
         try {
           await monitoringService.getPortfolioSnapshot(account)
         } catch (error) {
-          logger.error({ err: error, account }, 'Envio stream: не удалось обновить snapshot')
+          logger.error({ err: error, account }, 'Envio stream: failed to update snapshot')
         }
 
         if (signal.aborted) {
@@ -277,7 +277,7 @@ export class EnvioStreamService {
         try {
           await monitoringService.getRiskAlerts(account)
         } catch (error) {
-          logger.error({ err: error, account }, 'Envio stream: не удалось обновить alerts')
+          logger.error({ err: error, account }, 'Envio stream: failed to update alerts')
         }
 
         if (signal.aborted) {
@@ -287,7 +287,7 @@ export class EnvioStreamService {
         try {
           await riskService.getRiskInsights(account)
         } catch (error) {
-          logger.error({ err: error, account }, 'Envio stream: не удалось рассчитать risk insights')
+          logger.error({ err: error, account }, 'Envio stream: failed to calculate risk insights')
         }
 
         if (signal.aborted) {
@@ -297,7 +297,7 @@ export class EnvioStreamService {
         try {
           await portfolioAnalyticsService.buildProjection(account)
         } catch (error) {
-          logger.error({ err: error, account }, 'Envio stream: не удалось построить projection')
+          logger.error({ err: error, account }, 'Envio stream: failed to build projection')
         }
       })
     )
@@ -328,12 +328,12 @@ export class EnvioStreamService {
       this.initialPrimed = false
     } catch (error) {
       this.lastError = extractErrorMessage(error)
-      logger.error({ err: error }, 'Envio stream: не удалось получить список корпоративных аккаунтов')
+      logger.error({ err: error }, 'Envio stream: failed to get corporate accounts list')
     }
   }
 
   private async resetStream (reason: string): Promise<void> {
-    logger.warn({ reason }, 'Envio stream: перезапуск потока')
+    logger.warn({ reason }, 'Envio stream: restarting stream')
     await this.closeStream()
     this.stream = null
     this.client = null
@@ -344,7 +344,7 @@ export class EnvioStreamService {
       try {
         await this.stream.close()
       } catch (error) {
-        logger.warn({ err: error }, 'Envio stream: ошибка при закрытии потока')
+        logger.warn({ err: error }, 'Envio stream: error closing stream')
       }
     }
 

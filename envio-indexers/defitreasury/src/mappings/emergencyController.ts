@@ -10,7 +10,7 @@ type EmergencyStatusEntity = {
 }
 
 type EmergencyStores = {
-  EmergencyStatus: {
+  EmergencyController_EmergencyStatusChanged: {
     set(entity: EmergencyStatusEntity): void
   }
 }
@@ -28,5 +28,5 @@ EmergencyController.EmergencyStatusChanged.handler(async ({ event, context }) =>
     timestamp: toBigInt(event.block.timestamp)
   }
 
-  stores.EmergencyStatus.set(statusEntry)
+  stores.EmergencyController_EmergencyStatusChanged.set(statusEntry)
 })

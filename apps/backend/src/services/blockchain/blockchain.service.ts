@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto'
 import { prisma } from '../../lib/prisma'
-import type { Delegation as DelegationModel, Prisma } from '@prisma/client'
+import type { CorporateAccount as CorporateAccountModel, Delegation as DelegationModel, Prisma } from '@prisma/client'
+import type { DelegationConfig } from '../../types/ai.js'
 import {
   type DelegationCaveats,
   clamp,
@@ -27,6 +28,7 @@ import { privateKeyToAccount, type Account } from 'viem/accounts'
 export const DEFAULT_AI_AGENT_ADDRESS = '0xa11ce00000000000000000000000000000000001'
 const DEFAULT_CORPORATE_ADDRESS = '0xcccccccccccccccccccccccccccccccccccccccc'
 const DEFAULT_CORPORATE_OWNERS = ['0xOwner1', '0xOwner2', '0xOwner3']
+const DEFAULT_AI_AGENT_NAME = 'Autonomous AI Agent'
 const USD_SCALE = 1_000_000n
 
 const MONAD_TESTNET = defineChain({
@@ -248,23 +250,12 @@ class TrustlessTreasuryClient {
 
 const trustlessTreasuryClient = new TrustlessTreasuryClient()
 
-interface DelegationConfig {
-  delegate: string
-  dailyLimit: string
-  spent24h: string
-  allowedProtocols: string[]
-  maxRiskScore: number
-  updatedAt: string
-  remainingDailyLimit?: string
-  validUntil?: string
-  active?: boolean
-}
-
 interface ConfigureDelegationInput {
-  delegate: string
+  delegate?: string
   dailyLimitUsd: number
   whitelist: string[]
   maxRiskScore: number
+  agentName?: string
 }
 
 interface CorporateAccount {
@@ -272,6 +263,8 @@ interface CorporateAccount {
   owners: string[]
   threshold: number
   createdAt: string
+  aiAgentAddress: string
+  aiAgentName: string
 }
 
 interface DelegationState {
@@ -304,8 +297,9 @@ class BlockchainService {
   private walletClient: WalletClient | null = null
   private walletAccount: Account | null = null
 
-  async createCorporateAccount (owners: string[], threshold: number): Promise<CorporateAccount> {
+  async createCorporateAccount (owners: string[], threshold: number, agentName?: string): Promise<CorporateAccount> {
     try {
+      const preferredName = sanitizeAgentName(agentName)
       const existing = await prisma.corporateAccount.findFirst({
         where: {
           owners: {
@@ -316,16 +310,20 @@ class BlockchainService {
       })
 
       if (existing != null) {
-        await this.ensureDefaultDelegation(existing.id)
-        return mapCorporateAccount(existing)
+        const ensured = await this.ensureCorporateAgent(existing, preferredName)
+        await this.ensureDefaultDelegation(ensured.id)
+        return mapCorporateAccount(ensured)
       }
 
       const address = toMockAddress()
+      const aiAgentAddress = toMockAddress()
       const created = await prisma.corporateAccount.create({
         data: {
           address,
           owners,
-          threshold
+          threshold,
+          aiAgentAddress,
+          aiAgentName: preferredName ?? DEFAULT_AI_AGENT_NAME
         }
       })
 
@@ -473,72 +471,93 @@ class BlockchainService {
     }
   }
 
-  async getDelegationState (account: string, delegate: string = DEFAULT_AI_AGENT_ADDRESS): Promise<DelegationState> {
+  async getDelegationState (account: string, delegate?: string): Promise<DelegationState> {
     const trustlessConfigured = trustlessTreasuryClient.isConfigured()
+    const normalizedAccount = account.toLowerCase()
+    let corporate: CorporateAccountModel | null = null
+    let normalizedDelegate = delegate?.toLowerCase()
+
+    try {
+      corporate = await prisma.corporateAccount.findUnique({
+        where: { address: normalizedAccount }
+      })
+
+      if (corporate != null && normalizedDelegate == null) {
+        corporate = await this.ensureCorporateAgent(corporate)
+        normalizedDelegate = (corporate.aiAgentAddress ?? DEFAULT_AI_AGENT_ADDRESS).toLowerCase()
+      }
+    } catch (error) {
+      logger.trace({ err: error, account }, 'Failed to load corporate metadata for delegation state')
+    }
+
+    if (normalizedDelegate == null) {
+      normalizedDelegate = DEFAULT_AI_AGENT_ADDRESS.toLowerCase()
+    }
+
     try {
       const onChain = await trustlessTreasuryClient.getDelegation(account)
-      if (onChain != null && onChain.aiAgent.toLowerCase() === delegate.toLowerCase()) {
-        const metadata = await this.loadDelegationMetadata(account.toLowerCase(), onChain.aiAgent.toLowerCase())
+      if (onChain != null && onChain.aiAgent.toLowerCase() === normalizedDelegate) {
+        const metadata = await this.loadDelegationMetadata(normalizedAccount, onChain.aiAgent.toLowerCase())
         const remaining = await trustlessTreasuryClient.getRemainingAllowanceUsd(account)
         return mapOnChainDelegationState(onChain, metadata, remaining)
       }
 
       if (trustlessConfigured) {
-        return buildEmptyDelegationState(delegate)
+        return buildEmptyDelegationState(normalizedDelegate)
       }
     } catch (error) {
-      logger.trace({ err: error, account, delegate }, 'Delegation on-chain state lookup failed')
+      logger.trace({ err: error, account, delegate: normalizedDelegate }, 'Delegation on-chain state lookup failed')
     }
 
     try {
-      const corporate = await prisma.corporateAccount.findUnique({
-        where: { address: account }
-      })
+      if (corporate == null) {
+        corporate = await prisma.corporateAccount.findUnique({ where: { address: normalizedAccount } })
+        if (corporate != null) {
+          corporate = await this.ensureCorporateAgent(corporate)
+        }
+      }
 
       if (corporate == null) {
-        return buildFallbackDelegationState(delegate)
+        return buildFallbackDelegationState(normalizedDelegate)
       }
 
       const record = await prisma.delegation.findFirst({
         where: {
           corporateId: corporate.id,
-          delegate
+          delegate: normalizedDelegate
         }
       })
 
       if (record == null) {
-        if (delegate !== DEFAULT_AI_AGENT_ADDRESS) {
-          return buildFallbackDelegationState(delegate)
-        }
-
         await this.ensureDefaultDelegation(corporate.id)
         const seeded = await prisma.delegation.findFirst({
           where: {
             corporateId: corporate.id,
-            delegate: DEFAULT_AI_AGENT_ADDRESS
+            delegate: normalizedDelegate
           }
         })
 
         if (seeded == null) {
-          return buildFallbackDelegationState(delegate)
+          return buildFallbackDelegationState(normalizedDelegate)
         }
 
         const normalizedSeeded = await this.normalizeDelegationRecord(seeded)
         return mapDelegationState(normalizedSeeded)
       }
 
-      const normalized = await this.normalizeDelegationRecord(record)
-      return mapDelegationState(normalized)
+      const normalizedRecord = await this.normalizeDelegationRecord(record)
+      return mapDelegationState(normalizedRecord)
     } catch (error) {
-      logger.error({ err: error, account, delegate }, '[blockchain] Failed to load delegation state from Prisma')
-      return buildFallbackDelegationState(delegate)
+      logger.error({ err: error, account, delegate: normalizedDelegate }, '[blockchain] Failed to load delegation state from Prisma')
+      return buildFallbackDelegationState(normalizedDelegate)
     }
   }
 
   async configureDelegation (account: string, input: ConfigureDelegationInput): Promise<DelegationConfig> {
+    let corporate: CorporateAccountModel | null = null
     try {
       const lowerAccount = account.toLowerCase()
-      const corporate = await prisma.corporateAccount.findUnique({
+      corporate = await prisma.corporateAccount.findUnique({
         where: { address: lowerAccount }
       })
 
@@ -546,12 +565,14 @@ class BlockchainService {
         throw new Error(`[blockchain] Corporate account ${account} not found`)
       }
 
+      const ensuredCorporate = await this.ensureCorporateAgent(corporate, input.agentName)
+
       const whitelist = Array.from(new Set(input.whitelist))
-      const normalizedDelegate = input.delegate.toLowerCase()
+      const normalizedDelegate = (input.delegate ?? ensuredCorporate.aiAgentAddress ?? DEFAULT_AI_AGENT_ADDRESS).toLowerCase()
 
       const existing = await prisma.delegation.findFirst({
         where: {
-          corporateId: corporate.id,
+          corporateId: ensuredCorporate.id,
           delegate: normalizedDelegate
         }
       })
@@ -579,7 +600,7 @@ class BlockchainService {
         })
         : await prisma.delegation.create({
           data: {
-            corporateId: corporate.id,
+            corporateId: ensuredCorporate.id,
             delegate: normalizedDelegate,
             dailyLimitUsd: input.dailyLimitUsd,
             whitelist,
@@ -600,7 +621,10 @@ class BlockchainService {
       return mapDelegation(normalized)
     } catch (error) {
       logger.error({ err: error, account, input }, '[blockchain] Failed to configure delegation')
-      return buildConfiguredFallbackDelegation(input)
+      return buildConfiguredFallbackDelegation({
+        ...input,
+        delegate: (input.delegate ?? corporate?.aiAgentAddress ?? DEFAULT_AI_AGENT_ADDRESS)
+      })
     }
   }
 
@@ -818,14 +842,37 @@ class BlockchainService {
   }
 
   private async ensureDefaultDelegation (corporateId: string) {
+    const corporate = await prisma.corporateAccount.findUnique({ where: { id: corporateId } })
+    if (corporate == null) {
+      return
+    }
+
+    const ensuredCorporate = await this.ensureCorporateAgent(corporate)
+    const delegate = ensuredCorporate.aiAgentAddress ?? DEFAULT_AI_AGENT_ADDRESS
+
     const existing = await prisma.delegation.findFirst({
+      where: {
+        corporateId,
+        delegate
+      }
+    })
+
+    if (existing != null) return
+
+    const legacy = await prisma.delegation.findFirst({
       where: {
         corporateId,
         delegate: DEFAULT_AI_AGENT_ADDRESS
       }
     })
 
-    if (existing != null) return
+    if (legacy != null) {
+      await prisma.delegation.update({
+        where: { id: legacy.id },
+        data: { delegate }
+      })
+      return
+    }
 
     const caveatsPayload: DelegationCaveats = {
       spent24h: 2_500,
@@ -837,10 +884,35 @@ class BlockchainService {
     await prisma.delegation.create({
       data: {
         corporateId,
-        delegate: DEFAULT_AI_AGENT_ADDRESS,
+        delegate,
         dailyLimitUsd: 10_000,
         whitelist: ['Aave Monad', 'Yearn Monad', 'Compound Monad'],
         caveats: caveatsPayload as Prisma.JsonObject
+      }
+    })
+  }
+
+  private async ensureCorporateAgent (corporate: CorporateAccountModel, preferredName?: string): Promise<CorporateAccountModel> {
+    const desiredName = sanitizeAgentName(preferredName) ?? corporate.aiAgentName ?? DEFAULT_AI_AGENT_NAME
+
+    if (corporate.aiAgentAddress && corporate.aiAgentAddress !== '') {
+      if (corporate.aiAgentName !== desiredName) {
+        return await prisma.corporateAccount.update({
+          where: { id: corporate.id },
+          data: {
+            aiAgentName: desiredName
+          }
+        })
+      }
+      return corporate
+    }
+
+    const aiAgentAddress = toMockAddress()
+    return await prisma.corporateAccount.update({
+      where: { id: corporate.id },
+      data: {
+        aiAgentAddress,
+        aiAgentName: desiredName
       }
     })
   }
@@ -865,13 +937,22 @@ class BlockchainService {
 
 export const blockchainService = new BlockchainService()
 
+const sanitizeAgentName = (value?: string | null): string | undefined => {
+  if (value == null) return undefined
+  const trimmed = value.trim()
+  if (trimmed.length === 0) return undefined
+  return trimmed.slice(0, 120)
+}
+
 const toMockAddress = (): string => `0x${randomBytes(20).toString('hex')}`
 
-const mapCorporateAccount = (record: { address: string, owners: unknown, threshold: number, createdAt: Date }): CorporateAccount => ({
+const mapCorporateAccount = (record: CorporateAccountModel): CorporateAccount => ({
   address: record.address,
   owners: Array.isArray(record.owners) ? (record.owners as string[]) : [],
   threshold: record.threshold,
-  createdAt: record.createdAt.toISOString()
+  createdAt: record.createdAt.toISOString(),
+  aiAgentAddress: record.aiAgentAddress ?? DEFAULT_AI_AGENT_ADDRESS,
+  aiAgentName: record.aiAgentName ?? DEFAULT_AI_AGENT_NAME
 })
 
 const mapDelegationState = (delegation: DelegationModel): DelegationState => {
@@ -905,7 +986,11 @@ const mapDelegation = (delegation: DelegationModel): DelegationConfig => {
     allowedProtocols: whitelist,
     maxRiskScore,
     updatedAt: updatedAt.toISOString(),
-    remainingDailyLimit: remaining.toFixed(0)
+    remainingDailyLimit: remaining.toFixed(0),
+    autoExecutionEnabled: delegation.autoExecutionEnabled ?? false,
+    portfolioPercentage: delegation.portfolioPercentage ?? 0,
+    autoExecutedUsd: delegation.autoExecutedUsd ?? 0,
+    lastAutoExecutionAt: delegation.lastAutoExecutionAt?.toISOString()
   }
 }
 
@@ -940,7 +1025,11 @@ const mapOnChainDelegation = (
     updatedAt: new Date(updatedAt).toISOString(),
     remainingDailyLimit: remaining,
     validUntil,
-    active
+    active,
+    autoExecutionEnabled: metadata?.autoExecutionEnabled ?? false,
+    portfolioPercentage: metadata?.portfolioPercentage ?? 0,
+    autoExecutedUsd: metadata?.autoExecutedUsd ?? 0,
+    lastAutoExecutionAt: metadata?.lastAutoExecutionAt?.toISOString()
   }
 }
 
@@ -980,14 +1069,18 @@ const buildFallbackAccount = (owners: string[], threshold: number): CorporateAcc
   address: DEFAULT_CORPORATE_ADDRESS,
   owners,
   threshold,
-  createdAt: new Date().toISOString()
+  createdAt: new Date().toISOString(),
+  aiAgentAddress: DEFAULT_AI_AGENT_ADDRESS,
+  aiAgentName: DEFAULT_AI_AGENT_NAME
 })
 
 const buildDefaultCorporateAccount = (): CorporateAccount => ({
   address: DEFAULT_CORPORATE_ADDRESS,
   owners: [...DEFAULT_CORPORATE_OWNERS],
   threshold: 2,
-  createdAt: new Date().toISOString()
+  createdAt: new Date().toISOString(),
+  aiAgentAddress: DEFAULT_AI_AGENT_ADDRESS,
+  aiAgentName: DEFAULT_AI_AGENT_NAME
 })
 
 const buildFallbackDelegationState = (delegate: string): DelegationState => ({
@@ -1014,13 +1107,16 @@ const buildConfiguredFallbackDelegation = ({
   whitelist,
   maxRiskScore
 }: ConfigureDelegationInput, spent24h = 0): DelegationConfig => ({
-  delegate,
+  delegate: delegate ?? DEFAULT_AI_AGENT_ADDRESS,
   dailyLimit: dailyLimitUsd.toFixed(0),
   spent24h: spent24h.toFixed(0),
   allowedProtocols: whitelist,
   maxRiskScore,
   updatedAt: new Date().toISOString(),
-  remainingDailyLimit: Math.max(dailyLimitUsd - spent24h, 0).toFixed(0)
+  remainingDailyLimit: Math.max(dailyLimitUsd - spent24h, 0).toFixed(0),
+  autoExecutionEnabled: false,
+  portfolioPercentage: 0,
+  autoExecutedUsd: 0
 })
 
 const safeBigIntToString = (value: string | bigint): string => {

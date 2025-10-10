@@ -102,7 +102,7 @@ class HealthService {
       return {
         component: 'envio',
         status: severity,
-        message: 'Envio GraphQL недоступен',
+        message: 'Envio GraphQL unavailable',
         details: serializeAxiosError(error)
       }
     }
@@ -113,7 +113,7 @@ class HealthService {
       return {
         component: 'openrouter',
         status: 'degraded',
-        message: 'OpenRouter API ключ не задан'
+        message: 'OpenRouter API key not configured'
       }
     }
 
@@ -147,7 +147,7 @@ class HealthService {
       return {
         component: 'scheduler',
         status: 'degraded',
-        message: 'AI scheduler отключен'
+        message: 'AI scheduler disabled'
       }
     }
 
@@ -181,7 +181,7 @@ class HealthService {
       return {
         component: 'monitoring_poller',
         status: 'degraded',
-        message: 'Monitoring poller отключен'
+        message: 'Monitoring poller disabled'
       }
     }
 
@@ -215,7 +215,7 @@ class HealthService {
       return {
         component: 'monitoring_stream',
         status: 'degraded',
-        message: 'Monitoring stream отключен'
+        message: 'Monitoring stream disabled'
       }
     }
 
@@ -250,7 +250,7 @@ class HealthService {
       return {
         component: 'emergency_controls',
         status: 'degraded',
-        message: 'Emergency controller не настроен',
+        message: 'Emergency controller not configured',
         details: { issues: configStatus.issues }
       }
     }
@@ -269,7 +269,7 @@ class HealthService {
       return {
         component: 'emergency_controls',
         status: 'degraded',
-        message: 'Не удалось получить статус EmergencyController',
+        message: 'Failed to get EmergencyController status',
         details: serializeError(error)
       }
     }

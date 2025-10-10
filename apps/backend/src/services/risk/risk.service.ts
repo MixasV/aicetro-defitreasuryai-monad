@@ -16,10 +16,10 @@ const RISK_BANDS: Array<{
   minScore: number
   maxScore: number
 }> = [
-  { level: 'low', label: 'Низкий риск', minScore: 0, maxScore: 2 },
-  { level: 'moderate', label: 'Умеренный риск', minScore: 2.01, maxScore: 3 },
-  { level: 'high', label: 'Высокий риск', minScore: 3.01, maxScore: 4 },
-  { level: 'critical', label: 'Критический риск', minScore: 4.01, maxScore: Number.POSITIVE_INFINITY }
+  { level: 'low', label: 'Low risk', minScore: 0, maxScore: 2 },
+  { level: 'moderate', label: 'Moderate risk', minScore: 2.01, maxScore: 3 },
+  { level: 'high', label: 'High risk', minScore: 3.01, maxScore: 4 },
+  { level: 'critical', label: 'Critical risk', minScore: 4.01, maxScore: Number.POSITIVE_INFINITY }
 ]
 
 const TOP_POSITION_LIMIT = 3
@@ -85,7 +85,7 @@ class RiskService {
 
     if (highestPositionRisk > delegation.maxRiskScore) {
       guardrails.violations.push(
-        `Риск-порог делегирования (${delegation.maxRiskScore}) ниже фактической позиции (${highestPositionRisk}).`
+        `Delegation risk threshold (${delegation.maxRiskScore}) is below actual position risk (${highestPositionRisk}).`
       )
     }
 

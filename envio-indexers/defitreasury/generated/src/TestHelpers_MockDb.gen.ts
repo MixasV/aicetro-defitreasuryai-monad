@@ -5,17 +5,15 @@
 
 const TestHelpers_MockDbJS = require('./TestHelpers_MockDb.res.js');
 
-import type {CorporateTreasuryManager_CorporateAccountCreated_t as Entities_CorporateTreasuryManager_CorporateAccountCreated_t} from '../src/db/Entities.gen';
-
-import type {CorporateTreasuryManager_DelegationSpending_t as Entities_CorporateTreasuryManager_DelegationSpending_t} from '../src/db/Entities.gen';
-
-import type {CorporateTreasuryManager_DelegationUpdated_t as Entities_CorporateTreasuryManager_DelegationUpdated_t} from '../src/db/Entities.gen';
-
 import type {DynamicContractRegistry_t as InternalTable_DynamicContractRegistry_t} from 'envio/src/db/InternalTable.gen';
 
 import type {EmergencyController_EmergencyStatusChanged_t as Entities_EmergencyController_EmergencyStatusChanged_t} from '../src/db/Entities.gen';
 
 import type {RawEvents_t as InternalTable_RawEvents_t} from 'envio/src/db/InternalTable.gen';
+
+import type {TrustlessDeFiTreasury_Delegation_t as Entities_TrustlessDeFiTreasury_Delegation_t} from '../src/db/Entities.gen';
+
+import type {TrustlessDeFiTreasury_SpendRecorded_t as Entities_TrustlessDeFiTreasury_SpendRecorded_t} from '../src/db/Entities.gen';
 
 import type {eventLog as Types_eventLog} from './Types.gen';
 
@@ -35,10 +33,9 @@ export type t = {
 };
 
 export type entities = {
-  readonly CorporateTreasuryManager_CorporateAccountCreated: entityStoreOperations<Entities_CorporateTreasuryManager_CorporateAccountCreated_t>; 
-  readonly CorporateTreasuryManager_DelegationSpending: entityStoreOperations<Entities_CorporateTreasuryManager_DelegationSpending_t>; 
-  readonly CorporateTreasuryManager_DelegationUpdated: entityStoreOperations<Entities_CorporateTreasuryManager_DelegationUpdated_t>; 
-  readonly EmergencyController_EmergencyStatusChanged: entityStoreOperations<Entities_EmergencyController_EmergencyStatusChanged_t>
+  readonly EmergencyController_EmergencyStatusChanged: entityStoreOperations<Entities_EmergencyController_EmergencyStatusChanged_t>; 
+  readonly TrustlessDeFiTreasury_Delegation: entityStoreOperations<Entities_TrustlessDeFiTreasury_Delegation_t>; 
+  readonly TrustlessDeFiTreasury_SpendRecorded: entityStoreOperations<Entities_TrustlessDeFiTreasury_SpendRecorded_t>
 };
 
 export type entityStoreOperations<entity> = storeOperations<string,entity>;

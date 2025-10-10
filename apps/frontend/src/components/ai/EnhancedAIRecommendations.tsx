@@ -10,6 +10,7 @@ import {
   Activity
 } from 'lucide-react';
 import type { AIRecommendationEvaluation, AllocationRecommendation } from '@defitreasuryai/types';
+import { formatAIModelName } from '../../lib/ai-model-names';
 
 interface Props {
   recommendations: {
@@ -75,7 +76,7 @@ export const EnhancedAIRecommendations = ({
             <p className="text-sm text-slate-100">{recommendations.summary}</p>
             {recommendations.model && (
               <p className="mt-2 text-xs text-slate-400">
-                Model: {recommendations.model}
+                Model: {formatAIModelName(recommendations.model)}
                 {recommendations.provider && ` • Provider: ${recommendations.provider}`}
               </p>
             )}

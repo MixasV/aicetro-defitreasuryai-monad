@@ -359,7 +359,24 @@ const RiskInsightsPanel = ({
           </div>
         </div>
       ) : (
-        <p className="text-sm text-slate-400">No risk insights available.</p>
+        <div className="space-y-3">
+          <p className="text-sm text-slate-400">Risk analysis demo</p>
+          <div className="space-y-2 text-xs text-slate-400">
+            <div className="flex justify-between">
+              <span>50% Low risk (Aave USDC)</span>
+              <span className="text-emerald-400">✓</span>
+            </div>
+            <div className="flex justify-between">
+              <span>25% High risk (Yearn USDT)</span>
+              <span className="text-amber-400">⚠</span>
+            </div>
+            <div className="flex justify-between">
+              <span>25% High risk (Nabla USDC)</span>
+              <span className="text-amber-400">⚠</span>
+            </div>
+          </div>
+          <p className="text-xs text-slate-500">Connect wallet to see real-time risk analysis</p>
+        </div>
       )}
     </div>
   );

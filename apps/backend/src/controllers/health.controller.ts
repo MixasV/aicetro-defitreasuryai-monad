@@ -7,7 +7,7 @@ export const getHealthStatusHandler = async (_req: Request, res: Response) => {
     const httpStatus = status.status === 'critical' ? 503 : 200
     res.status(httpStatus).json(status)
   } catch (error) {
-    console.error('[health] Не удалось сформировать статус', error)
+    console.error('[health] Failed to build health status', error)
     res.status(500).json({
       status: 'critical',
       timestamp: new Date().toISOString(),

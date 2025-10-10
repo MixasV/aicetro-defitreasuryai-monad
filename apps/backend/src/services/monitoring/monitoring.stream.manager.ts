@@ -5,14 +5,14 @@ import { env } from '../../config/env'
 
 export const initializeMonitoringStream = async (): Promise<void> => {
   if (!env.envioStreamEnabled) {
-    logger.info('Envio stream отключен через ENVIO_STREAM_ENABLED=false')
+    logger.info('Envio stream disabled via ENVIO_STREAM_ENABLED=false')
     return
   }
 
   try {
     await envioStreamService.start()
   } catch (error) {
-    logger.error({ err: error }, 'Не удалось запустить Envio stream при инициализации')
+    logger.error({ err: error }, 'Failed to start Envio stream during initialization')
   }
 }
 
@@ -20,7 +20,7 @@ export const shutdownMonitoringStream = async (): Promise<void> => {
   try {
     await envioStreamService.stop()
   } catch (error) {
-    logger.error({ err: error }, 'Не удалось корректно остановить Envio stream')
+    logger.error({ err: error }, 'Failed to properly stop Envio stream')
   }
 }
 

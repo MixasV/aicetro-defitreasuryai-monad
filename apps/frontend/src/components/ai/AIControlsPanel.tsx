@@ -42,6 +42,7 @@ import type {
 } from '@defitreasuryai/types';
 import { DEMO_AI_DELEGATE, DEMO_PROTOCOLS } from '../../config/demo';
 import { EnhancedAIRecommendations } from './EnhancedAIRecommendations';
+import { formatAIModelName } from '../../lib/ai-model-names';
 
 interface Props {
   portfolio: PortfolioSnapshot;
@@ -104,7 +105,7 @@ export const AIControlsPanel = ({ portfolio, accountAddress, usingDemo }: Props)
     lastRunResponse,
     actionError
   } = useAIScheduler();
-  const { delegations, isLoading: isDelegationsLoading } = useDelegations(accountAddress);
+  const { delegations, isLoading: isDelegationsLoading, refresh: refreshDelegations } = useDelegations(accountAddress);
   const delegateAddress = delegations[0]?.delegate ?? DEMO_AI_DELEGATE;
 
   const delegationConstraints = useMemo(() => {
@@ -156,7 +157,14 @@ export const AIControlsPanel = ({ portfolio, accountAddress, usingDemo }: Props)
   };
 
   const handleDelegationSetup = async () => {
-    await createDelegation(accountAddress, delegateAddress, [...protocolList]);
+    try {
+      await createDelegation(accountAddress, delegateAddress, [...protocolList]);
+      // Refresh delegations to update UI
+      await refreshDelegations();
+      console.log('[AIControlsPanel] Delegation setup complete, data refreshed');
+    } catch (error) {
+      console.error('[AIControlsPanel] Failed to setup delegation', error);
+    }
   };
 
   const handleGenerate = async () => {
@@ -406,12 +414,171 @@ export const AIControlsPanel = ({ portfolio, accountAddress, usingDemo }: Props)
             </div>
           ) : null}
         </div>
+
+        <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+          <h4 className="mb-4 text-sm font-semibold text-white">AI Results History</h4>
+          
+          {/* Autonomous Execution Section */}
+          <div className="mb-6">
+            <div className="mb-2 flex items-center justify-between">
+              <h5 className="text-sm font-semibold text-white">Autonomous execution</h5>
+              {result ? (
+                <span className="text-xs text-slate-500">{new Date(result.generatedAt).toLocaleTimeString()}</span>
+              ) : null}
+            </div>
+            {result ? (
+              <div className="space-y-3 text-xs">
+                <p className="text-slate-100">{result.summary}</p>
+                {result.model ? (
+                  <p className="text-[11px] text-slate-400">
+                    Model: {formatAIModelName(result.model)}
+                    {result.provider ? ` • Provider: ${result.provider}` : ''}
+                  </p>
+                ) : null}
+                <p className="text-slate-400">
+                  Executed: {result.totalExecutedUsd.toFixed(2)} USD • Remaining limit:{' '}
+                  {result.remainingDailyLimitUsd.toFixed(2)} USD
+                </p>
+                {renderEvaluation(result.evaluation, 'Execution assessment')}
+                {result.governanceSummary ? (
+                  <p className="text-slate-300">{result.governanceSummary}</p>
+                ) : null}
+                {result.analysis ? (
+                  <p className="text-slate-300">{result.analysis}</p>
+                ) : null}
+                {result.actions.length > 0 ? (
+                  <div className="space-y-2">
+                    {result.actions.map((action: AIExecutionAction) => (
+                      <div key={`${action.protocol}-${action.status}-${action.amountUsd}`} className="rounded-lg border border-white/10 bg-black/20 p-2">
+                        <div className="flex items-center justify-between uppercase tracking-wide">
+                          <span className="text-white">{action.protocol}</span>
+                          <span className={action.status === 'executed' ? 'text-emerald-300' : 'text-amber-300'}>
+                            {action.status === 'executed' ? 'Executed' : 'Skipped'}
+                          </span>
+                        </div>
+                        <p className="text-slate-300">
+                          {action.allocationPercent}% • {action.amountUsd.toFixed(2)} USD • APY {action.expectedAPY}% • Risk{' '}
+                          {action.riskScore}
+                        </p>
+                        <p className="text-slate-400">
+                          Simulation: {(action.simulationUsd ?? 0).toFixed(2)} USD
+                        </p>
+                        {action.reason ? (
+                          <p className="text-slate-400">Rationale: {action.reason}</p>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-slate-400">No executable actions were available.</p>
+                )}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-400">
+                Press &quot;Execute AI strategy&quot; to let the agent act within the configured guardrails.
+              </p>
+            )}
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <h5 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Recommendations</h5>
+                {recommendations ? (
+                  <span className="text-xs text-slate-500">{new Date(recommendations.generatedAt).toLocaleTimeString()}</span>
+                ) : null}
+              </div>
+              {recommendations ? (
+                <div className="space-y-3 text-xs">
+                  <p className="text-slate-100">{recommendations.summary}</p>
+                  {recommendations.model ? (
+                    <p className="text-[11px] text-slate-400">
+                      Model: {formatAIModelName(recommendations.model)}
+                      {recommendations.provider ? ` • Provider: ${recommendations.provider}` : ''}
+                    </p>
+                  ) : null}
+                  {recommendations.analysis ? (
+                    <p className="text-slate-300">{recommendations.analysis}</p>
+                  ) : null}
+                  {renderEvaluation(recommendations.evaluation, 'Recommendation assessment')}
+                  {recommendations.governanceSummary ? (
+                    <p className="text-slate-300">{recommendations.governanceSummary}</p>
+                  ) : null}
+                  <div className="space-y-2">
+                    {recommendations.allocations?.map((item: AllocationRecommendation) => (
+                      <div key={item.protocol} className="rounded-lg border border-white/10 bg-black/20 p-2">
+                        <h6 className="font-medium text-white">{item.protocol}</h6>
+                        <p className="text-slate-300">Allocation: {item.allocationPercent}%</p>
+                        <p className="text-slate-300">APY: {item.expectedAPY}% • Risk {item.riskScore}</p>
+                        <p className="text-slate-400">{item.rationale}</p>
+                      </div>
+                    ))}
+                  </div>
+                  {recommendations.suggestedActions?.length ? (
+                    <div>
+                      <h6 className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Action items</h6>
+                      <ul className="mt-2 space-y-1">
+                        {recommendations.suggestedActions.map((action) => (
+                          <li key={action} className="rounded border border-white/5 bg-black/20 px-2 py-1">
+                            {action}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400">
+                  Press &ldquo;Generate AI recommendations&rdquo; to obtain an updated strategy proposal.
+                </p>
+              )}
+            </div>
+
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <h5 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Execution history</h5>
+                {isHistoryLoading ? <span className="text-xs text-slate-500">Loading…</span> : null}
+              </div>
+              {history.length > 0 ? (
+                <ul className="space-y-2">
+                  {history.map((entry: AIExecutionRecord) => (
+                    <li key={entry.id} className="rounded-lg border border-white/10 bg-black/20 p-2 text-xs text-slate-200">
+                      <div className="flex items-center justify-between">
+                        <span className="text-white">{new Date(entry.generatedAt).toLocaleString()}</span>
+                        <span className="text-slate-400">{entry.totalExecutedUsd.toFixed(2)} USD</span>
+                      </div>
+                      {entry.model ? (
+                        <p className="text-[10px] text-slate-400">
+                          Model: {formatAIModelName(entry.model)}
+                          {entry.provider ? ` • Provider: ${entry.provider}` : ''}
+                        </p>
+                      ) : null}
+                      <p className="mt-1 text-slate-300">{entry.summary}</p>
+                      <p className="mt-1 text-slate-400">
+                        Remaining limit: {entry.remainingDailyLimitUsd.toFixed(2)} USD • Actions: {entry.actions.length}
+                      </p>
+                      {entry.analysis ? <p className="text-slate-300">{entry.analysis}</p> : null}
+                      {entry.warnings?.length ? (
+                        <ul className="mt-1 list-disc space-y-1 pl-4 text-[10px] text-amber-300">
+                          {entry.warnings.map((warning) => (
+                            <li key={`${entry.id}-${warning}`}>{warning}</li>
+                          ))}
+                        </ul>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-xs text-slate-400">No executions recorded yet.</p>
+              )}
+            </div>
+          </div>
+        </div>
       </section>
 
       <section className="glass-card space-y-4 p-6">
-        <header className="flex items-center justify-between">
+        <header>
           <h3 className="text-lg font-semibold text-white">Outcomes</h3>
-          <span className="text-xs text-slate-400">DeepSeek V3.1</span>
         </header>
         <div className="space-y-6 text-sm text-slate-200">
           <div className="rounded-lg border border-white/10 bg-white/5 p-4">
@@ -611,7 +778,7 @@ export const AIControlsPanel = ({ portfolio, accountAddress, usingDemo }: Props)
                             })}
                           </span>
                         </div>
-                        <p className="mt-1 text-slate-100">{metric.model}</p>
+                        <p className="mt-1 text-slate-100">{formatAIModelName(metric.model)}</p>
                         {metric.provider ? <p className="text-slate-400">Provider: {metric.provider}</p> : null}
                         <p className="text-slate-300">
                           Latency: {Math.round(metric.latencyMs)} ms • Retries: {metric.retries}
@@ -641,7 +808,7 @@ export const AIControlsPanel = ({ portfolio, accountAddress, usingDemo }: Props)
                 <p className="text-slate-100">{preview.summary}</p>
                 {preview.model ? (
                   <p className="text-[11px] text-slate-400">
-                    Model: {preview.model}
+                    Model: {formatAIModelName(preview.model)}
                     {preview.provider ? ` • Provider: ${preview.provider}` : ''}
                   </p>
                 ) : null}
@@ -716,7 +883,7 @@ export const AIControlsPanel = ({ portfolio, accountAddress, usingDemo }: Props)
                     </p>
                     {entry.model ? (
                       <p className="text-[11px] text-slate-400">
-                        Model: {entry.model}
+                        Model: {formatAIModelName(entry.model)}
                         {entry.provider ? ` • Provider: ${entry.provider}` : ''}
                       </p>
                     ) : null}
@@ -739,159 +906,6 @@ export const AIControlsPanel = ({ portfolio, accountAddress, usingDemo }: Props)
                   </div>
                 ))}
               </div>
-            )}
-          </div>
-
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <h4 className="text-sm font-semibold text-white">Autonomous execution</h4>
-              {result ? (
-                <span className="text-xs text-slate-500">{new Date(result.generatedAt).toLocaleTimeString()}</span>
-              ) : null}
-            </div>
-            {result ? (
-              <div className="space-y-3">
-                <p className="text-slate-100">{result.summary}</p>
-                {result.model ? (
-                  <p className="text-[11px] text-slate-400">
-                    Model: {result.model}
-                    {result.provider ? ` • Provider: ${result.provider}` : ''}
-                  </p>
-                ) : null}
-                <p className="text-xs text-slate-400">
-                  Executed: {result.totalExecutedUsd.toFixed(2)} USD • Remaining limit:{' '}
-                  {result.remainingDailyLimitUsd.toFixed(2)} USD
-                </p>
-                {renderEvaluation(result.evaluation, 'Execution assessment')}
-                {result.governanceSummary ? (
-                  <p className="text-xs text-slate-300">{result.governanceSummary}</p>
-                ) : null}
-                {result.analysis ? (
-                  <p className="text-xs text-slate-300">{result.analysis}</p>
-                ) : null}
-                {result.actions.length > 0 ? (
-                  <div className="space-y-2">
-                    {result.actions.map((action: AIExecutionAction) => (
-                      <div key={`${action.protocol}-${action.status}-${action.amountUsd}`} className="rounded-lg border border-white/10 bg-white/5 p-3">
-                        <div className="flex items-center justify-between text-xs uppercase tracking-wide">
-                          <span className="text-white">{action.protocol}</span>
-                          <span className={action.status === 'executed' ? 'text-emerald-300' : 'text-amber-300'}>
-                            {action.status === 'executed' ? 'Executed' : 'Skipped'}
-                          </span>
-                        </div>
-                        <p className="text-xs text-slate-300">
-                          {action.allocationPercent}% • {action.amountUsd.toFixed(2)} USD • APY {action.expectedAPY}% • Risk{' '}
-                          {action.riskScore}
-                        </p>
-                        <p className="text-xs text-slate-400">
-                          Simulation: {(action.simulationUsd ?? 0).toFixed(2)} USD
-                        </p>
-                        {action.reason ? (
-                          <p className="text-xs text-slate-400">Rationale: {action.reason}</p>
-                        ) : null}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-slate-400">No executable actions were available.</p>
-                )}
-              </div>
-            ) : (
-              <p className="text-sm text-slate-400">
-                Press “Execute AI strategy” to let the agent act within the configured guardrails.
-              </p>
-            )}
-          </div>
-
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <h4 className="text-sm font-semibold text-white">Recommendations</h4>
-              {recommendations ? (
-                <span className="text-xs text-slate-500">{new Date(recommendations.generatedAt).toLocaleTimeString()}</span>
-              ) : null}
-            </div>
-            {recommendations ? (
-              <div className="space-y-3">
-                <p className="text-slate-100">{recommendations.summary}</p>
-                {recommendations.model ? (
-                  <p className="text-[11px] text-slate-400">
-                    Model: {recommendations.model}
-                    {recommendations.provider ? ` • Provider: ${recommendations.provider}` : ''}
-                  </p>
-                ) : null}
-                {recommendations.analysis ? (
-                  <p className="text-sm text-slate-300">{recommendations.analysis}</p>
-                ) : null}
-                {renderEvaluation(recommendations.evaluation, 'Recommendation assessment')}
-                {recommendations.governanceSummary ? (
-                  <p className="text-xs text-slate-300">{recommendations.governanceSummary}</p>
-                ) : null}
-                <div className="space-y-2">
-                  {recommendations.allocations?.map((item: AllocationRecommendation) => (
-                    <div key={item.protocol} className="rounded-lg border border-white/10 bg-white/5 p-3">
-                      <h4 className="font-medium text-white">{item.protocol}</h4>
-                      <p className="text-xs text-slate-300">Allocation: {item.allocationPercent}%</p>
-                      <p className="text-xs text-slate-300">APY: {item.expectedAPY}% • Risk {item.riskScore}</p>
-                      <p className="text-xs text-slate-400">{item.rationale}</p>
-                    </div>
-                  ))}
-                </div>
-                {recommendations.suggestedActions?.length ? (
-                  <div>
-                    <h5 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Action items</h5>
-                    <ul className="mt-2 space-y-1 text-xs text-slate-300">
-                      {recommendations.suggestedActions.map((action) => (
-                        <li key={action} className="rounded border border-white/5 bg-black/20 px-3 py-2">
-                          {action}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : null}
-              </div>
-            ) : (
-              <p className="text-sm text-slate-400">
-                Press “Generate AI recommendations” to obtain an updated strategy proposal.
-              </p>
-            )}
-          </div>
-
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <h4 className="text-sm font-semibold text-white">Execution history</h4>
-              {isHistoryLoading ? <span className="text-xs text-slate-500">Loading…</span> : null}
-            </div>
-            {history.length > 0 ? (
-              <ul className="space-y-2">
-                {history.map((entry: AIExecutionRecord) => (
-                  <li key={entry.id} className="rounded-lg border border-white/10 bg-white/5 p-3 text-xs text-slate-200">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-white">{new Date(entry.generatedAt).toLocaleString()}</span>
-                      <span className="text-slate-400">{entry.totalExecutedUsd.toFixed(2)} USD</span>
-                    </div>
-                    {entry.model ? (
-                      <p className="text-[11px] text-slate-400">
-                        Model: {entry.model}
-                        {entry.provider ? ` • Provider: ${entry.provider}` : ''}
-                      </p>
-                    ) : null}
-                    <p className="mt-1 text-slate-300">{entry.summary}</p>
-                    <p className="mt-1 text-slate-400">
-                      Remaining limit: {entry.remainingDailyLimitUsd.toFixed(2)} USD • Actions: {entry.actions.length}
-                    </p>
-                    {entry.analysis ? <p className="text-xs text-slate-300">{entry.analysis}</p> : null}
-                    {entry.warnings?.length ? (
-                      <ul className="mt-1 list-disc space-y-1 pl-4 text-[11px] text-amber-300">
-                        {entry.warnings.map((warning) => (
-                          <li key={`${entry.id}-${warning}`}>{warning}</li>
-                        ))}
-                      </ul>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-slate-400">No executions recorded yet.</p>
             )}
           </div>
         </div>

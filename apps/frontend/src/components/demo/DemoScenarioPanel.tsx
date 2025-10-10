@@ -53,35 +53,33 @@ export const DemoScenarioPanel = ({ accountAddress = DEMO_CORPORATE_ACCOUNT }: P
     }
   };
 
-  if (isLoading && !summary) {
-    return (
-      <div className="glass-card p-6 text-sm text-slate-300">
-        <p>Preparing the autonomous treasury walkthrough…</p>
-      </div>
-    );
-  }
+  // Demo fallback data (simplified for preview)
+  const demoFallback: Partial<DemoScenarioSummary> = {
+    generatedAt: new Date().toISOString(),
+    steps: [
+      { id: '1', title: 'Configure delegation', status: 'completed', description: 'Set up AI delegation rules', timestamp: new Date(Date.now() - 5000).toISOString() },
+      { id: '2', title: 'AI analyzes opportunities', status: 'completed', description: 'Scan DeFi protocols for optimal yields', timestamp: new Date(Date.now() - 4000).toISOString() },
+      { id: '3', title: 'Execute rebalance', status: 'completed', description: 'Rebalance portfolio based on AI decision', timestamp: new Date(Date.now() - 3000).toISOString() },
+      { id: '4', title: 'Monitor portfolio', status: 'completed', description: 'Track performance and risk metrics', timestamp: new Date(Date.now() - 2000).toISOString() }
+    ],
+    alerts: [
+      {
+        id: 'demo-alert-1',
+        title: 'Demo Mode Active',
+        severity: 'info',
+        description: 'This is a preview of autonomous treasury operations. Configure your smart account to run real scenarios.',
+        createdAt: new Date(Date.now() - 2000).toISOString()
+      }
+    ]
+  };
 
-  if (!summary) {
-    return (
-      <div className="glass-card space-y-3 p-6 text-sm text-amber-200">
-        <p>Failed to load the demo scenario data.</p>
-        <button
-          type="button"
-          onClick={() => {
-            void refresh();
-          }}
-          className="rounded-md border border-white/10 px-3 py-1 text-xs text-white"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
+  const displaySummary = (summary || demoFallback) as DemoScenarioSummary;
+  const showDemoWarning = !summary;
 
-  const renderSummaryHeader = (data: DemoScenarioSummary) => (
+  const renderSummaryHeader = (data: DemoScenarioSummary, isDemo: boolean) => (
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div>
-        <h2 className="text-xl font-semibold text-white">Demo Scenario</h2>
+        <h2 className="text-xl font-semibold text-white">Demo Scenario {isDemo && <span className="text-sm text-amber-400">(Preview Mode)</span>}</h2>
         <p className="text-sm text-slate-300">End-to-end autonomous treasury cycle for MockCorp.</p>
         <p className="text-xs text-slate-500">Last updated: {timeFormatter.format(new Date(data.generatedAt))}</p>
       </div>
@@ -89,8 +87,9 @@ export const DemoScenarioPanel = ({ accountAddress = DEMO_CORPORATE_ACCOUNT }: P
         <button
           type="button"
           onClick={handleRunDemo}
-          disabled={isRunning}
+          disabled={isRunning || isDemo}
           className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
+          title={isDemo ? 'Configure your smart account to run demo' : ''}
         >
           {isRunning ? 'Running…' : 'Run demo'}
         </button>
@@ -402,24 +401,41 @@ export const DemoScenarioPanel = ({ accountAddress = DEMO_CORPORATE_ACCOUNT }: P
 
   return (
     <div className="space-y-6">
-      {renderSummaryHeader(summary)}
-      <div className="grid gap-6 xl:grid-cols-[1.2fr_1fr]">
-        {renderDelegation(summary)}
-        {renderMetrics(summary)}
-      </div>
-      <div className="grid gap-6 xl:grid-cols-[1.2fr_1fr]">
-        {renderPortfolio(summary)}
-        {renderAlertsPanel(summary.alerts)}
-      </div>
-      <div className="grid gap-6 xl:grid-cols-[1.2fr_1fr]">
-        {renderProjection(summary)}
-        {renderExecutionHistory(summary.aiHistory)}
-      </div>
-      <div className="grid gap-6 lg:grid-cols-2">
-        {renderSteps(summary)}
-        {renderEmergencyLog(summary)}
-      </div>
-      {renderRiskInsights(summary)}
+      {showDemoWarning && (
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-amber-200">
+          <strong>Preview Mode:</strong> This is a demo scenario. Configure your smart account to run real treasury operations.
+        </div>
+      )}
+      {renderSummaryHeader(displaySummary, showDemoWarning)}
+      {!showDemoWarning && (
+        <>
+          <div className="grid gap-6 xl:grid-cols-[1.2fr_1fr]">
+            {renderDelegation(displaySummary)}
+            {renderMetrics(displaySummary)}
+          </div>
+          <div className="grid gap-6 xl:grid-cols-[1.2fr_1fr]">
+            {renderPortfolio(displaySummary)}
+            {renderAlertsPanel(displaySummary.alerts)}
+          </div>
+          <div className="grid gap-6 xl:grid-cols-[1.2fr_1fr]">
+            {renderProjection(displaySummary)}
+            {renderExecutionHistory(displaySummary.aiHistory)}
+          </div>
+          <div className="grid gap-6 lg:grid-cols-2">
+            {renderSteps(displaySummary)}
+            {renderEmergencyLog(displaySummary)}
+          </div>
+          {renderRiskInsights(displaySummary)}
+        </>
+      )}
+      {showDemoWarning && (
+        <>
+          <div className="grid gap-6 lg:grid-cols-2">
+            {renderSteps(displaySummary)}
+            {renderAlertsPanel(displaySummary.alerts || [])}
+          </div>
+        </>
+      )}
     </div>
   );
 };

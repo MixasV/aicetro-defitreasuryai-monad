@@ -10,17 +10,17 @@ initializeScheduler()
 initializeMonitoringPoller()
 void initializeMonitoringStream()
 
-const server = app.listen(env.port, () => {
-  logger.info({ port: env.port }, 'Backend API запущен')
+const server = app.listen(env.port, '0.0.0.0', () => {
+  logger.info({ port: env.port, host: '0.0.0.0' }, 'Backend API started (all interfaces - protected by firewall)')
 })
 
 const gracefulShutdown = () => {
-  logger.info('Получен сигнал завершения, останавливаем сервисы...')
+  logger.info('Received termination signal, stopping services...')
   shutdownScheduler()
   shutdownMonitoringPoller()
   void shutdownMonitoringStream()
   server.close(() => {
-    logger.info('HTTP сервер остановлен. Завершение процесса.')
+    logger.info('HTTP server stopped. Exiting process.')
     process.exit(0)
   })
 }

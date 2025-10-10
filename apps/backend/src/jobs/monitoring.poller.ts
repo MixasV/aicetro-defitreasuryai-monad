@@ -38,7 +38,7 @@ export class MonitoringPoller {
 
   start (): boolean {
     if (this.enabled) {
-      logger.info('Monitoring poller уже запущен, пропуск старта.')
+      logger.info('Monitoring poller already running, skipping start.')
       return false
     }
 
@@ -52,13 +52,13 @@ export class MonitoringPoller {
     }
 
     void this.runCycle('automatic')
-    logger.info({ interval: this.intervalMs }, 'Monitoring poller запущен.')
+    logger.info({ interval: this.intervalMs }, 'Monitoring poller started.')
     return true
   }
 
   stop (): boolean {
     if (!this.enabled) {
-      logger.info('Monitoring poller уже остановлен, пропуск.')
+      logger.info('Monitoring poller already stopped, skipping.')
       return false
     }
 
@@ -68,7 +68,7 @@ export class MonitoringPoller {
     }
 
     this.enabled = false
-    logger.info('Monitoring poller остановлен.')
+    logger.info('Monitoring poller stopped.')
     return true
   }
 
@@ -121,7 +121,7 @@ export class MonitoringPoller {
 
   private async runCycle (source: MonitoringPollerTrigger): Promise<MonitoringPollerRunSummary | null> {
     if (this.running) {
-      const message = 'Monitoring poller iteration уже выполняется.'
+      const message = 'Monitoring poller iteration already running.'
       if (source === 'manual') {
         throw new Error(message)
       }

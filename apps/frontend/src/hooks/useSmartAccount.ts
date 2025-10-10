@@ -21,7 +21,9 @@ export const useSmartAccount = () => {
     setOwners,
     setThreshold,
     connectedEOA,
-    setConnectedEOA
+    setConnectedEOA,
+    setAgentAddress,
+    setAgentName
   } = useCorporateAccount();
   const [isLoading, setLoading] = useState(false);
   const [isConnecting, setConnecting] = useState(false);
@@ -58,29 +60,42 @@ export const useSmartAccount = () => {
   );
 
   const createCorporateAccount = useCallback(
-    async (owners: string[], threshold = 2) => {
+    async (owners: string[], threshold = 2, agentName?: string) => {
       setError(null);
       setLoading(true);
       const trimmedOwners = ensureOwnersArray(owners).map((owner) => owner.trim());
       const normalizedOwners = trimmedOwners.map((owner) => (owner.startsWith('0x') ? owner.toLowerCase() : owner));
 
       const fallback = async () => {
-        const result = await apiClient.createCorporateAccount({ owners: normalizedOwners, threshold });
+        const result = await apiClient.createCorporateAccount({ owners: normalizedOwners, threshold, agentName });
         const nextOwners = ensureOwnersArray(result.owners);
-        setAccount({ address: result.address, owners: nextOwners, threshold: result.threshold });
+        setAccount((prev) => ({
+          ...prev,
+          address: result.address,
+          owners: nextOwners,
+          threshold: result.threshold,
+          aiAgentAddress: result.aiAgentAddress,
+          aiAgentName: result.aiAgentName
+        }));
         setAccountAddress(result.address);
         setOwners(nextOwners);
         setThreshold(result.threshold);
+        setAgentAddress(result.aiAgentAddress);
+        setAgentName(result.aiAgentName);
       };
 
       try {
         if (!sdk) {
-          throw new Error('MetaMask SDK недоступен');
+          console.warn('[SmartAccount] MetaMask SDK not available, using backend');
+          await fallback();
+          return;
         }
 
         const provider = sdk.getProvider();
         if (!provider) {
-          throw new Error('MetaMask provider не инициализирован');
+          console.warn('[SmartAccount] MetaMask provider not initialized, using backend');
+          await fallback();
+          return;
         }
 
         const response = await provider.request({
@@ -89,7 +104,7 @@ export const useSmartAccount = () => {
             owners: normalizedOwners,
             threshold,
             features: ['delegation', 'timelock'],
-            chainId: '0xb02e'
+            chainId: '0x279f'
           }]
         });
 
@@ -99,27 +114,46 @@ export const useSmartAccount = () => {
         }
 
         const nextOwners = ensureOwnersArray(normalizedOwners);
-        setAccount({ address: smartAccount, owners: nextOwners, threshold });
+        setAccount((prev) => ({
+          ...prev,
+          address: smartAccount,
+          owners: nextOwners,
+          threshold
+        }));
         setAccountAddress(smartAccount);
         setOwners(nextOwners);
         setThreshold(threshold);
 
-        void apiClient.createCorporateAccount({ owners: normalizedOwners, threshold }).catch((err) => {
-          console.warn('[SmartAccount] backend sync failed', err);
-        });
+        void apiClient.createCorporateAccount({ owners: normalizedOwners, threshold, agentName })
+          .then((result) => {
+            const syncedOwners = ensureOwnersArray(result.owners);
+            setAccount((prev) => ({
+              ...prev,
+              address: prev.address ?? result.address,
+              owners: syncedOwners,
+              threshold: result.threshold,
+              aiAgentAddress: result.aiAgentAddress,
+              aiAgentName: result.aiAgentName
+            }));
+            setAgentAddress(result.aiAgentAddress);
+            setAgentName(result.aiAgentName);
+          })
+          .catch((err) => {
+            console.warn('[SmartAccount] backend sync failed', err);
+          });
       } catch (err) {
-        console.error(err);
+        console.warn('[SmartAccount] wallet_createSmartAccount not supported, using backend fallback', err);
         try {
           await fallback();
         } catch (fallbackError) {
-          console.error(fallbackError);
-          setError('Не удалось создать Smart Account через MetaMask или backend');
+          console.error('[SmartAccount] backend fallback failed', fallbackError);
+          setError(fallbackError instanceof Error ? fallbackError.message : 'Failed to create Smart Account');
         }
       } finally {
         setLoading(false);
       }
     },
-    [sdk, ensureOwnersArray, setAccount, setAccountAddress, setOwners, setThreshold]
+    [ensureOwnersArray, sdk, setAccount, setAccountAddress, setAgentAddress, setAgentName, setOwners, setThreshold]
   );
 
   const connectWallet = useCallback(async () => {
@@ -186,6 +220,7 @@ export const useSmartAccount = () => {
     isConnecting,
     error,
     updateOwners,
-    updateThreshold
+    updateThreshold,
+    updateAgentName: setAgentName
   };
 };

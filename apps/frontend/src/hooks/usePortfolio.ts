@@ -5,7 +5,17 @@ import { apiClient } from '../lib/api';
 export const usePortfolio = (address: string) => {
   const { data, error, isLoading } = useSWR<PortfolioSnapshot>(
     address ? ['portfolio', address] : null,
-    () => apiClient.getPortfolio(address)
+    () => apiClient.getPortfolio(address),
+    {
+      refreshInterval: 30000, // Refresh every 30s
+      revalidateOnFocus: true,
+      dedupingInterval: 5000,
+      errorRetryCount: 3,
+      errorRetryInterval: 2000,
+      onError: (err) => {
+        console.error('[usePortfolio] Failed to load portfolio:', err);
+      }
+    }
   );
 
   return {

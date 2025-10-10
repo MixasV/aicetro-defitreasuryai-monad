@@ -4,6 +4,6 @@ export const DEMO_OWNERS = ['0xOwner1', '0xOwner2', '0xOwner3']
 export const DEMO_THRESHOLD = 2
 export const DEMO_PROTOCOLS = ['Aave Monad', 'Yearn Monad', 'Compound Monad', 'MonadSwap'] as const
 
-export const DEMO_DAILY_LIMIT_USD = 25_000
-export const DEMO_INITIAL_SPENT_24H = 4_500
-export const DEMO_MAX_RISK_SCORE = 3
+export const DEMO_DAILY_LIMIT_USD = 50_000
+export const DEMO_INITIAL_SPENT_24H = 0
+export const DEMO_MAX_RISK_SCORE = 4

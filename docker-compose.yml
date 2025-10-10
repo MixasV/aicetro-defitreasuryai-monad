@@ -41,7 +41,7 @@ services:
       DATABASE_URL: postgres://monad:monad@postgres:5432/defitreasury?schema=public
       REDIS_URL: redis://redis:6379
     ports:
-      - '4000:4000'
+      - '127.0.0.1:4000:4000'
     restart: unless-stopped
 
   frontend:
@@ -49,18 +49,18 @@ services:
       context: .
       dockerfile: apps/frontend/Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://backend:4000/api
+        NEXT_PUBLIC_API_URL: http://81.91.177.168:8080/api
         NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: ${NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID:-demo-project}
-        NEXT_PUBLIC_TRUSTLESS_TREASURY_ADDRESS: ${NEXT_PUBLIC_TRUSTLESS_TREASURY_ADDRESS:-0x0000000000000000000000000000000000000000}
+        NEXT_PUBLIC_TRUSTLESS_TREASURY_ADDRESS: ${NEXT_PUBLIC_TRUSTLESS_TREASURY_ADDRESS:-0x5a531079eCe02e2bBF83853027d135d9f80fEdDA}
     depends_on:
       backend:
         condition: service_started
     env_file:
       - apps/frontend/.env.production
     environment:
-      NEXT_PUBLIC_API_URL: http://backend:4000/api
+      NEXT_PUBLIC_API_URL: http://81.91.177.168:8080/api
     ports:
-      - '3000:3000'
+      - '0.0.0.0:3000:3000'
     restart: unless-stopped
 
   envio-indexer:

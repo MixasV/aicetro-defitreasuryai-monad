@@ -15,27 +15,31 @@ import type {
 interface CreateCorporateAccountInput {
   owners: string[]
   threshold: number
+  agentName?: string
 }
 
 interface ConfigureDelegationInput {
   account: string
-  delegate: string
+  delegate?: string
   dailyLimitUsd: number
   whitelist: string[]
   maxRiskScore: number
+  agentName?: string
 }
 
 const accountSchema: Joi.ObjectSchema<CreateCorporateAccountInput> = Joi.object({
   owners: Joi.array().items(Joi.string().lowercase()).length(3).required(),
-  threshold: Joi.number().valid(2).required()
+  threshold: Joi.number().valid(2).required(),
+  agentName: Joi.string().trim().min(1).max(120).optional()
 })
 
 const delegationSchema: Joi.ObjectSchema<ConfigureDelegationInput> = Joi.object({
   account: Joi.string().lowercase().trim().pattern(/^0x[a-f0-9]{4,}$/).required(),
-  delegate: Joi.string().lowercase().trim().pattern(/^0x[a-f0-9]{4,}$/).required(),
+  delegate: Joi.string().lowercase().trim().pattern(/^0x[a-f0-9]{4,}$/).optional(),
   dailyLimitUsd: Joi.number().positive().max(1_000_000).required(),
   whitelist: Joi.array().items(Joi.string().trim()).min(1).required(),
-  maxRiskScore: Joi.number().integer().min(1).max(5).required()
+  maxRiskScore: Joi.number().integer().min(1).max(5).required(),
+  agentName: Joi.string().trim().min(1).max(120).optional()
 })
 
 const accountParamSchema = Joi.string().lowercase().trim().pattern(/^0x[a-f0-9]{4,}$/).required()
@@ -85,7 +89,7 @@ export const createCorporateAccountHandler = async (req: Request, res: Response)
   try {
     const rawPayload = req.body as Record<string, unknown>
     const payload = await accountSchema.validateAsync(rawPayload, { abortEarly: false, stripUnknown: true })
-    const account = await blockchainService.createCorporateAccount(payload.owners, payload.threshold)
+    const account = await blockchainService.createCorporateAccount(payload.owners, payload.threshold, payload.agentName)
     res.status(201).json(account)
   } catch (error) {
     if (error instanceof Joi.ValidationError) {
@@ -93,7 +97,7 @@ export const createCorporateAccountHandler = async (req: Request, res: Response)
       return
     }
     console.error(error)
-    res.status(500).json({ message: 'Не удалось создать корпоративный аккаунт' })
+    res.status(500).json({ message: 'Failed to create corporate account' })
   }
 }
 
@@ -103,7 +107,7 @@ export const getDelegationsHandler = async (req: Request, res: Response) => {
     res.json(delegations)
   } catch (error) {
     console.error(error)
-    res.status(500).json({ message: 'Не удалось получить делегирования' })
+    res.status(500).json({ message: 'Failed to get delegations' })
   }
 }
 
@@ -124,7 +128,7 @@ export const triggerEmergencyStopHandler = async (req: Request, res: Response) =
 
     const message = result.mode === 'executed'
       ? 'Emergency stop выполнен успешно'
-      : `Emergency stop выполнен в демонстрационном режиме${result.reason != null ? `: ${result.reason}` : ''}`
+      : `Emergency stop executed in demo mode${result.reason != null ? `: ${result.reason}` : ''}`
 
     const logEntry = emergencyLogService.recordSuccess(account, message, {
       mode: result.mode,
@@ -147,14 +151,14 @@ export const triggerEmergencyStopHandler = async (req: Request, res: Response) =
     })
   } catch (error) {
     if (error instanceof Joi.ValidationError) {
-      res.status(400).json({ message: 'Некорректный адрес аккаунта', details: error.details })
+      res.status(400).json({ message: 'Invalid account address', details: error.details })
       return
     }
     console.error(error)
     const reason = error instanceof Error ? error.message : 'unknown'
     const targetAccount = account ?? rawAccount
     emergencyStateService.setActive(targetAccount, { reason, simulated: false, action: 'auto' })
-    emergencyLogService.recordFailure(rawAccount, 'Emergency stop завершился ошибкой', {
+    emergencyLogService.recordFailure(rawAccount, 'Emergency stop completed with error', {
       reason,
       action: 'stop',
       mode: 'skipped',
@@ -181,7 +185,7 @@ export const resumeEmergencyStopHandler = async (req: Request, res: Response) =>
 
     const message = result.mode === 'executed'
       ? 'Emergency resume выполнен успешно'
-      : `Emergency resume выполнен в демонстрационном режиме${result.reason != null ? `: ${result.reason}` : ''}`
+      : `Emergency resume executed in demo mode${result.reason != null ? `: ${result.reason}` : ''}`
 
     const logEntry = emergencyLogService.recordSuccess(account, message, {
       mode: result.mode,
@@ -204,7 +208,7 @@ export const resumeEmergencyStopHandler = async (req: Request, res: Response) =>
     })
   } catch (error) {
     if (error instanceof Joi.ValidationError) {
-      res.status(400).json({ message: 'Некорректный адрес аккаунта', details: error.details })
+      res.status(400).json({ message: 'Invalid account address', details: error.details })
       return
     }
     console.error(error)
@@ -231,11 +235,11 @@ export const getEmergencyLogHandler = async (req: Request, res: Response) => {
     res.json(entries)
   } catch (error) {
     if (error instanceof Joi.ValidationError) {
-      res.status(400).json({ message: 'Некорректный адрес аккаунта', details: error.details })
+      res.status(400).json({ message: 'Invalid account address', details: error.details })
       return
     }
     console.error(error)
-    res.status(500).json({ message: 'Не удалось получить журнал emergency событий' })
+    res.status(500).json({ message: 'Failed to get emergency event log' })
   }
 }
 
@@ -246,11 +250,11 @@ export const getEmergencyStatusHandler = async (req: Request, res: Response) => 
     res.json(status)
   } catch (error) {
     if (error instanceof Joi.ValidationError) {
-      res.status(400).json({ message: 'Некорректный адрес аккаунта', details: error.details })
+      res.status(400).json({ message: 'Invalid account address', details: error.details })
       return
     }
     console.error(error)
-    res.status(500).json({ message: 'Не удалось получить статус emergency stop' })
+    res.status(500).json({ message: 'Failed to get emergency stop status' })
   }
 }
 
@@ -270,11 +274,11 @@ export const getEmergencyControlSnapshotHandler = async (req: Request, res: Resp
     })
   } catch (error) {
     if (error instanceof Joi.ValidationError) {
-      res.status(400).json({ message: 'Некорректный адрес аккаунта', details: error.details })
+      res.status(400).json({ message: 'Invalid account address', details: error.details })
       return
     }
     console.error(error)
-    res.status(500).json({ message: 'Не удалось получить текущее состояние emergency контроля' })
+    res.status(500).json({ message: 'Failed to get current emergency control state' })
   }
 }
 
@@ -288,11 +292,11 @@ export const emergencyEventsStreamHandler = async (req: Request, res: Response) 
     }
   } catch (error) {
     if (error instanceof Joi.ValidationError) {
-      res.status(400).json({ message: 'Некорректный адрес аккаунта', details: error.details })
+      res.status(400).json({ message: 'Invalid account address', details: error.details })
       return
     }
     console.error(error)
-    res.status(500).json({ message: 'Не удалось открыть поток событий' })
+    res.status(500).json({ message: 'Failed to open event stream' })
     return
   }
 
@@ -370,11 +374,11 @@ export const configureDelegationHandler = async (req: Request, res: Response) =>
     res.status(200).json(delegation)
   } catch (error) {
     if (error instanceof Joi.ValidationError) {
-      res.status(400).json({ message: 'Некорректные данные делегирования', details: error.details })
+      res.status(400).json({ message: 'Invalid delegation data', details: error.details })
       return
     }
     console.error(error)
-    res.status(500).json({ message: 'Не удалось обновить делегирование' })
+    res.status(500).json({ message: 'Failed to update delegation' })
   }
 }
 
@@ -385,10 +389,10 @@ export const getSecurityDashboardHandler = async (req: Request, res: Response) =
     res.json(summary)
   } catch (error) {
     if (error instanceof Joi.ValidationError) {
-      res.status(400).json({ message: 'Некорректный адрес аккаунта', details: error.details })
+      res.status(400).json({ message: 'Invalid account address', details: error.details })
       return
     }
     console.error('[security] Failed to build dashboard summary', error)
-    res.status(500).json({ message: 'Не удалось собрать trustless security сводку' })
+    res.status(500).json({ message: 'Failed to build trustless security summary' })
   }
 }

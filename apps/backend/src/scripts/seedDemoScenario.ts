@@ -46,13 +46,13 @@ const logBlueprints: LogBlueprint[] = [
         expectedAPY: 16.5,
         riskScore: 4.5,
         status: 'skipped',
-        reason: 'Риск превышает лимит'
+        reason: 'Risk exceeds limit'
       }
     ]
   },
   {
     offsetHours: 9,
-    note: 'Усиление Compound и Yearn.',
+    note: 'Strengthening Compound and Yearn positions.',
     actions: [
       {
         protocol: 'Compound Monad',
@@ -77,13 +77,13 @@ const logBlueprints: LogBlueprint[] = [
         expectedAPY: 17.2,
         riskScore: 4.4,
         status: 'skipped',
-        reason: 'Протокол не в whitelist'
+        reason: 'Protocol not in whitelist'
       }
     ]
   },
   {
     offsetHours: 27,
-    note: 'Расширение низкорискованных позиций и отказ от крупного LRT.',
+    note: 'Expanding low-risk positions and rejecting large LRT.',
     actions: [
       {
         protocol: 'Aave Monad',
@@ -108,13 +108,13 @@ const logBlueprints: LogBlueprint[] = [
         expectedAPY: 14.8,
         riskScore: 4.7,
         status: 'skipped',
-        reason: 'Недостаточно дневного лимита'
+        reason: 'Insufficient daily limit'
       }
     ]
   },
   {
     offsetHours: 51,
-    note: 'Ребалансировка ликвидности и блокировка высокого риска.',
+    note: 'Rebalancing liquidity and blocking high risk.',
     actions: [
       {
         protocol: 'Aave Monad',
@@ -139,13 +139,13 @@ const logBlueprints: LogBlueprint[] = [
         expectedAPY: 19.1,
         riskScore: 4.8,
         status: 'skipped',
-        reason: 'Риск превышает лимит'
+        reason: 'Risk exceeds limit'
       }
     ]
   },
   {
     offsetHours: 75,
-    note: 'Высокорискованные предложения отклонены.',
+    note: 'High-risk proposals rejected.',
     actions: [
       {
         protocol: 'MonadSwap',
@@ -154,7 +154,7 @@ const logBlueprints: LogBlueprint[] = [
         expectedAPY: 17.9,
         riskScore: 4.6,
         status: 'skipped',
-        reason: 'Протокол не в whitelist'
+        reason: 'Protocol not in whitelist'
       },
       {
         protocol: 'Experimental Vault',
@@ -163,7 +163,7 @@ const logBlueprints: LogBlueprint[] = [
         expectedAPY: 21.4,
         riskScore: 4.9,
         status: 'skipped',
-        reason: 'Риск превышает лимит'
+        reason: 'Risk exceeds limit'
       }
     ]
   }

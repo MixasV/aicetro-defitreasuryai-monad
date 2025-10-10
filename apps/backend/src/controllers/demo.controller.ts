@@ -21,11 +21,11 @@ export const getDemoSummaryHandler = async (req: Request, res: Response) => {
     res.json(summary)
   } catch (error) {
     if (error instanceof Joi.ValidationError) {
-      res.status(400).json({ message: 'Некорректный адрес аккаунта', details: error.details })
+      res.status(400).json({ message: 'Invalid account address', details: error.details })
       return
     }
-    console.error('[demo] Не удалось получить сводку демо-сценария', error)
-    res.status(500).json({ message: 'Не удалось загрузить демо-сценарий' })
+    console.error('[demo] Failed to get demo scenario summary', error)
+    res.status(500).json({ message: 'Failed to load demo scenario' })
   }
 }
 
@@ -34,7 +34,7 @@ export const runDemoScenarioHandler = async (_req: Request, res: Response) => {
     const result = await demoService.runScenario()
     res.status(200).json(result)
   } catch (error) {
-    console.error('[demo] Ошибка запуска демо-сценария', error)
-    res.status(500).json({ message: 'Не удалось выполнить демо-сценарий' })
+    console.error('[demo] Failed to run demo scenario', error)
+    res.status(500).json({ message: 'Failed to run demo scenario' })
   }
 }

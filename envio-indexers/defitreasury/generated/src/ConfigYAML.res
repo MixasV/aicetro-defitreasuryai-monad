@@ -34,17 +34,20 @@ let publicConfig = ChainMap.fromArrayUnsafe([
   {
     let contracts = Js.Dict.fromArray([
       (
-        "CorporateTreasuryManager",
+        "TrustlessDeFiTreasury",
         {
-          name: "CorporateTreasuryManager",
-          abi: Types.CorporateTreasuryManager.abi,
+          name: "TrustlessDeFiTreasury",
+          abi: Types.TrustlessDeFiTreasury.abi,
           addresses: [
-            "0x98691ae190682dddBde3cd4c493B2249D2086E5B",
+            "0x5a531079eCe02e2bBF83853027d135d9f80fEdDA",
           ],
           events: [
-            Types.CorporateTreasuryManager.CorporateAccountCreated.name,
-            Types.CorporateTreasuryManager.DelegationSpending.name,
-            Types.CorporateTreasuryManager.DelegationUpdated.name,
+            Types.TrustlessDeFiTreasury.DelegationGranted.name,
+            Types.TrustlessDeFiTreasury.DelegationUpdated.name,
+            Types.TrustlessDeFiTreasury.DelegationRevoked.name,
+            Types.TrustlessDeFiTreasury.DelegationPaused.name,
+            Types.TrustlessDeFiTreasury.DelegationResumed.name,
+            Types.TrustlessDeFiTreasury.SpendRecorded.name,
           ],
         }
       ),
@@ -54,7 +57,7 @@ let publicConfig = ChainMap.fromArrayUnsafe([
           name: "EmergencyController",
           abi: Types.EmergencyController.abi,
           addresses: [
-            "0x4BE4FE572bAce94aaFF05e4a0c03ff79212C20e5",
+            "0x720ea3508f015768df891E2692437D1C60725F02",
           ],
           events: [
             Types.EmergencyController.EmergencyStatusChanged.name,

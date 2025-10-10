@@ -24,90 +24,6 @@ export type LoaderContext = {
    * After preload the handler will run for the second time in sequential order of events.
    */
   readonly isPreload: boolean;
-  readonly CorporateTreasuryManager_CorporateAccountCreated: {
-    /**
-     * Load the entity CorporateTreasuryManager_CorporateAccountCreated from the storage by ID.
-     * If the entity is not found, returns undefined.
-     */
-    readonly get: (id: string) => Promise<Entities.CorporateTreasuryManager_CorporateAccountCreated_t | undefined>,
-    /**
-     * Load the entity CorporateTreasuryManager_CorporateAccountCreated from the storage by ID.
-     * If the entity is not found, throws an error.
-     */
-    readonly getOrThrow: (id: string, message?: string) => Promise<Entities.CorporateTreasuryManager_CorporateAccountCreated_t>,
-    readonly getWhere: Entities.CorporateTreasuryManager_CorporateAccountCreated_indexedFieldOperations,
-    /**
-     * Returns the entity CorporateTreasuryManager_CorporateAccountCreated from the storage by ID.
-     * If the entity is not found, creates it using provided parameters and returns it.
-     */
-    readonly getOrCreate: (entity: Entities.CorporateTreasuryManager_CorporateAccountCreated_t) => Promise<Entities.CorporateTreasuryManager_CorporateAccountCreated_t>,
-    /**
-     * Set the entity CorporateTreasuryManager_CorporateAccountCreated in the storage.
-     */
-    readonly set: (entity: Entities.CorporateTreasuryManager_CorporateAccountCreated_t) => void,
-    /**
-     * Delete the entity CorporateTreasuryManager_CorporateAccountCreated from the storage.
-     *
-     * The 'deleteUnsafe' method is experimental and unsafe. You should manually handle all entity references after deletion to maintain database consistency.
-     */
-    readonly deleteUnsafe: (id: string) => void,
-  }
-  readonly CorporateTreasuryManager_DelegationSpending: {
-    /**
-     * Load the entity CorporateTreasuryManager_DelegationSpending from the storage by ID.
-     * If the entity is not found, returns undefined.
-     */
-    readonly get: (id: string) => Promise<Entities.CorporateTreasuryManager_DelegationSpending_t | undefined>,
-    /**
-     * Load the entity CorporateTreasuryManager_DelegationSpending from the storage by ID.
-     * If the entity is not found, throws an error.
-     */
-    readonly getOrThrow: (id: string, message?: string) => Promise<Entities.CorporateTreasuryManager_DelegationSpending_t>,
-    readonly getWhere: Entities.CorporateTreasuryManager_DelegationSpending_indexedFieldOperations,
-    /**
-     * Returns the entity CorporateTreasuryManager_DelegationSpending from the storage by ID.
-     * If the entity is not found, creates it using provided parameters and returns it.
-     */
-    readonly getOrCreate: (entity: Entities.CorporateTreasuryManager_DelegationSpending_t) => Promise<Entities.CorporateTreasuryManager_DelegationSpending_t>,
-    /**
-     * Set the entity CorporateTreasuryManager_DelegationSpending in the storage.
-     */
-    readonly set: (entity: Entities.CorporateTreasuryManager_DelegationSpending_t) => void,
-    /**
-     * Delete the entity CorporateTreasuryManager_DelegationSpending from the storage.
-     *
-     * The 'deleteUnsafe' method is experimental and unsafe. You should manually handle all entity references after deletion to maintain database consistency.
-     */
-    readonly deleteUnsafe: (id: string) => void,
-  }
-  readonly CorporateTreasuryManager_DelegationUpdated: {
-    /**
-     * Load the entity CorporateTreasuryManager_DelegationUpdated from the storage by ID.
-     * If the entity is not found, returns undefined.
-     */
-    readonly get: (id: string) => Promise<Entities.CorporateTreasuryManager_DelegationUpdated_t | undefined>,
-    /**
-     * Load the entity CorporateTreasuryManager_DelegationUpdated from the storage by ID.
-     * If the entity is not found, throws an error.
-     */
-    readonly getOrThrow: (id: string, message?: string) => Promise<Entities.CorporateTreasuryManager_DelegationUpdated_t>,
-    readonly getWhere: Entities.CorporateTreasuryManager_DelegationUpdated_indexedFieldOperations,
-    /**
-     * Returns the entity CorporateTreasuryManager_DelegationUpdated from the storage by ID.
-     * If the entity is not found, creates it using provided parameters and returns it.
-     */
-    readonly getOrCreate: (entity: Entities.CorporateTreasuryManager_DelegationUpdated_t) => Promise<Entities.CorporateTreasuryManager_DelegationUpdated_t>,
-    /**
-     * Set the entity CorporateTreasuryManager_DelegationUpdated in the storage.
-     */
-    readonly set: (entity: Entities.CorporateTreasuryManager_DelegationUpdated_t) => void,
-    /**
-     * Delete the entity CorporateTreasuryManager_DelegationUpdated from the storage.
-     *
-     * The 'deleteUnsafe' method is experimental and unsafe. You should manually handle all entity references after deletion to maintain database consistency.
-     */
-    readonly deleteUnsafe: (id: string) => void,
-  }
   readonly EmergencyController_EmergencyStatusChanged: {
     /**
      * Load the entity EmergencyController_EmergencyStatusChanged from the storage by ID.
@@ -136,6 +52,62 @@ export type LoaderContext = {
      */
     readonly deleteUnsafe: (id: string) => void,
   }
+  readonly TrustlessDeFiTreasury_Delegation: {
+    /**
+     * Load the entity TrustlessDeFiTreasury_Delegation from the storage by ID.
+     * If the entity is not found, returns undefined.
+     */
+    readonly get: (id: string) => Promise<Entities.TrustlessDeFiTreasury_Delegation_t | undefined>,
+    /**
+     * Load the entity TrustlessDeFiTreasury_Delegation from the storage by ID.
+     * If the entity is not found, throws an error.
+     */
+    readonly getOrThrow: (id: string, message?: string) => Promise<Entities.TrustlessDeFiTreasury_Delegation_t>,
+    readonly getWhere: Entities.TrustlessDeFiTreasury_Delegation_indexedFieldOperations,
+    /**
+     * Returns the entity TrustlessDeFiTreasury_Delegation from the storage by ID.
+     * If the entity is not found, creates it using provided parameters and returns it.
+     */
+    readonly getOrCreate: (entity: Entities.TrustlessDeFiTreasury_Delegation_t) => Promise<Entities.TrustlessDeFiTreasury_Delegation_t>,
+    /**
+     * Set the entity TrustlessDeFiTreasury_Delegation in the storage.
+     */
+    readonly set: (entity: Entities.TrustlessDeFiTreasury_Delegation_t) => void,
+    /**
+     * Delete the entity TrustlessDeFiTreasury_Delegation from the storage.
+     *
+     * The 'deleteUnsafe' method is experimental and unsafe. You should manually handle all entity references after deletion to maintain database consistency.
+     */
+    readonly deleteUnsafe: (id: string) => void,
+  }
+  readonly TrustlessDeFiTreasury_SpendRecorded: {
+    /**
+     * Load the entity TrustlessDeFiTreasury_SpendRecorded from the storage by ID.
+     * If the entity is not found, returns undefined.
+     */
+    readonly get: (id: string) => Promise<Entities.TrustlessDeFiTreasury_SpendRecorded_t | undefined>,
+    /**
+     * Load the entity TrustlessDeFiTreasury_SpendRecorded from the storage by ID.
+     * If the entity is not found, throws an error.
+     */
+    readonly getOrThrow: (id: string, message?: string) => Promise<Entities.TrustlessDeFiTreasury_SpendRecorded_t>,
+    readonly getWhere: Entities.TrustlessDeFiTreasury_SpendRecorded_indexedFieldOperations,
+    /**
+     * Returns the entity TrustlessDeFiTreasury_SpendRecorded from the storage by ID.
+     * If the entity is not found, creates it using provided parameters and returns it.
+     */
+    readonly getOrCreate: (entity: Entities.TrustlessDeFiTreasury_SpendRecorded_t) => Promise<Entities.TrustlessDeFiTreasury_SpendRecorded_t>,
+    /**
+     * Set the entity TrustlessDeFiTreasury_SpendRecorded in the storage.
+     */
+    readonly set: (entity: Entities.TrustlessDeFiTreasury_SpendRecorded_t) => void,
+    /**
+     * Delete the entity TrustlessDeFiTreasury_SpendRecorded from the storage.
+     *
+     * The 'deleteUnsafe' method is experimental and unsafe. You should manually handle all entity references after deletion to maintain database consistency.
+     */
+    readonly deleteUnsafe: (id: string) => void,
+  }
 };
 
 export type HandlerContext = {
@@ -149,87 +121,6 @@ export type HandlerContext = {
    * Define a new Effect using createEffect outside of the handler.
    */
   readonly effect: EffectCaller;
-  readonly CorporateTreasuryManager_CorporateAccountCreated: {
-    /**
-     * Load the entity CorporateTreasuryManager_CorporateAccountCreated from the storage by ID.
-     * If the entity is not found, returns undefined.
-     */
-    readonly get: (id: string) => Promise<Entities.CorporateTreasuryManager_CorporateAccountCreated_t | undefined>,
-    /**
-     * Load the entity CorporateTreasuryManager_CorporateAccountCreated from the storage by ID.
-     * If the entity is not found, throws an error.
-     */
-    readonly getOrThrow: (id: string, message?: string) => Promise<Entities.CorporateTreasuryManager_CorporateAccountCreated_t>,
-    /**
-     * Returns the entity CorporateTreasuryManager_CorporateAccountCreated from the storage by ID.
-     * If the entity is not found, creates it using provided parameters and returns it.
-     */
-    readonly getOrCreate: (entity: Entities.CorporateTreasuryManager_CorporateAccountCreated_t) => Promise<Entities.CorporateTreasuryManager_CorporateAccountCreated_t>,
-    /**
-     * Set the entity CorporateTreasuryManager_CorporateAccountCreated in the storage.
-     */
-    readonly set: (entity: Entities.CorporateTreasuryManager_CorporateAccountCreated_t) => void,
-    /**
-     * Delete the entity CorporateTreasuryManager_CorporateAccountCreated from the storage.
-     *
-     * The 'deleteUnsafe' method is experimental and unsafe. You should manually handle all entity references after deletion to maintain database consistency.
-     */
-    readonly deleteUnsafe: (id: string) => void,
-  }
-  readonly CorporateTreasuryManager_DelegationSpending: {
-    /**
-     * Load the entity CorporateTreasuryManager_DelegationSpending from the storage by ID.
-     * If the entity is not found, returns undefined.
-     */
-    readonly get: (id: string) => Promise<Entities.CorporateTreasuryManager_DelegationSpending_t | undefined>,
-    /**
-     * Load the entity CorporateTreasuryManager_DelegationSpending from the storage by ID.
-     * If the entity is not found, throws an error.
-     */
-    readonly getOrThrow: (id: string, message?: string) => Promise<Entities.CorporateTreasuryManager_DelegationSpending_t>,
-    /**
-     * Returns the entity CorporateTreasuryManager_DelegationSpending from the storage by ID.
-     * If the entity is not found, creates it using provided parameters and returns it.
-     */
-    readonly getOrCreate: (entity: Entities.CorporateTreasuryManager_DelegationSpending_t) => Promise<Entities.CorporateTreasuryManager_DelegationSpending_t>,
-    /**
-     * Set the entity CorporateTreasuryManager_DelegationSpending in the storage.
-     */
-    readonly set: (entity: Entities.CorporateTreasuryManager_DelegationSpending_t) => void,
-    /**
-     * Delete the entity CorporateTreasuryManager_DelegationSpending from the storage.
-     *
-     * The 'deleteUnsafe' method is experimental and unsafe. You should manually handle all entity references after deletion to maintain database consistency.
-     */
-    readonly deleteUnsafe: (id: string) => void,
-  }
-  readonly CorporateTreasuryManager_DelegationUpdated: {
-    /**
-     * Load the entity CorporateTreasuryManager_DelegationUpdated from the storage by ID.
-     * If the entity is not found, returns undefined.
-     */
-    readonly get: (id: string) => Promise<Entities.CorporateTreasuryManager_DelegationUpdated_t | undefined>,
-    /**
-     * Load the entity CorporateTreasuryManager_DelegationUpdated from the storage by ID.
-     * If the entity is not found, throws an error.
-     */
-    readonly getOrThrow: (id: string, message?: string) => Promise<Entities.CorporateTreasuryManager_DelegationUpdated_t>,
-    /**
-     * Returns the entity CorporateTreasuryManager_DelegationUpdated from the storage by ID.
-     * If the entity is not found, creates it using provided parameters and returns it.
-     */
-    readonly getOrCreate: (entity: Entities.CorporateTreasuryManager_DelegationUpdated_t) => Promise<Entities.CorporateTreasuryManager_DelegationUpdated_t>,
-    /**
-     * Set the entity CorporateTreasuryManager_DelegationUpdated in the storage.
-     */
-    readonly set: (entity: Entities.CorporateTreasuryManager_DelegationUpdated_t) => void,
-    /**
-     * Delete the entity CorporateTreasuryManager_DelegationUpdated from the storage.
-     *
-     * The 'deleteUnsafe' method is experimental and unsafe. You should manually handle all entity references after deletion to maintain database consistency.
-     */
-    readonly deleteUnsafe: (id: string) => void,
-  }
   readonly EmergencyController_EmergencyStatusChanged: {
     /**
      * Load the entity EmergencyController_EmergencyStatusChanged from the storage by ID.
@@ -252,6 +143,60 @@ export type HandlerContext = {
     readonly set: (entity: Entities.EmergencyController_EmergencyStatusChanged_t) => void,
     /**
      * Delete the entity EmergencyController_EmergencyStatusChanged from the storage.
+     *
+     * The 'deleteUnsafe' method is experimental and unsafe. You should manually handle all entity references after deletion to maintain database consistency.
+     */
+    readonly deleteUnsafe: (id: string) => void,
+  }
+  readonly TrustlessDeFiTreasury_Delegation: {
+    /**
+     * Load the entity TrustlessDeFiTreasury_Delegation from the storage by ID.
+     * If the entity is not found, returns undefined.
+     */
+    readonly get: (id: string) => Promise<Entities.TrustlessDeFiTreasury_Delegation_t | undefined>,
+    /**
+     * Load the entity TrustlessDeFiTreasury_Delegation from the storage by ID.
+     * If the entity is not found, throws an error.
+     */
+    readonly getOrThrow: (id: string, message?: string) => Promise<Entities.TrustlessDeFiTreasury_Delegation_t>,
+    /**
+     * Returns the entity TrustlessDeFiTreasury_Delegation from the storage by ID.
+     * If the entity is not found, creates it using provided parameters and returns it.
+     */
+    readonly getOrCreate: (entity: Entities.TrustlessDeFiTreasury_Delegation_t) => Promise<Entities.TrustlessDeFiTreasury_Delegation_t>,
+    /**
+     * Set the entity TrustlessDeFiTreasury_Delegation in the storage.
+     */
+    readonly set: (entity: Entities.TrustlessDeFiTreasury_Delegation_t) => void,
+    /**
+     * Delete the entity TrustlessDeFiTreasury_Delegation from the storage.
+     *
+     * The 'deleteUnsafe' method is experimental and unsafe. You should manually handle all entity references after deletion to maintain database consistency.
+     */
+    readonly deleteUnsafe: (id: string) => void,
+  }
+  readonly TrustlessDeFiTreasury_SpendRecorded: {
+    /**
+     * Load the entity TrustlessDeFiTreasury_SpendRecorded from the storage by ID.
+     * If the entity is not found, returns undefined.
+     */
+    readonly get: (id: string) => Promise<Entities.TrustlessDeFiTreasury_SpendRecorded_t | undefined>,
+    /**
+     * Load the entity TrustlessDeFiTreasury_SpendRecorded from the storage by ID.
+     * If the entity is not found, throws an error.
+     */
+    readonly getOrThrow: (id: string, message?: string) => Promise<Entities.TrustlessDeFiTreasury_SpendRecorded_t>,
+    /**
+     * Returns the entity TrustlessDeFiTreasury_SpendRecorded from the storage by ID.
+     * If the entity is not found, creates it using provided parameters and returns it.
+     */
+    readonly getOrCreate: (entity: Entities.TrustlessDeFiTreasury_SpendRecorded_t) => Promise<Entities.TrustlessDeFiTreasury_SpendRecorded_t>,
+    /**
+     * Set the entity TrustlessDeFiTreasury_SpendRecorded in the storage.
+     */
+    readonly set: (entity: Entities.TrustlessDeFiTreasury_SpendRecorded_t) => void,
+    /**
+     * Delete the entity TrustlessDeFiTreasury_SpendRecorded from the storage.
      *
      * The 'deleteUnsafe' method is experimental and unsafe. You should manually handle all entity references after deletion to maintain database consistency.
      */

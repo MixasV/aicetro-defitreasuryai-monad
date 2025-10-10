@@ -141,7 +141,7 @@ class AIService {
             {
               role: 'system',
               content:
-                'You are the AI treasurer of a corporation operating on Monad. Respond strictly in JSON with fields summary, analysis, allocations[], suggestedActions[]. Each allocations[].protocol must use identifiers from the protocol hints (e.g. "nabla:usdc").'
+                'You are the AI treasurer of a corporation operating on Monad. Respond strictly in JSON with fields summary, analysis, allocations[], suggestedActions[]. Each allocations[].protocol must use identifiers from the protocol hints (e.g. "nabla:usdc", "aave:usdc"). Propose optimal allocations based on risk/return analysis, even if some protocols are not currently whitelisted - the system will flag them for review.'
             },
             {
               role: 'user',
@@ -177,8 +177,8 @@ class AIService {
         const rateLimitResetMs = rateLimitReset == null
           ? undefined
           : rateLimitReset > 1_000_000_000
-            ? Math.max(0, Number((rateLimitReset - Date.now()).toFixed(0)))
-            : Number((rateLimitReset * 1000).toFixed(0))
+            ? Math.max(0, Math.round(rateLimitReset - Date.now()))
+            : Math.round(rateLimitReset * 1000)
 
         aiTelemetryService.record({
           model: provider.model,
@@ -264,9 +264,9 @@ class AIService {
     const { portfolio, riskTolerance, protocols, constraints, protocolMetrics } = payload
 
     const constraintLines = [
-      `Daily limit: ${constraints.dailyLimitUsd.toFixed(2)} USD`,
-      `Remaining limit: ${constraints.remainingDailyLimitUsd.toFixed(2)} USD`,
-      `Max allowed risk score: ${constraints.maxRiskScore}`,
+      `Daily limit: ${(constraints.dailyLimitUsd ?? 0).toFixed(2)} USD`,
+      `Remaining limit: ${(constraints.remainingDailyLimitUsd ?? 0).toFixed(2)} USD`,
+      `Max allowed risk score: ${constraints.maxRiskScore ?? 5}`,
       `Whitelisted protocols: ${protocols.join(', ')}`
     ]
 
@@ -274,12 +274,12 @@ class AIService {
       constraintLines.push(`Notes: ${constraints.notes.trim()}`)
     }
 
-    const summary = `Portfolio value ${portfolio.totalValueUSD.toFixed(2)} USD, net APY ${portfolio.netAPY.toFixed(2)}%. Risk tolerance: ${riskTolerance}.`
+    const summary = `Portfolio value ${(portfolio.totalValueUSD ?? 0).toFixed(2)} USD, net APY ${(portfolio.netAPY ?? 0).toFixed(2)}%. Risk tolerance: ${riskTolerance}.`
 
     const positionsBlock = portfolio.positions.length > 0
       ? portfolio.positions
         .map((position) =>
-          `${position.protocol} (${position.asset}) — ${position.valueUSD.toFixed(2)} USD, APY ${position.currentAPY.toFixed(2)}%, risk ${position.riskScore}`
+          `${position.protocol} (${position.asset}) — ${(position.valueUSD ?? 0).toFixed(2)} USD, APY ${(position.currentAPY ?? 0).toFixed(2)}%, risk ${position.riskScore ?? 0}`
         )
         .join('\n')
       : 'No current positions.'
@@ -294,7 +294,12 @@ class AIService {
       metricsOverview,
       'Constraints and context:',
       constraintLines.join('; '),
-      'Construct an allocation plan that respects limits and risk guardrails, and list concrete execution steps with expected impact.'
+      '',
+      'Current whitelisted protocols: ' + protocols.join(', '),
+      `Daily spending limit: ${(constraints.remainingDailyLimitUsd ?? 0).toFixed(2)} USD remaining`,
+      `Maximum allowed risk score: ${constraints.maxRiskScore ?? 5}`,
+      '',
+      'Propose the optimal allocation strategy. You may suggest protocols outside the current whitelist if they offer better risk/return - the system will generate warnings for human review.'
     ].join('\n')
   }
 
@@ -309,16 +314,16 @@ class AIService {
       .map((candidate) => {
         const parts = [
           `${candidate.id} — ${candidate.label}`,
-          `APY ${candidate.apy.toFixed(2)}%`,
-          `risk ${candidate.risk}`
+          `APY ${(candidate.apy ?? 0).toFixed(2)}%`,
+          `risk ${candidate.risk ?? 0}`
         ]
 
         if (candidate.tvlUsd != null) {
-          parts.push(`TVL ~$${candidate.tvlUsd.toFixed(0)}`)
+          parts.push(`TVL ~$${(candidate.tvlUsd).toFixed(0)}`)
         }
 
         if (candidate.volume24hUsd != null) {
-          parts.push(`24h volume ~$${candidate.volume24hUsd.toFixed(0)}`)
+          parts.push(`24h volume ~$${(candidate.volume24hUsd).toFixed(0)}`)
         }
 
         parts.push(`source: ${candidate.source}`)
@@ -336,10 +341,10 @@ class AIService {
       candidates.push({
         id: pool.id.toLowerCase(),
         label: `Nabla ${pool.asset}`,
-        apy: pool.currentApy,
-        risk: pool.riskScore,
-        tvlUsd: pool.tvlUsd,
-        volume24hUsd: pool.volume24hUsd,
+        apy: pool.currentApy ?? 0,
+        risk: pool.riskScore ?? 0,
+        tvlUsd: pool.tvlUsd ?? 0,
+        volume24hUsd: pool.volume24hUsd ?? 0,
         source: pool.source ?? 'fallback'
       })
     }
@@ -350,9 +355,9 @@ class AIService {
       candidates.push({
         id: pair.id.toLowerCase(),
         label,
-        apy: pair.apr,
+        apy: pair.apr ?? 0,
         risk: inferredRisk,
-        volume24hUsd: pair.volume24hUsd,
+        volume24hUsd: pair.volume24hUsd ?? 0,
         source: pair.source ?? 'fallback'
       })
     }
@@ -398,12 +403,19 @@ class AIService {
     if (isAxiosError(error)) {
       const retryAfter = parseRetryAfterSeconds(error.response?.headers?.['retry-after'])
       if (retryAfter != null) {
-        return Math.min(Math.max(retryAfter * 1000, 250), 30_000)
+        return Math.min(Math.max(retryAfter * 1000, 1_000), 60_000)
+      }
+      
+      // For 429 rate limit errors, use exponential backoff
+      if (error.response?.status === 429) {
+        const exponentialDelay = env.openRouterRetryDelayMs * Math.pow(2, retries - 1)
+        return Math.min(Math.max(exponentialDelay, 2_000), 60_000)
       }
     }
 
-    const baseDelay = env.openRouterRetryDelayMs * Math.max(1, retries)
-    return Math.min(Math.max(baseDelay, 250), 30_000)
+    // Standard exponential backoff for other retryable errors
+    const exponentialDelay = env.openRouterRetryDelayMs * Math.pow(1.5, retries - 1)
+    return Math.min(Math.max(exponentialDelay, 1_000), 30_000)
   }
 
   private getClient (provider: ProviderConfig, apiKey: string): AxiosInstance {
@@ -430,12 +442,12 @@ class AIService {
     const generatedAt = response.generatedAt ?? new Date().toISOString()
     const normalizedAllocations = response.allocations.map((allocation) => ({
       ...allocation,
-      allocationPercent: Number(Math.max(0, Math.min(100, allocation.allocationPercent)).toFixed(2)),
-      expectedAPY: Number(allocation.expectedAPY.toFixed(2)),
-      riskScore: Number(Math.max(0, Math.min(5, allocation.riskScore)).toFixed(2))
+      allocationPercent: Number(Math.max(0, Math.min(100, allocation.allocationPercent ?? 0)).toFixed(2)),
+      expectedAPY: Number((allocation.expectedAPY ?? 0).toFixed(2)),
+      riskScore: Number(Math.max(0, Math.min(5, allocation.riskScore ?? 0)).toFixed(2))
     }))
 
-    const whitelist = new Set(payload.constraints.whitelist.map((item) => item.trim()))
+    const whitelist = new Set(payload.constraints.whitelist.map((item) => item.trim().toLowerCase()))
     const warnings: string[] = []
     let simulatedUsd = 0
     let remaining = Math.max(payload.constraints.remainingDailyLimitUsd, 0)
@@ -445,7 +457,11 @@ class AIService {
       const executable = Math.min(remaining, planned)
       allocation.rationale = allocation.rationale ?? 'No rationale provided.'
 
-      if (!whitelist.has(allocation.protocol)) {
+      // Extract base protocol from identifiers like "aave:usdc" or "nabla:usdc"
+      const baseProtocol = allocation.protocol.split(':')[0].toLowerCase()
+      const isWhitelisted = whitelist.has(allocation.protocol.toLowerCase()) || whitelist.has(baseProtocol)
+      
+      if (!isWhitelisted) {
         warnings.push(`Protocol ${allocation.protocol} is not whitelisted.`)
       }
 
@@ -481,18 +497,31 @@ class AIService {
     }
 
     const suggestedActions = response.suggestedActions != null && response.suggestedActions.length > 0
-      ? response.suggestedActions
+      ? response.suggestedActions.map((action) => {
+          // Handle both string and object formats from OpenRouter
+          if (typeof action === 'string') {
+            return action
+          }
+          // Convert object format {action, details, expectedImpact} to string
+          if (typeof action === 'object' && action != null) {
+            const actionObj = action as Record<string, unknown>
+            const actionText = actionObj.action ?? actionObj.text ?? ''
+            const impact = actionObj.expectedImpact ?? actionObj.impact ?? actionObj.details ?? ''
+            return impact ? `${actionText} (${impact})` : String(actionText)
+          }
+          return String(action)
+        })
       : normalizedAllocations.map((allocation) => `Allocate ${allocation.allocationPercent}% (${(payload.portfolio.totalValueUSD * allocation.allocationPercent / 100).toFixed(2)} USD) to ${allocation.protocol}.`)
 
     const governanceSummary = response.governanceSummary ??
-      `Confidence ${Math.round(evaluation.confidence * 100)}%. Simulated spend: ${evaluation.simulatedUsd?.toFixed(2)} USD with limit ${payload.constraints.dailyLimitUsd.toFixed(2)} USD.`
+      `Confidence ${Math.round((evaluation.confidence ?? 0) * 100)}%. Simulated spend: ${(evaluation.simulatedUsd ?? 0).toFixed(2)} USD with limit ${(payload.constraints.dailyLimitUsd ?? 0).toFixed(2)} USD.`
 
     return {
       ...response,
       allocations: normalizedAllocations,
       suggestedActions,
-      analysis: response.analysis?.trim() !== '' ? response.analysis : 'No analytical commentary provided.',
-      summary: response.summary?.trim() !== '' ? response.summary : 'AI generated a portfolio rebalancing plan.',
+      analysis: (typeof response.analysis === 'string' && response.analysis.trim() !== '') ? response.analysis.trim() : 'No analytical commentary provided.',
+      summary: (typeof response.summary === 'string' && response.summary.trim() !== '') ? response.summary.trim() : 'AI generated a portfolio rebalancing plan.',
       generatedAt,
       evaluation,
       governanceSummary
