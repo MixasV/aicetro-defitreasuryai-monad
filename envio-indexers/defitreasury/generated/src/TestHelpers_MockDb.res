@@ -69,9 +69,18 @@ type rec t = {
 // Each user defined entity will be in this record with all the store or "mockdb" operators
 @genType
 and entities = {
+    @as("AISmartAccountFactory_AccountCreated") aISmartAccountFactory_AccountCreated: entityStoreOperations<Entities.AISmartAccountFactory_AccountCreated.t>,
+    @as("AITreasurySmartAccount_DailyLimitUpdated") aITreasurySmartAccount_DailyLimitUpdated: entityStoreOperations<Entities.AITreasurySmartAccount_DailyLimitUpdated.t>,
+    @as("AITreasurySmartAccount_DelegationConfigured") aITreasurySmartAccount_DelegationConfigured: entityStoreOperations<Entities.AITreasurySmartAccount_DelegationConfigured.t>,
+    @as("AITreasurySmartAccount_EmergencyRevoke") aITreasurySmartAccount_EmergencyRevoke: entityStoreOperations<Entities.AITreasurySmartAccount_EmergencyRevoke.t>,
+    @as("AITreasurySmartAccount_HighRiskAlert") aITreasurySmartAccount_HighRiskAlert: entityStoreOperations<Entities.AITreasurySmartAccount_HighRiskAlert.t>,
     @as("EmergencyController_EmergencyStatusChanged") emergencyController_EmergencyStatusChanged: entityStoreOperations<Entities.EmergencyController_EmergencyStatusChanged.t>,
+    @as("EntryPoint_UserOperationEvent") entryPoint_UserOperationEvent: entityStoreOperations<Entities.EntryPoint_UserOperationEvent.t>,
+    @as("Pool") pool: entityStoreOperations<Entities.Pool.t>,
+    @as("PoolTransaction") poolTransaction: entityStoreOperations<Entities.PoolTransaction.t>,
     @as("TrustlessDeFiTreasury_Delegation") trustlessDeFiTreasury_Delegation: entityStoreOperations<Entities.TrustlessDeFiTreasury_Delegation.t>,
     @as("TrustlessDeFiTreasury_SpendRecorded") trustlessDeFiTreasury_SpendRecorded: entityStoreOperations<Entities.TrustlessDeFiTreasury_SpendRecorded.t>,
+    @as("UserPosition") userPosition: entityStoreOperations<Entities.UserPosition.t>,
   }
 // User defined entities always have a string for an id which is used as the
 // key for entity stores
@@ -284,6 +293,76 @@ let rec makeWithInMemoryStore: InMemoryStore.t => t = (inMemoryStore: InMemorySt
   )
 
   let entities = {
+      aISmartAccountFactory_AccountCreated: {
+        makeStoreOperatorEntity(
+          ~inMemoryStore,
+          ~makeMockDb=makeWithInMemoryStore,
+          ~getStore=db => db->InMemoryStore.getInMemTable(
+            ~entityConfig=module(Entities.AISmartAccountFactory_AccountCreated)->Entities.entityModToInternal,
+          )->(
+            Utils.magic: InMemoryTable.Entity.t<Internal.entity> => InMemoryTable.Entity.t<
+              Entities.AISmartAccountFactory_AccountCreated.t,
+            >
+          ),
+          ~getKey=({id}) => id,
+        )
+      },
+      aITreasurySmartAccount_DailyLimitUpdated: {
+        makeStoreOperatorEntity(
+          ~inMemoryStore,
+          ~makeMockDb=makeWithInMemoryStore,
+          ~getStore=db => db->InMemoryStore.getInMemTable(
+            ~entityConfig=module(Entities.AITreasurySmartAccount_DailyLimitUpdated)->Entities.entityModToInternal,
+          )->(
+            Utils.magic: InMemoryTable.Entity.t<Internal.entity> => InMemoryTable.Entity.t<
+              Entities.AITreasurySmartAccount_DailyLimitUpdated.t,
+            >
+          ),
+          ~getKey=({id}) => id,
+        )
+      },
+      aITreasurySmartAccount_DelegationConfigured: {
+        makeStoreOperatorEntity(
+          ~inMemoryStore,
+          ~makeMockDb=makeWithInMemoryStore,
+          ~getStore=db => db->InMemoryStore.getInMemTable(
+            ~entityConfig=module(Entities.AITreasurySmartAccount_DelegationConfigured)->Entities.entityModToInternal,
+          )->(
+            Utils.magic: InMemoryTable.Entity.t<Internal.entity> => InMemoryTable.Entity.t<
+              Entities.AITreasurySmartAccount_DelegationConfigured.t,
+            >
+          ),
+          ~getKey=({id}) => id,
+        )
+      },
+      aITreasurySmartAccount_EmergencyRevoke: {
+        makeStoreOperatorEntity(
+          ~inMemoryStore,
+          ~makeMockDb=makeWithInMemoryStore,
+          ~getStore=db => db->InMemoryStore.getInMemTable(
+            ~entityConfig=module(Entities.AITreasurySmartAccount_EmergencyRevoke)->Entities.entityModToInternal,
+          )->(
+            Utils.magic: InMemoryTable.Entity.t<Internal.entity> => InMemoryTable.Entity.t<
+              Entities.AITreasurySmartAccount_EmergencyRevoke.t,
+            >
+          ),
+          ~getKey=({id}) => id,
+        )
+      },
+      aITreasurySmartAccount_HighRiskAlert: {
+        makeStoreOperatorEntity(
+          ~inMemoryStore,
+          ~makeMockDb=makeWithInMemoryStore,
+          ~getStore=db => db->InMemoryStore.getInMemTable(
+            ~entityConfig=module(Entities.AITreasurySmartAccount_HighRiskAlert)->Entities.entityModToInternal,
+          )->(
+            Utils.magic: InMemoryTable.Entity.t<Internal.entity> => InMemoryTable.Entity.t<
+              Entities.AITreasurySmartAccount_HighRiskAlert.t,
+            >
+          ),
+          ~getKey=({id}) => id,
+        )
+      },
       emergencyController_EmergencyStatusChanged: {
         makeStoreOperatorEntity(
           ~inMemoryStore,
@@ -293,6 +372,48 @@ let rec makeWithInMemoryStore: InMemoryStore.t => t = (inMemoryStore: InMemorySt
           )->(
             Utils.magic: InMemoryTable.Entity.t<Internal.entity> => InMemoryTable.Entity.t<
               Entities.EmergencyController_EmergencyStatusChanged.t,
+            >
+          ),
+          ~getKey=({id}) => id,
+        )
+      },
+      entryPoint_UserOperationEvent: {
+        makeStoreOperatorEntity(
+          ~inMemoryStore,
+          ~makeMockDb=makeWithInMemoryStore,
+          ~getStore=db => db->InMemoryStore.getInMemTable(
+            ~entityConfig=module(Entities.EntryPoint_UserOperationEvent)->Entities.entityModToInternal,
+          )->(
+            Utils.magic: InMemoryTable.Entity.t<Internal.entity> => InMemoryTable.Entity.t<
+              Entities.EntryPoint_UserOperationEvent.t,
+            >
+          ),
+          ~getKey=({id}) => id,
+        )
+      },
+      pool: {
+        makeStoreOperatorEntity(
+          ~inMemoryStore,
+          ~makeMockDb=makeWithInMemoryStore,
+          ~getStore=db => db->InMemoryStore.getInMemTable(
+            ~entityConfig=module(Entities.Pool)->Entities.entityModToInternal,
+          )->(
+            Utils.magic: InMemoryTable.Entity.t<Internal.entity> => InMemoryTable.Entity.t<
+              Entities.Pool.t,
+            >
+          ),
+          ~getKey=({id}) => id,
+        )
+      },
+      poolTransaction: {
+        makeStoreOperatorEntity(
+          ~inMemoryStore,
+          ~makeMockDb=makeWithInMemoryStore,
+          ~getStore=db => db->InMemoryStore.getInMemTable(
+            ~entityConfig=module(Entities.PoolTransaction)->Entities.entityModToInternal,
+          )->(
+            Utils.magic: InMemoryTable.Entity.t<Internal.entity> => InMemoryTable.Entity.t<
+              Entities.PoolTransaction.t,
             >
           ),
           ~getKey=({id}) => id,
@@ -321,6 +442,20 @@ let rec makeWithInMemoryStore: InMemoryStore.t => t = (inMemoryStore: InMemorySt
           )->(
             Utils.magic: InMemoryTable.Entity.t<Internal.entity> => InMemoryTable.Entity.t<
               Entities.TrustlessDeFiTreasury_SpendRecorded.t,
+            >
+          ),
+          ~getKey=({id}) => id,
+        )
+      },
+      userPosition: {
+        makeStoreOperatorEntity(
+          ~inMemoryStore,
+          ~makeMockDb=makeWithInMemoryStore,
+          ~getStore=db => db->InMemoryStore.getInMemTable(
+            ~entityConfig=module(Entities.UserPosition)->Entities.entityModToInternal,
+          )->(
+            Utils.magic: InMemoryTable.Entity.t<Internal.entity> => InMemoryTable.Entity.t<
+              Entities.UserPosition.t,
             >
           ),
           ~getKey=({id}) => id,

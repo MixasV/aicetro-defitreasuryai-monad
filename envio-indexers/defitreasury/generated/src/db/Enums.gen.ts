@@ -4,11 +4,29 @@
 /* tslint:disable */
 
 export type ContractType_t = 
-    "EmergencyController"
-  | "TrustlessDeFiTreasury";
+    "AISmartAccountFactory"
+  | "AITreasurySmartAccount"
+  | "EmergencyController"
+  | "EntryPoint"
+  | "NablaUSDCPool"
+  | "NablaUSDTPool"
+  | "NablaWBTCPool"
+  | "TrustlessDeFiTreasury"
+  | "UniswapV2Factory"
+  | "UniswapV2Pair_USDC_USDT"
+  | "UniswapV2Pair_USDC_WMON";
 
 export type EntityType_t = 
-    "EmergencyController_EmergencyStatusChanged"
+    "AISmartAccountFactory_AccountCreated"
+  | "AITreasurySmartAccount_DailyLimitUpdated"
+  | "AITreasurySmartAccount_DelegationConfigured"
+  | "AITreasurySmartAccount_EmergencyRevoke"
+  | "AITreasurySmartAccount_HighRiskAlert"
+  | "EmergencyController_EmergencyStatusChanged"
+  | "EntryPoint_UserOperationEvent"
+  | "Pool"
+  | "PoolTransaction"
   | "TrustlessDeFiTreasury_Delegation"
   | "TrustlessDeFiTreasury_SpendRecorded"
+  | "UserPosition"
   | "dynamic_contract_registry";

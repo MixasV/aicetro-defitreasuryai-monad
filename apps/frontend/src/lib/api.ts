@@ -279,8 +279,26 @@ export const apiClient = {
   },
 
   // Pool Discovery API
-  getPools(): Promise<any> {
-    return request(`/pools`);
+  getPools(params?: { page?: number; limit?: number; sortBy?: string; order?: string; chain?: string; category?: string }): Promise<any> {
+    const query = new URLSearchParams();
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.limit) query.set('limit', String(params.limit));
+    if (params?.sortBy) query.set('sortBy', params.sortBy);
+    if (params?.order) query.set('order', params.order);
+    if (params?.chain) query.set('chain', params.chain);
+    if (params?.category) query.set('category', params.category);
+    
+    const queryString = query.toString();
+    return request(`/pools${queryString ? `?${queryString}` : ''}`);
+  },
+  getPoolById(poolId: string): Promise<any> {
+    return request(`/pools/${encodeURIComponent(poolId)}`);
+  },
+  getPoolHistory(poolId: string, days: number = 7): Promise<any> {
+    return request(`/pools/${encodeURIComponent(poolId)}/history?days=${days}`);
+  },
+  getPoolTransactions(poolId: string, limit: number = 20): Promise<any> {
+    return request(`/pools/${encodeURIComponent(poolId)}/transactions?limit=${limit}`);
   },
   getPoolCategories(): Promise<any> {
     return request(`/pools/categories`);
@@ -298,7 +316,28 @@ export const apiClient = {
     return request(`/pools/search?q=${encodeURIComponent(query)}`);
   },
   
-  // Whitelist API
+  // Delegation API
+  getActiveDelegation(userAddress: string): Promise<any> {
+    return request(`/delegation/${userAddress}`);  // Uses unified endpoint
+  },
+  
+  // Delegation Whitelist API (new - manages pools in delegation)
+  addPoolToDelegationWhitelist(userAddress: string, poolId: string): Promise<any> {
+    return request(`/delegations/${userAddress}/whitelist`, {
+      method: 'POST',
+      body: JSON.stringify({ poolId })
+    });
+  },
+  removePoolFromDelegationWhitelist(userAddress: string, poolId: string): Promise<any> {
+    return request(`/delegations/${userAddress}/whitelist/${poolId}`, {
+      method: 'DELETE'
+    });
+  },
+  getDelegationWhitelist(userAddress: string): Promise<any> {
+    return request(`/delegations/${userAddress}/whitelist`);
+  },
+  
+  // Old Whitelist API (legacy - in-memory)
   addPoolToWhitelist(poolId: string): Promise<any> {
     return request(`/pools/whitelist`, {
       method: 'POST',
@@ -315,5 +354,13 @@ export const apiClient = {
   },
   checkPoolWhitelisted(poolId: string): Promise<any> {
     return request(`/pools/whitelist/check/${poolId}`);
+  },
+  
+  // AI Operations & Transactions (for Dashboard)
+  getRecentOperations(address: string): Promise<any> {
+    return request(`/ai/operations/${address}/recent`);
+  },
+  getRecentTransactions(address: string): Promise<any> {
+    return request(`/ai/transactions/${address}/recent`);
   }
 };

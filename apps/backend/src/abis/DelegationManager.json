@@ -1,0 +1,59 @@
+[
+  {
+    "type": "function",
+    "name": "redeemDelegations",
+    "inputs": [
+      {
+        "name": "delegations",
+        "type": "bytes[][]",
+        "internalType": "bytes[][]"
+      },
+      {
+        "name": "modes",
+        "type": "bytes32[]",
+        "internalType": "ExecutionMode[]"
+      },
+      {
+        "name": "executionCallDatas",
+        "type": "bytes[]",
+        "internalType": "bytes[]"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "getDelegationHash",
+    "inputs": [
+      {
+        "name": "delegation",
+        "type": "tuple",
+        "internalType": "struct Delegation",
+        "components": [
+          { "name": "delegate", "type": "address" },
+          { "name": "delegator", "type": "address" },
+          { "name": "authority", "type": "bytes32" },
+          { "name": "caveats", "type": "tuple[]" },
+          { "name": "salt", "type": "uint256" },
+          { "name": "signature", "type": "bytes" }
+        ]
+      }
+    ],
+    "outputs": [
+      { "name": "", "type": "bytes32" }
+    ],
+    "stateMutability": "pure"
+  },
+  {
+    "type": "function",
+    "name": "isValidDelegation",
+    "inputs": [
+      { "name": "delegation", "type": "tuple", "internalType": "struct Delegation" }
+    ],
+    "outputs": [
+      { "name": "", "type": "bool" }
+    ],
+    "stateMutability": "view"
+  }
+]

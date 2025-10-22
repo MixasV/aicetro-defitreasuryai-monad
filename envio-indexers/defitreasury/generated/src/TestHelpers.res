@@ -142,6 +142,228 @@ module EventFunctions = {
 }
 
 
+module AISmartAccountFactory = {
+  module AccountCreated = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.AISmartAccountFactory.AccountCreated.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.AISmartAccountFactory.AccountCreated.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("account")
+      account?: Address.t,
+      @as("owner")
+      owner?: Address.t,
+      @as("salt")
+      salt?: bigint,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?account,
+        ?owner,
+        ?salt,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       account: account->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       owner: owner->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       salt: salt->Belt.Option.getWithDefault(0n),
+      }
+->(Utils.magic: Types.AISmartAccountFactory.AccountCreated.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.AISmartAccountFactory.AccountCreated.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.AISmartAccountFactory.AccountCreated.event)
+    }
+  }
+
+}
+
+
+module AITreasurySmartAccount = {
+  module DailyLimitUpdated = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.AITreasurySmartAccount.DailyLimitUpdated.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.AITreasurySmartAccount.DailyLimitUpdated.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("spentToday")
+      spentToday?: bigint,
+      @as("remainingLimit")
+      remainingLimit?: bigint,
+      @as("resetTime")
+      resetTime?: bigint,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?spentToday,
+        ?remainingLimit,
+        ?resetTime,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       spentToday: spentToday->Belt.Option.getWithDefault(0n),
+       remainingLimit: remainingLimit->Belt.Option.getWithDefault(0n),
+       resetTime: resetTime->Belt.Option.getWithDefault(0n),
+      }
+->(Utils.magic: Types.AITreasurySmartAccount.DailyLimitUpdated.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.AITreasurySmartAccount.DailyLimitUpdated.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.AITreasurySmartAccount.DailyLimitUpdated.event)
+    }
+  }
+
+  module EmergencyRevoke = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.AITreasurySmartAccount.EmergencyRevoke.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.AITreasurySmartAccount.EmergencyRevoke.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("revokedBy")
+      revokedBy?: Address.t,
+      @as("reason")
+      reason?: string,
+      @as("timestamp")
+      timestamp?: bigint,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?revokedBy,
+        ?reason,
+        ?timestamp,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       revokedBy: revokedBy->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       reason: reason->Belt.Option.getWithDefault("foo"),
+       timestamp: timestamp->Belt.Option.getWithDefault(0n),
+      }
+->(Utils.magic: Types.AITreasurySmartAccount.EmergencyRevoke.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.AITreasurySmartAccount.EmergencyRevoke.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.AITreasurySmartAccount.EmergencyRevoke.event)
+    }
+  }
+
+  module HighRiskAlert = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.AITreasurySmartAccount.HighRiskAlert.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.AITreasurySmartAccount.HighRiskAlert.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("protocol")
+      protocol?: Address.t,
+      @as("estimatedLossUsd")
+      estimatedLossUsd?: bigint,
+      @as("alertType")
+      alertType?: string,
+      @as("timestamp")
+      timestamp?: bigint,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?protocol,
+        ?estimatedLossUsd,
+        ?alertType,
+        ?timestamp,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       protocol: protocol->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       estimatedLossUsd: estimatedLossUsd->Belt.Option.getWithDefault(0n),
+       alertType: alertType->Belt.Option.getWithDefault("foo"),
+       timestamp: timestamp->Belt.Option.getWithDefault(0n),
+      }
+->(Utils.magic: Types.AITreasurySmartAccount.HighRiskAlert.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.AITreasurySmartAccount.HighRiskAlert.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.AITreasurySmartAccount.HighRiskAlert.event)
+    }
+  }
+
+  module DelegationConfigured = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.AITreasurySmartAccount.DelegationConfigured.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.AITreasurySmartAccount.DelegationConfigured.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("aiAgent")
+      aiAgent?: Address.t,
+      @as("dailyLimitUsd")
+      dailyLimitUsd?: bigint,
+      @as("validUntil")
+      validUntil?: bigint,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?aiAgent,
+        ?dailyLimitUsd,
+        ?validUntil,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       aiAgent: aiAgent->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       dailyLimitUsd: dailyLimitUsd->Belt.Option.getWithDefault(0n),
+       validUntil: validUntil->Belt.Option.getWithDefault(0n),
+      }
+->(Utils.magic: Types.AITreasurySmartAccount.DelegationConfigured.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.AITreasurySmartAccount.DelegationConfigured.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.AITreasurySmartAccount.DelegationConfigured.event)
+    }
+  }
+
+}
+
+
 module EmergencyController = {
   module EmergencyStatusChanged = {
     @genType
@@ -174,6 +396,482 @@ module EmergencyController = {
         ~mockEventData,
         ~register=(Types.EmergencyController.EmergencyStatusChanged.register :> unit => Internal.eventConfig),
       )->(Utils.magic: Internal.event => Types.EmergencyController.EmergencyStatusChanged.event)
+    }
+  }
+
+}
+
+
+module EntryPoint = {
+  module UserOperationEvent = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.EntryPoint.UserOperationEvent.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.EntryPoint.UserOperationEvent.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("userOpHash")
+      userOpHash?: string,
+      @as("sender")
+      sender?: Address.t,
+      @as("paymaster")
+      paymaster?: Address.t,
+      @as("nonce")
+      nonce?: bigint,
+      @as("success")
+      success?: bool,
+      @as("actualGasCost")
+      actualGasCost?: bigint,
+      @as("actualGasUsed")
+      actualGasUsed?: bigint,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?userOpHash,
+        ?sender,
+        ?paymaster,
+        ?nonce,
+        ?success,
+        ?actualGasCost,
+        ?actualGasUsed,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       userOpHash: userOpHash->Belt.Option.getWithDefault("foo"),
+       sender: sender->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       paymaster: paymaster->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       nonce: nonce->Belt.Option.getWithDefault(0n),
+       success: success->Belt.Option.getWithDefault(false),
+       actualGasCost: actualGasCost->Belt.Option.getWithDefault(0n),
+       actualGasUsed: actualGasUsed->Belt.Option.getWithDefault(0n),
+      }
+->(Utils.magic: Types.EntryPoint.UserOperationEvent.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.EntryPoint.UserOperationEvent.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.EntryPoint.UserOperationEvent.event)
+    }
+  }
+
+}
+
+
+module NablaUSDCPool = {
+  module Deposit = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.NablaUSDCPool.Deposit.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.NablaUSDCPool.Deposit.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("user")
+      user?: Address.t,
+      @as("assets")
+      assets?: bigint,
+      @as("shares")
+      shares?: bigint,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?user,
+        ?assets,
+        ?shares,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       user: user->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       assets: assets->Belt.Option.getWithDefault(0n),
+       shares: shares->Belt.Option.getWithDefault(0n),
+      }
+->(Utils.magic: Types.NablaUSDCPool.Deposit.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.NablaUSDCPool.Deposit.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.NablaUSDCPool.Deposit.event)
+    }
+  }
+
+  module Withdraw = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.NablaUSDCPool.Withdraw.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.NablaUSDCPool.Withdraw.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("user")
+      user?: Address.t,
+      @as("assets")
+      assets?: bigint,
+      @as("shares")
+      shares?: bigint,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?user,
+        ?assets,
+        ?shares,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       user: user->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       assets: assets->Belt.Option.getWithDefault(0n),
+       shares: shares->Belt.Option.getWithDefault(0n),
+      }
+->(Utils.magic: Types.NablaUSDCPool.Withdraw.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.NablaUSDCPool.Withdraw.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.NablaUSDCPool.Withdraw.event)
+    }
+  }
+
+  module Swap = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.NablaUSDCPool.Swap.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.NablaUSDCPool.Swap.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("sender")
+      sender?: Address.t,
+      @as("tokenIn")
+      tokenIn?: Address.t,
+      @as("tokenOut")
+      tokenOut?: Address.t,
+      @as("amountIn")
+      amountIn?: bigint,
+      @as("amountOut")
+      amountOut?: bigint,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?sender,
+        ?tokenIn,
+        ?tokenOut,
+        ?amountIn,
+        ?amountOut,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       sender: sender->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       tokenIn: tokenIn->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       tokenOut: tokenOut->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       amountIn: amountIn->Belt.Option.getWithDefault(0n),
+       amountOut: amountOut->Belt.Option.getWithDefault(0n),
+      }
+->(Utils.magic: Types.NablaUSDCPool.Swap.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.NablaUSDCPool.Swap.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.NablaUSDCPool.Swap.event)
+    }
+  }
+
+}
+
+
+module NablaUSDTPool = {
+  module Deposit = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.NablaUSDTPool.Deposit.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.NablaUSDTPool.Deposit.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("user")
+      user?: Address.t,
+      @as("assets")
+      assets?: bigint,
+      @as("shares")
+      shares?: bigint,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?user,
+        ?assets,
+        ?shares,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       user: user->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       assets: assets->Belt.Option.getWithDefault(0n),
+       shares: shares->Belt.Option.getWithDefault(0n),
+      }
+->(Utils.magic: Types.NablaUSDTPool.Deposit.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.NablaUSDTPool.Deposit.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.NablaUSDTPool.Deposit.event)
+    }
+  }
+
+  module Withdraw = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.NablaUSDTPool.Withdraw.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.NablaUSDTPool.Withdraw.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("user")
+      user?: Address.t,
+      @as("assets")
+      assets?: bigint,
+      @as("shares")
+      shares?: bigint,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?user,
+        ?assets,
+        ?shares,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       user: user->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       assets: assets->Belt.Option.getWithDefault(0n),
+       shares: shares->Belt.Option.getWithDefault(0n),
+      }
+->(Utils.magic: Types.NablaUSDTPool.Withdraw.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.NablaUSDTPool.Withdraw.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.NablaUSDTPool.Withdraw.event)
+    }
+  }
+
+  module Swap = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.NablaUSDTPool.Swap.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.NablaUSDTPool.Swap.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("sender")
+      sender?: Address.t,
+      @as("tokenIn")
+      tokenIn?: Address.t,
+      @as("tokenOut")
+      tokenOut?: Address.t,
+      @as("amountIn")
+      amountIn?: bigint,
+      @as("amountOut")
+      amountOut?: bigint,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?sender,
+        ?tokenIn,
+        ?tokenOut,
+        ?amountIn,
+        ?amountOut,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       sender: sender->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       tokenIn: tokenIn->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       tokenOut: tokenOut->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       amountIn: amountIn->Belt.Option.getWithDefault(0n),
+       amountOut: amountOut->Belt.Option.getWithDefault(0n),
+      }
+->(Utils.magic: Types.NablaUSDTPool.Swap.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.NablaUSDTPool.Swap.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.NablaUSDTPool.Swap.event)
+    }
+  }
+
+}
+
+
+module NablaWBTCPool = {
+  module Deposit = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.NablaWBTCPool.Deposit.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.NablaWBTCPool.Deposit.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("user")
+      user?: Address.t,
+      @as("assets")
+      assets?: bigint,
+      @as("shares")
+      shares?: bigint,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?user,
+        ?assets,
+        ?shares,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       user: user->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       assets: assets->Belt.Option.getWithDefault(0n),
+       shares: shares->Belt.Option.getWithDefault(0n),
+      }
+->(Utils.magic: Types.NablaWBTCPool.Deposit.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.NablaWBTCPool.Deposit.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.NablaWBTCPool.Deposit.event)
+    }
+  }
+
+  module Withdraw = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.NablaWBTCPool.Withdraw.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.NablaWBTCPool.Withdraw.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("user")
+      user?: Address.t,
+      @as("assets")
+      assets?: bigint,
+      @as("shares")
+      shares?: bigint,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?user,
+        ?assets,
+        ?shares,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       user: user->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       assets: assets->Belt.Option.getWithDefault(0n),
+       shares: shares->Belt.Option.getWithDefault(0n),
+      }
+->(Utils.magic: Types.NablaWBTCPool.Withdraw.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.NablaWBTCPool.Withdraw.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.NablaWBTCPool.Withdraw.event)
+    }
+  }
+
+  module Swap = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.NablaWBTCPool.Swap.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.NablaWBTCPool.Swap.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("sender")
+      sender?: Address.t,
+      @as("tokenIn")
+      tokenIn?: Address.t,
+      @as("tokenOut")
+      tokenOut?: Address.t,
+      @as("amountIn")
+      amountIn?: bigint,
+      @as("amountOut")
+      amountOut?: bigint,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?sender,
+        ?tokenIn,
+        ?tokenOut,
+        ?amountIn,
+        ?amountOut,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       sender: sender->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       tokenIn: tokenIn->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       tokenOut: tokenOut->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       amountIn: amountIn->Belt.Option.getWithDefault(0n),
+       amountOut: amountOut->Belt.Option.getWithDefault(0n),
+      }
+->(Utils.magic: Types.NablaWBTCPool.Swap.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.NablaWBTCPool.Swap.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.NablaWBTCPool.Swap.event)
     }
   }
 
@@ -434,6 +1132,424 @@ module TrustlessDeFiTreasury = {
         ~mockEventData,
         ~register=(Types.TrustlessDeFiTreasury.SpendRecorded.register :> unit => Internal.eventConfig),
       )->(Utils.magic: Internal.event => Types.TrustlessDeFiTreasury.SpendRecorded.event)
+    }
+  }
+
+}
+
+
+module UniswapV2Factory = {
+  module PairCreated = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.UniswapV2Factory.PairCreated.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.UniswapV2Factory.PairCreated.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("token0")
+      token0?: Address.t,
+      @as("token1")
+      token1?: Address.t,
+      @as("pair")
+      pair?: Address.t,
+      @as("_3")
+      _3?: bigint,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?token0,
+        ?token1,
+        ?pair,
+        ?_3,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       token0: token0->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       token1: token1->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       pair: pair->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       _3: _3->Belt.Option.getWithDefault(0n),
+      }
+->(Utils.magic: Types.UniswapV2Factory.PairCreated.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.UniswapV2Factory.PairCreated.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.UniswapV2Factory.PairCreated.event)
+    }
+  }
+
+}
+
+
+module UniswapV2Pair_USDC_USDT = {
+  module Mint = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.UniswapV2Pair_USDC_USDT.Mint.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.UniswapV2Pair_USDC_USDT.Mint.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("sender")
+      sender?: Address.t,
+      @as("amount0")
+      amount0?: bigint,
+      @as("amount1")
+      amount1?: bigint,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?sender,
+        ?amount0,
+        ?amount1,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       sender: sender->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       amount0: amount0->Belt.Option.getWithDefault(0n),
+       amount1: amount1->Belt.Option.getWithDefault(0n),
+      }
+->(Utils.magic: Types.UniswapV2Pair_USDC_USDT.Mint.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.UniswapV2Pair_USDC_USDT.Mint.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.UniswapV2Pair_USDC_USDT.Mint.event)
+    }
+  }
+
+  module Burn = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.UniswapV2Pair_USDC_USDT.Burn.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.UniswapV2Pair_USDC_USDT.Burn.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("sender")
+      sender?: Address.t,
+      @as("amount0")
+      amount0?: bigint,
+      @as("amount1")
+      amount1?: bigint,
+      @as("to")
+      to?: Address.t,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?sender,
+        ?amount0,
+        ?amount1,
+        ?to,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       sender: sender->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       amount0: amount0->Belt.Option.getWithDefault(0n),
+       amount1: amount1->Belt.Option.getWithDefault(0n),
+       to: to->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+      }
+->(Utils.magic: Types.UniswapV2Pair_USDC_USDT.Burn.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.UniswapV2Pair_USDC_USDT.Burn.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.UniswapV2Pair_USDC_USDT.Burn.event)
+    }
+  }
+
+  module Swap = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.UniswapV2Pair_USDC_USDT.Swap.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.UniswapV2Pair_USDC_USDT.Swap.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("sender")
+      sender?: Address.t,
+      @as("amount0In")
+      amount0In?: bigint,
+      @as("amount1In")
+      amount1In?: bigint,
+      @as("amount0Out")
+      amount0Out?: bigint,
+      @as("amount1Out")
+      amount1Out?: bigint,
+      @as("to")
+      to?: Address.t,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?sender,
+        ?amount0In,
+        ?amount1In,
+        ?amount0Out,
+        ?amount1Out,
+        ?to,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       sender: sender->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       amount0In: amount0In->Belt.Option.getWithDefault(0n),
+       amount1In: amount1In->Belt.Option.getWithDefault(0n),
+       amount0Out: amount0Out->Belt.Option.getWithDefault(0n),
+       amount1Out: amount1Out->Belt.Option.getWithDefault(0n),
+       to: to->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+      }
+->(Utils.magic: Types.UniswapV2Pair_USDC_USDT.Swap.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.UniswapV2Pair_USDC_USDT.Swap.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.UniswapV2Pair_USDC_USDT.Swap.event)
+    }
+  }
+
+  module Sync = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.UniswapV2Pair_USDC_USDT.Sync.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.UniswapV2Pair_USDC_USDT.Sync.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("reserve0")
+      reserve0?: bigint,
+      @as("reserve1")
+      reserve1?: bigint,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?reserve0,
+        ?reserve1,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       reserve0: reserve0->Belt.Option.getWithDefault(0n),
+       reserve1: reserve1->Belt.Option.getWithDefault(0n),
+      }
+->(Utils.magic: Types.UniswapV2Pair_USDC_USDT.Sync.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.UniswapV2Pair_USDC_USDT.Sync.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.UniswapV2Pair_USDC_USDT.Sync.event)
+    }
+  }
+
+}
+
+
+module UniswapV2Pair_USDC_WMON = {
+  module Mint = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.UniswapV2Pair_USDC_WMON.Mint.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.UniswapV2Pair_USDC_WMON.Mint.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("sender")
+      sender?: Address.t,
+      @as("amount0")
+      amount0?: bigint,
+      @as("amount1")
+      amount1?: bigint,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?sender,
+        ?amount0,
+        ?amount1,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       sender: sender->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       amount0: amount0->Belt.Option.getWithDefault(0n),
+       amount1: amount1->Belt.Option.getWithDefault(0n),
+      }
+->(Utils.magic: Types.UniswapV2Pair_USDC_WMON.Mint.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.UniswapV2Pair_USDC_WMON.Mint.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.UniswapV2Pair_USDC_WMON.Mint.event)
+    }
+  }
+
+  module Burn = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.UniswapV2Pair_USDC_WMON.Burn.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.UniswapV2Pair_USDC_WMON.Burn.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("sender")
+      sender?: Address.t,
+      @as("amount0")
+      amount0?: bigint,
+      @as("amount1")
+      amount1?: bigint,
+      @as("to")
+      to?: Address.t,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?sender,
+        ?amount0,
+        ?amount1,
+        ?to,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       sender: sender->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       amount0: amount0->Belt.Option.getWithDefault(0n),
+       amount1: amount1->Belt.Option.getWithDefault(0n),
+       to: to->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+      }
+->(Utils.magic: Types.UniswapV2Pair_USDC_WMON.Burn.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.UniswapV2Pair_USDC_WMON.Burn.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.UniswapV2Pair_USDC_WMON.Burn.event)
+    }
+  }
+
+  module Swap = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.UniswapV2Pair_USDC_WMON.Swap.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.UniswapV2Pair_USDC_WMON.Swap.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("sender")
+      sender?: Address.t,
+      @as("amount0In")
+      amount0In?: bigint,
+      @as("amount1In")
+      amount1In?: bigint,
+      @as("amount0Out")
+      amount0Out?: bigint,
+      @as("amount1Out")
+      amount1Out?: bigint,
+      @as("to")
+      to?: Address.t,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?sender,
+        ?amount0In,
+        ?amount1In,
+        ?amount0Out,
+        ?amount1Out,
+        ?to,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       sender: sender->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+       amount0In: amount0In->Belt.Option.getWithDefault(0n),
+       amount1In: amount1In->Belt.Option.getWithDefault(0n),
+       amount0Out: amount0Out->Belt.Option.getWithDefault(0n),
+       amount1Out: amount1Out->Belt.Option.getWithDefault(0n),
+       to: to->Belt.Option.getWithDefault(TestHelpers_MockAddresses.defaultAddress),
+      }
+->(Utils.magic: Types.UniswapV2Pair_USDC_WMON.Swap.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.UniswapV2Pair_USDC_WMON.Swap.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.UniswapV2Pair_USDC_WMON.Swap.event)
+    }
+  }
+
+  module Sync = {
+    @genType
+    let processEvent: EventFunctions.eventProcessor<Types.UniswapV2Pair_USDC_WMON.Sync.event> = EventFunctions.makeEventProcessor(
+      ~register=(Types.UniswapV2Pair_USDC_WMON.Sync.register :> unit => Internal.eventConfig),
+    )
+
+    @genType
+    type createMockArgs = {
+      @as("reserve0")
+      reserve0?: bigint,
+      @as("reserve1")
+      reserve1?: bigint,
+      mockEventData?: EventFunctions.mockEventData,
+    }
+
+    @genType
+    let createMockEvent = args => {
+      let {
+        ?reserve0,
+        ?reserve1,
+        ?mockEventData,
+      } = args
+
+      let params = 
+      {
+       reserve0: reserve0->Belt.Option.getWithDefault(0n),
+       reserve1: reserve1->Belt.Option.getWithDefault(0n),
+      }
+->(Utils.magic: Types.UniswapV2Pair_USDC_WMON.Sync.eventArgs => Internal.eventParams)
+
+      EventFunctions.makeEventMocker(
+        ~params,
+        ~mockEventData,
+        ~register=(Types.UniswapV2Pair_USDC_WMON.Sync.register :> unit => Internal.eventConfig),
+      )->(Utils.magic: Internal.event => Types.UniswapV2Pair_USDC_WMON.Sync.event)
     }
   }
 

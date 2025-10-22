@@ -1,0 +1,149 @@
+# AI EXECUTOR FEE INTEGRATION PATCH
+
+## Location: apps/backend/src/services/ai/ai.executor.ts
+
+## CHANGE 1: After line ~105 (after risk checks, BEFORE remainingLimit -= amountUsd)
+
+INSERT BEFORE: `remainingLimit = Number((remainingLimit - amountUsd).toFixed(2))`
+
+```typescript
+      // ========================================
+      // FEE ANALYSIS & GAS OPTIMIZATION
+      // ========================================
+      console.log(`[AI Executor] Analyzing cost for ${allocation.protocol} ($${amountUsd})...`)
+      
+      const costAnalysis = await txCostService.analyzeCost({
+        protocol: allocation.protocol,
+        action: 'deposit', // TODO: extract action from allocation
+        amountUSD: amountUsd,
+        expectedAPY: allocation.expectedAPY,
+        portfolioTotalUSD,
+        aiManagedCapitalUSD,
+        accountAddress: account
+      })
+      
+      console.log(`[AI Executor] Cost analysis:`, {
+        estimatedCostUSD: costAnalysis.estimatedCostUSD,
+        worthExecuting: costAnalysis.worthExecuting,
+        feePercentage: ((costAnalysis.estimatedCostUSD / amountUsd) * 100).toFixed(2) + '%',
+        daysToBreakEven: costAnalysis.daysToBreakEven,
+        feeLimitStatus: {
+          remaining: costAnalysis.feeLimitStatus.remaining,
+          withinLimit: costAnalysis.feeLimitStatus.withinLimit
+        }
+      })
+      
+      // Check if worth executing
+      if (!costAnalysis.worthExecuting) {
+        console.warn(`[AI Executor] Not worth executing:`, {
+          protocol: allocation.protocol,
+          reason: !costAnalysis.feeLimitStatus.withinLimit ? 'Fee limit exceeded' :
+                  (costAnalysis.estimatedCostUSD / amountUsd >= 0.02) ? 'Fees > 2%' :
+                  costAnalysis.daysToBreakEven >= 30 ? 'Break-even > 30 days' : 'Unknown'
+        })
+        
+        // Try to defer if gas will be cheaper
+        if (costAnalysis.optimizedGasPriceGwei && 
+            costAnalysis.potentialSavingsUSD &&
+            costAnalysis.potentialSavingsUSD > 2 &&
+            costAnalysis.hoursToWait &&
+            costAnalysis.hoursToWait < 24) {
+          
+          console.log(`[AI Executor] Deferring:`, {
+            savings: costAnalysis.potentialSavingsUSD,
+            hoursToWait: costAnalysis.hoursToWait
+          })
+          
+          try {
+            await deferredExecutionService.deferTransaction({
+              accountAddress: account,
+              recommendation: allocation,
+              deferHours: costAnalysis.hoursToWait,
+              currentGasPrice: costAnalysis.currentGasPriceGwei,
+              targetGasPrice: costAnalysis.optimizedGasPriceGwei,
+              reason: `High gas (${costAnalysis.currentGasPriceGwei} gwei). Wait ${costAnalysis.hoursToWait}h to save $${costAnalysis.potentialSavingsUSD.toFixed(2)}`
+            })
+            
+            actions.push({
+              ...baseAction,
+              status: 'skipped',
+              reason: `Deferred: High gas. Wait ${costAnalysis.hoursToWait}h to save $${costAnalysis.potentialSavingsUSD.toFixed(2)}`,
+              simulationUsd: 0
+            })
+            continue
+          } catch (deferError) {
+            console.error(`[AI Executor] Defer failed:`, deferError)
+            // Fall through to skip logic
+          }
+        }
+        
+        // Skip - not profitable
+        let skipReason = ''
+        if (!costAnalysis.feeLimitStatus.withinLimit) {
+          skipReason = `Monthly fee limit exceeded ($${costAnalysis.feeLimitStatus.spent30Days.toFixed(2)}/$${costAnalysis.feeLimitStatus.monthlyLimit})`
+        } else if ((costAnalysis.estimatedCostUSD / amountUsd) >= 0.02) {
+          skipReason = `Fees too high (${((costAnalysis.estimatedCostUSD / amountUsd) * 100).toFixed(2)}% > 2% threshold)`
+        } else if (costAnalysis.daysToBreakEven >= 30) {
+          skipReason = `Break-even too long (${costAnalysis.daysToBreakEven.toFixed(1)} days > 30)`
+        } else {
+          skipReason = 'Not profitable'
+        }
+        
+        actions.push({
+          ...baseAction,
+          status: 'skipped',
+          reason: skipReason,
+          simulationUsd: 0
+        })
+        
+        console.log(`[AI Executor] Skipped: ${skipReason}`)
+        continue
+      }
+      
+      console.log(`[AI Executor] Worth executing - gas cost: $${costAnalysis.estimatedCostUSD.toFixed(2)}`)
+      
+      // Store gas cost for later recording
+      baseAction.estimatedGasCostUSD = costAnalysis.estimatedCostUSD
+```
+
+## CHANGE 2: After line ~215 (in demo mode virtualPortfolioService.recordExecution)
+
+REPLACE:
+```typescript
+await virtualPortfolioService.recordExecution({
+  accountAddress: account,
+  protocol: allocation.protocol,
+  action: 'deposit',
+  amountUSD: amountUsd,
+  success: true,
+  profitUSD: 0,
+  txHash: mockTxHash
+})
+```
+
+WITH:
+```typescript
+await virtualPortfolioService.recordExecution({
+  accountAddress: account,
+  protocol: allocation.protocol,
+  action: 'deposit',
+  amountUSD: amountUsd,
+  success: true,
+  profitUSD: 0,
+  gasUsedUSD: action.estimatedGasCostUSD || 0,
+  txHash: mockTxHash
+})
+console.log(`[AI Executor] Demo gas cost deducted: $${action.estimatedGasCostUSD?.toFixed(2) || 0}`)
+```
+
+## NOTES:
+- baseAction needs new field: estimatedGasCostUSD?: number
+- Demo mode will now deduct gas costs from virtual portfolio
+- Real mode: TODO - record to FeeTransaction table
+- Status tracking: executed | skipped | deferred
+
+## TEST SCENARIOS:
+1. Normal execution: low gas, profitable → EXECUTED
+2. Deferred: high gas, can wait → SKIPPED (deferred in DB)
+3. Skipped - fee limit: monthly budget exceeded → SKIPPED
+4. Skipped - not profitable: small amount, high fees → SKIPPED

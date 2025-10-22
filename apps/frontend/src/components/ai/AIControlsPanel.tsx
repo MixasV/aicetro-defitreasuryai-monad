@@ -518,9 +518,9 @@ export const AIControlsPanel = ({ portfolio, accountAddress, usingDemo }: Props)
                     <div>
                       <h6 className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Action items</h6>
                       <ul className="mt-2 space-y-1">
-                        {recommendations.suggestedActions.map((action) => (
-                          <li key={action} className="rounded border border-white/5 bg-black/20 px-2 py-1">
-                            {action}
+                        {recommendations.suggestedActions.map((action, idx) => (
+                          <li key={idx} className="rounded border border-white/5 bg-black/20 px-2 py-1">
+                            {typeof action === 'string' ? action : JSON.stringify(action)}
                           </li>
                         ))}
                       </ul>

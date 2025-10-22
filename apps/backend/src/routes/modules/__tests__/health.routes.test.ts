@@ -76,7 +76,7 @@ describe('health routes', () => {
     expect(response.body).toEqual(mockStatus)
   })
 
-  it('возвращает 500 и дефолтный payload при ошибке сервиса', async () => {
+  it('returns 500 и дефолтный payload on service error', async () => {
     getStatusMock.mockRejectedValueOnce(new Error('boom'))
 
     const response = await request(app).get('/api/health')

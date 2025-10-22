@@ -4,17 +4,20 @@ import {
   DEMO_CORPORATE_ACCOUNT,
   DEMO_DELEGATE,
   DEMO_DAILY_LIMIT_USD,
+  DEMO_VIRTUAL_BALANCE_USD,
   DEMO_INITIAL_SPENT_24H,
   DEMO_MAX_RISK_SCORE,
   DEMO_OWNERS,
   DEMO_PROTOCOLS,
   DEMO_THRESHOLD
 } from '../../config/demo'
+import { virtualPortfolioService } from '../portfolio/virtual.portfolio.service'
 import { aiExecutionService } from '../ai/ai.executor'
 import { aiExecutionHistoryService } from '../ai/ai.history'
 import { blockchainService } from '../blockchain/blockchain.service'
 import { emergencyLogService } from '../emergency/emergency.service'
 import { emergencyStateService } from '../emergency/emergency.state'
+import { emergencyDetectionService } from '../ai/emergency-detection.service'
 import { riskService } from '../risk/risk.service'
 import { monitoringService } from '../monitoring/monitoring.service'
 import { portfolioAnalyticsService } from '../monitoring/portfolio.analytics.service'
@@ -118,6 +121,12 @@ class DemoService {
   }
 
   private async buildSummary (account: string, execution?: AIExecutionResult): Promise<DemoScenarioSummary> {
+    // Use virtual portfolio for demo account
+    const isDemo = account.toLowerCase() === DEMO_CORPORATE_ACCOUNT.toLowerCase()
+    const portfolioPromise = isDemo 
+      ? virtualPortfolioService.getFormatted(account)
+      : monitoringService.getPortfolioSnapshot(account)
+
     const [corporate, delegationState, delegations, aiSummary, risk, emergencyLog, snapshot, alerts, projection, history] = await Promise.all([
       prisma.corporateAccount.findUnique({ where: { address: account } }),
       blockchainService.getDelegationState(account, DEMO_DELEGATE),
@@ -125,7 +134,7 @@ class DemoService {
       aiExecutionHistoryService.getSummary(account),
       riskService.getRiskInsights(account),
       Promise.resolve(emergencyLogService.list(account).slice(0, 5)),
-      monitoringService.getPortfolioSnapshot(account),
+      portfolioPromise,
       monitoringService.getRiskAlerts(account),
       portfolioAnalyticsService.buildProjection(account),
       aiExecutionHistoryService.listForAccount(account, 10)
@@ -162,7 +171,7 @@ class DemoService {
     const target = delegations.find((item) => item.delegate === state.delegate)
 
     const updatedAt = target?.updatedAt ?? new Date().toISOString()
-    const dailyLimit = Number(target?.dailyLimit ?? state.dailyLimitUsd)
+    const dailyLimit = Number(target?.dailyLimit ?? DEMO_VIRTUAL_BALANCE_USD)
     const spent24h = Number(target?.spent24h ?? state.spent24h)
     const remaining = Math.max(dailyLimit - spent24h, 0)
 
@@ -251,6 +260,62 @@ class DemoService {
       spent24hUpdatedAt: new Date().toISOString(),
       maxRiskScore: DEMO_MAX_RISK_SCORE,
       notes: 'demo scenario baseline'
+    }
+  }
+  
+  /**
+   * Simulate emergency scenario for demo mode
+   */
+  async simulateEmergency(type: 'FLASH_CRASH' | 'PROTOCOL_HACK' | 'LIQUIDITY_DRAIN' = 'FLASH_CRASH') {
+    console.log('[Demo] Simulating emergency:', type)
+    
+    // Create emergency signal
+    const emergencyResult = await emergencyDetectionService.triggerEmergency(
+      DEMO_CORPORATE_ACCOUNT,
+      `Demo simulation: ${type}`
+    )
+    
+    // Get current portfolio
+    const portfolio = await virtualPortfolioService.getOrCreate(DEMO_CORPORATE_ACCOUNT)
+    
+    // Simulate emergency withdrawal ignoring fee limits
+    const emergencyActions = portfolio.positions.map((position: any) => ({
+      protocol: position.protocol,
+      action: 'EMERGENCY_WITHDRAW' as const,
+      amountUSD: position.valueUSD,
+      reason: `Emergency: ${type}`,
+      bypassFeeLimits: true,
+      isEmergency: true
+    }))
+    
+    // Log emergency event
+    await prisma.aIOperation.create({
+      data: {
+        userOpHash: `demo-emergency-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+        smartAccount: DEMO_CORPORATE_ACCOUNT,
+        protocol: 'EMERGENCY',
+        action: 'EMERGENCY_WITHDRAWAL',
+        token: 'ALL',
+        amount: portfolio.currentBalanceUsd.toString(),
+        valueUsd: portfolio.currentBalanceUsd,
+        riskScore: 10,
+        success: true,
+        gasUsed: '0',
+        timestamp: new Date()
+      }
+    })
+    
+    console.log('[Demo] Emergency simulation complete:', {
+      type,
+      totalWithdrawn: portfolio.currentBalanceUsd,
+      positionsExited: emergencyActions.length
+    })
+    
+    return {
+      success: true,
+      emergency: emergencyResult,
+      actions: emergencyActions,
+      message: `Emergency ${type} handled - withdrew $${portfolio.currentBalanceUsd.toLocaleString()} from ${emergencyActions.length} positions`
     }
   }
 }

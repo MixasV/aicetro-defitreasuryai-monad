@@ -41,6 +41,6 @@ describe('Application mode routes', () => {
       .send({ mode: 'invalid' })
 
     expect(response.status).toBe(400)
-    expect(response.body.message).toBe('Некорректный режим приложения')
+    expect(response.body.message).toBe('Invalid application mode')
   })
 })

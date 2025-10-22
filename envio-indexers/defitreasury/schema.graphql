@@ -31,3 +31,153 @@ type EmergencyController_EmergencyStatusChanged {
   timestamp: BigInt!
 }
 
+# ERC-4337 EntryPoint Events
+type EntryPoint_UserOperationEvent {
+  id: ID!
+  userOpHash: String!
+  sender: String!
+  paymaster: String!
+  nonce: BigInt!
+  success: Boolean!
+  actualGasCost: BigInt!
+  actualGasUsed: BigInt!
+  txHash: String!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  source: String! # "ai" or "manual" based on sender
+  smartAccount: String! # The smart account this operation belongs to
+}
+
+# Smart Account Factory Events
+type AISmartAccountFactory_AccountCreated {
+  id: ID!
+  account: String!
+  owner: String!
+  salt: BigInt!
+  txHash: String!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+}
+
+# Smart Account Custom Events (Hybrid Approach)
+type AITreasurySmartAccount_DailyLimitUpdated {
+  id: ID!
+  smartAccount: String!
+  spentToday: BigInt!
+  remainingLimit: BigInt!
+  resetTime: BigInt!
+  txHash: String!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+}
+
+type AITreasurySmartAccount_EmergencyRevoke {
+  id: ID!
+  smartAccount: String!
+  revokedBy: String!
+  reason: String!
+  revokeTimestamp: BigInt!
+  txHash: String!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+}
+
+type AITreasurySmartAccount_HighRiskAlert {
+  id: ID!
+  smartAccount: String!
+  protocol: String!
+  estimatedLossUsd: BigInt!
+  alertType: String!
+  alertTimestamp: BigInt!
+  txHash: String!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+}
+
+type AITreasurySmartAccount_DelegationConfigured {
+  id: ID!
+  smartAccount: String!
+  aiAgent: String!
+  dailyLimitUsd: BigInt!
+  validUntil: BigInt!
+  txHash: String!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+}
+
+# DeFi Pool Data (Aggregated from events)
+type Pool {
+  id: ID! # protocol:asset or protocol:token0-token1 (e.g., "nabla:usdc", "uniswap:usdc-usdt")
+  protocol: String! # "Nabla", "Uniswap V2"
+  poolAddress: String!
+  poolType: String! # "single-asset" or "lp-pair"
+  
+  # Single-asset pool fields (Nabla)
+  asset: String # "USDC", "USDT", "WBTC"
+  assetAddress: String
+  
+  # LP pair fields (Uniswap)
+  token0: String
+  token0Address: String
+  token1: String
+  token1Address: String
+  
+  # Aggregated metrics
+  totalDeposits: BigInt!
+  totalWithdrawals: BigInt!
+  totalSwapVolume: BigInt!
+  transactionCount: Int!
+  uniqueUsers: Int!
+  
+  # Latest state
+  reserve0: BigInt # For Uniswap pairs
+  reserve1: BigInt # For Uniswap pairs
+  lastReserveUpdate: BigInt
+  
+  # Metadata
+  createdAt: BigInt!
+  lastActivityAt: BigInt!
+}
+
+# Pool transaction history
+type PoolTransaction {
+  id: ID! # txHash:logIndex
+  pool: Pool!
+  user: String!
+  transactionType: String! # "deposit", "withdraw", "swap", "mint", "burn"
+  
+  # Amounts
+  amount0: BigInt # For swaps/LP: token0 amount
+  amount1: BigInt # For swaps/LP: token1 amount
+  shares: BigInt # For deposits/withdrawals: shares minted/burned
+  
+  # Swap-specific
+  tokenIn: String
+  tokenOut: String
+  
+  # Transaction metadata
+  txHash: String!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  gasUsed: BigInt
+}
+
+# User position in a pool
+type UserPosition {
+  id: ID! # user:poolId
+  user: String!
+  pool: Pool!
+  
+  # Position details
+  shares: BigInt!
+  totalDeposited: BigInt!
+  totalWithdrawn: BigInt!
+  
+  # Timestamps
+  firstDepositAt: BigInt!
+  lastActivityAt: BigInt!
+  
+  # Transaction count
+  depositCount: Int!
+  withdrawCount: Int!
+}

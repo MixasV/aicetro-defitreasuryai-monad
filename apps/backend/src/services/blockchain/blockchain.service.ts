@@ -274,6 +274,7 @@ interface DelegationState {
   whitelist: string[]
   maxRiskScore: number
   remainingDailyLimitUsd?: number
+  portfolioPercentage?: number  // ✅ CRITICAL: % of portfolio AI can manage
 }
 
 type EmergencyActionExecutionResult = Awaited<ReturnType<typeof emergencyControllerClient.pause>>
@@ -359,7 +360,16 @@ class BlockchainService {
     try {
       const corporate = await prisma.corporateAccount.findUnique({
         where: { address: lowerAccount },
-        include: { delegations: { take: 1 } }
+        include: { 
+          delegations: { 
+            where: { 
+              active: true, 
+              autoExecutionEnabled: true 
+            },
+            take: 1,
+            orderBy: { createdAt: 'desc' }
+          } 
+        }
       })
 
       if (corporate == null || corporate.delegations.length === 0) {
@@ -433,9 +443,8 @@ class BlockchainService {
         return [mapped]
       }
 
-      if (trustlessConfigured) {
-        return []
-      }
+      // Even if trustless is configured, check Prisma for Simple Mode delegations
+      // Simple Mode stores delegations in Prisma, not on-chain
     } catch (error) {
       logger.warn({ err: error, account }, 'Delegation on-chain lookup failed, falling back to Prisma state')
     }
@@ -474,6 +483,7 @@ class BlockchainService {
   async getDelegationState (account: string, delegate?: string): Promise<DelegationState> {
     const trustlessConfigured = trustlessTreasuryClient.isConfigured()
     const normalizedAccount = account.toLowerCase()
+    const isDemo = normalizedAccount === DEFAULT_CORPORATE_ADDRESS.toLowerCase()
     let corporate: CorporateAccountModel | null = null
     let normalizedDelegate = delegate?.toLowerCase()
 
@@ -494,19 +504,21 @@ class BlockchainService {
       normalizedDelegate = DEFAULT_AI_AGENT_ADDRESS.toLowerCase()
     }
 
-    try {
-      const onChain = await trustlessTreasuryClient.getDelegation(account)
-      if (onChain != null && onChain.aiAgent.toLowerCase() === normalizedDelegate) {
-        const metadata = await this.loadDelegationMetadata(normalizedAccount, onChain.aiAgent.toLowerCase())
-        const remaining = await trustlessTreasuryClient.getRemainingAllowanceUsd(account)
-        return mapOnChainDelegationState(onChain, metadata, remaining)
-      }
+    // For demo account, skip on-chain lookup and use database directly
+    if (!isDemo) {
+      try {
+        const onChain = await trustlessTreasuryClient.getDelegation(account)
+        if (onChain != null && onChain.aiAgent.toLowerCase() === normalizedDelegate) {
+          const metadata = await this.loadDelegationMetadata(normalizedAccount, onChain.aiAgent.toLowerCase())
+          const remaining = await trustlessTreasuryClient.getRemainingAllowanceUsd(account)
+          return mapOnChainDelegationState(onChain, metadata, remaining)
+        }
 
-      if (trustlessConfigured) {
-        return buildEmptyDelegationState(normalizedDelegate)
+        // If no on-chain delegation found, continue to database lookup
+        // This allows Simple Mode (EIP-7702) delegations to work
+      } catch (error) {
+        logger.trace({ err: error, account, delegate: normalizedDelegate }, 'Delegation on-chain state lookup failed')
       }
-    } catch (error) {
-      logger.trace({ err: error, account, delegate: normalizedDelegate }, 'Delegation on-chain state lookup failed')
     }
 
     try {
@@ -517,32 +529,51 @@ class BlockchainService {
         }
       }
 
-      if (corporate == null) {
-        return buildFallbackDelegationState(normalizedDelegate)
-      }
-
-      const record = await prisma.delegation.findFirst({
+      // ✅ CRITICAL FIX: Simple Mode delegations don't have corporateId!
+      // Try finding delegation by smartAccountAddress FIRST (Simple Mode)
+      // Then fallback to corporateId (Legacy Mode)
+      
+      console.log('[getDelegationState] Looking for delegation:', { 
+        account: normalizedAccount, 
+        delegate: normalizedDelegate,
+        hasCorporate: corporate != null 
+      })
+      
+      let record = await prisma.delegation.findFirst({
         where: {
-          corporateId: corporate.id,
-          delegate: normalizedDelegate
+          smartAccountAddress: {
+            equals: normalizedAccount,
+            mode: 'insensitive'
+          },
+          active: true
         }
       })
-
-      if (record == null) {
-        await this.ensureDefaultDelegation(corporate.id)
-        const seeded = await prisma.delegation.findFirst({
+      
+      // Fallback to legacy corporateId-based search
+      if (record == null && corporate != null) {
+        record = await prisma.delegation.findFirst({
           where: {
             corporateId: corporate.id,
-            delegate: normalizedDelegate
+            delegate: {
+              equals: normalizedDelegate,
+              mode: 'insensitive'
+            }
           }
         })
+      }
 
-        if (seeded == null) {
-          return buildFallbackDelegationState(normalizedDelegate)
-        }
+      console.log('[getDelegationState] Found record:', record != null ? { 
+        whitelist: record.whitelist, 
+        delegate: record.delegate,
+        portfolioPercentage: record.portfolioPercentage 
+      } : 'NULL')
 
-        const normalizedSeeded = await this.normalizeDelegationRecord(seeded)
-        return mapDelegationState(normalizedSeeded)
+      if (record == null) {
+        // Don't auto-create fallback delegation - use what's in database
+        // This prevents AI from using wrong delegation when user creates Simple Mode delegation
+        logger.trace({ account, delegate: normalizedDelegate }, 'No delegation found for this account')
+        console.log('[getDelegationState] RETURNING FALLBACK!')
+        return buildFallbackDelegationState(normalizedDelegate)
       }
 
       const normalizedRecord = await this.normalizeDelegationRecord(record)
@@ -694,9 +725,51 @@ class BlockchainService {
         return { ok: false, reason: 'Execution amount is zero' }
       }
 
+      // ✅ Simple Mode (EIP-7702) stores delegation in database, not on-chain
+      // Check database first for Simple Mode compatibility
+      const dbDelegation = await this.getDelegationState(accountAddress, delegateAddress)
+      
+      if (dbDelegation && dbDelegation.delegate.toLowerCase() === delegateAddress.toLowerCase()) {
+        // Simple Mode delegation found in database
+        console.log('[validateExecution] Using Simple Mode delegation from database')
+        
+        // Validate protocol is whitelisted (by ID, not address)
+        const protocolId = params.protocolId.toLowerCase()
+        const isWhitelisted = dbDelegation.whitelist.some(w => {
+          const normalized = w.toLowerCase()
+          const baseProtocol = normalized.split(/\s+/)[0] // "uniswap" from "Uniswap V2"
+          return protocolId === normalized || 
+                 protocolId.includes(baseProtocol) || // "uniswap:wmon-usdc" includes "uniswap"
+                 normalized.includes(baseProtocol)
+        })
+        
+        if (!isWhitelisted) {
+          return { ok: false, reason: 'Protocol is not in the delegation whitelist' }
+        }
+        
+        // Build execution plan from database delegation (Simple Mode)
+        const normalizedAmount = Number.isFinite(params.amountUsd) && params.amountUsd > 0 ? params.amountUsd : 0
+        const scaledAmount = scaleUsdAmount(normalizedAmount)
+        
+        return {
+          ok: true,
+          plan: {
+            account: accountAddress,
+            delegate: delegateAddress,
+            protocolId: params.protocolId,
+            protocolAddress,
+            amountUsd: params.amountUsd,
+            amountUsdScaled: scaledAmount,
+            callData: (params.callData || '0x') as `0x${string}`,
+            treasuryAddress: accountAddress as `0x${string}` // Simple Mode: EOA itself
+          }
+        }
+      }
+      
+      // Fallback to on-chain check (Corporate Mode)
       const delegation = await trustlessTreasuryClient.getDelegation(accountAddress)
       if (delegation == null) {
-        return { ok: false, reason: 'Delegation not configured on-chain' }
+        return { ok: false, reason: 'Delegation not configured (neither database nor on-chain)' }
       }
 
       if (!delegation.isActive) {
@@ -886,7 +959,7 @@ class BlockchainService {
         corporateId,
         delegate,
         dailyLimitUsd: 10_000,
-        whitelist: ['Aave Monad', 'Yearn Monad', 'Compound Monad'],
+        whitelist: ['Uniswap V2'], // ✅ FIXED: Only real Monad protocols
         caveats: caveatsPayload as Prisma.JsonObject
       }
     })
@@ -967,7 +1040,8 @@ const mapDelegationState = (delegation: DelegationModel): DelegationState => {
     spent24h: spent,
     whitelist,
     maxRiskScore: maxRisk,
-    remainingDailyLimitUsd: Math.max(delegation.dailyLimitUsd - spent, 0)
+    remainingDailyLimitUsd: Math.max(delegation.dailyLimitUsd - spent, 0),
+    portfolioPercentage: delegation.portfolioPercentage ?? 100  // ✅ CRITICAL FIX!
   }
 }
 
@@ -1087,7 +1161,7 @@ const buildFallbackDelegationState = (delegate: string): DelegationState => ({
   delegate,
   dailyLimitUsd: 10_000,
   spent24h: 2_500,
-  whitelist: ['Aave Monad', 'Yearn Monad', 'Compound Monad'],
+  whitelist: ['Uniswap V2'], // ✅ FIXED: Only real Monad protocols!
   maxRiskScore: 3,
   remainingDailyLimitUsd: 7_500
 })
@@ -1096,7 +1170,7 @@ const buildFallbackDelegations = (): DelegationConfig[] => ([
   buildConfiguredFallbackDelegation({
     delegate: DEFAULT_AI_AGENT_ADDRESS,
     dailyLimitUsd: 10_000,
-    whitelist: ['Aave Monad', 'Yearn Monad', 'Compound Monad'],
+    whitelist: ['Uniswap V2'], // ✅ FIXED: Only real Monad protocols!
     maxRiskScore: 3
   }, 2_500)
 ])

@@ -8,71 +8,92 @@ datasource db {
 }
 
 model CorporateAccount {
-  id           String   @id @default(cuid())
-  address      String   @unique
-  owners       Json
-  threshold    Int
-  aiAgentAddress String? @unique
+  id             String       @id @default(cuid())
+  address        String       @unique
+  owners         Json
+  threshold      Int
+  aiAgentAddress String?      @unique
   aiAgentName    String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  delegations  Delegation[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  delegations    Delegation[]
 }
 
 model Delegation {
-  id                    String   @id @default(cuid())
-  corporateId           String
-  delegate              String
-  dailyLimitUsd         Float
-  whitelist             String[]
-  caveats               Json
-  active                Boolean  @default(true)
-  
+  id            String   @id @default(cuid())
+  corporateId   String
+  delegate      String
+  dailyLimitUsd Float
+  whitelist     String[]
+  caveats       Json
+  active        Boolean  @default(true)
+
   // Hybrid AI execution fields
-  autoExecutionEnabled  Boolean  @default(false)
-  portfolioPercentage   Float    @default(0)
-  autoExecutedUsd       Float    @default(0)
-  lastAutoExecutionAt   DateTime?
-  
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  autoExecutionEnabled Boolean   @default(false)
+  portfolioPercentage  Float     @default(0)
+  autoExecutedUsd      Float     @default(0)
+  lastAutoExecutionAt  DateTime?
+
+  // MetaMask Delegation Framework (ERC-4337)
+  // Signed delegation from user (NOT AI signing!)
+  signedDelegation     Json?     // Full signed delegation object
+  delegationHash       String?   // Hash for verification
+  aiAgentAddress       String?   // Unique AI agent address per user
+  smartAccountAddress  String?   // User's Smart Account address
+  userEOA              String?   // User's original EOA wallet address
+
+  // AI Agent Private Key Storage (Encrypted)
+  // ⚠️ MVP SOLUTION: AES-256-CBC encrypted with master password
+  // For production: migrate to KMS (AWS KMS, Google Cloud KMS) or HSM
+  aiAgentPrivateKeyEncrypted String? // Encrypted private key (iv:encrypted format)
+
+  // Deploy salt for deterministic Smart Account address
+  // Used to create initCode with same salt as frontend
+  deploySalt String? // Deterministic salt from signed delegation
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   corporate CorporateAccount @relation(fields: [corporateId], references: [id], onDelete: Cascade)
 
   @@unique([corporateId, delegate])
+  @@index([aiAgentAddress])
+  @@index([delegationHash])
+  @@index([smartAccountAddress])
+  @@index([userEOA])
 }
 
 model PortfolioSnapshot {
-  id          String   @id @default(cuid())
-  accountId   String
-  data        Json
-  capturedAt  DateTime @default(now())
+  id         String   @id @default(cuid())
+  accountId  String
+  data       Json
+  capturedAt DateTime @default(now())
 }
 
 model AIExecutionLog {
-  id                      String   @id @default(cuid())
-  accountAddress          String
-  delegateAddress         String
-  summary                 String
-  totalExecutedUsd        Float
-  remainingDailyLimitUsd  Float
-  actions                 Json
-  generatedAt             DateTime @default(now())
-  createdAt               DateTime @default(now())
-  analysis                String?
-  suggestedActions        Json?
-  evaluation              Json?
-  governanceSummary       String?
-  warnings                Json?
-  model                   String?
-  provider                String?
-  
+  id                     String   @id @default(cuid())
+  accountAddress         String
+  delegateAddress        String
+  summary                String
+  totalExecutedUsd       Float
+  remainingDailyLimitUsd Float
+  actions                Json
+  generatedAt            DateTime @default(now())
+  createdAt              DateTime @default(now())
+  analysis               String?
+  suggestedActions       Json?
+  evaluation             Json?
+  governanceSummary      String?
+  warnings               Json?
+  model                  String?
+  provider               String?
+
   // Enhanced execution tracking
-  executionMode           String   @default("manual")
-  txHashes                Json?
-  profitLossUsd           Float?
-  reasoning               String?
-  userApproved            Boolean  @default(false)
+  executionMode String  @default("manual")
+  txHashes      Json?
+  profitLossUsd Float?
+  reasoning     String?
+  userApproved  Boolean @default(false)
 
   @@index([accountAddress, generatedAt(sort: Desc)])
   @@index([accountAddress, executionMode])
@@ -114,4 +135,349 @@ model AISimulationLog {
   createdAt              DateTime @default(now())
 
   @@index([accountAddress, generatedAt(sort: Desc)])
+}
+
+model VirtualPortfolio {
+  id                String   @id @default(cuid())
+  accountAddress    String   @unique
+  initialBalanceUsd Float    @default(100000)
+  currentBalanceUsd Float
+  totalProfitUsd    Float    @default(0)
+  positions         Json     @default("[]")
+  lastCalculatedAt  DateTime @default(now())
+  lastRebalancedAt  DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([accountAddress])
+  @@index([lastCalculatedAt(sort: Desc)])
+}
+
+model VirtualPortfolioHistory {
+  id             String   @id @default(cuid())
+  accountAddress String
+  balanceUsd     Float
+  profitUsd      Float
+  positions      Json
+  action         String
+  description    String?
+  createdAt      DateTime @default(now())
+
+  @@index([accountAddress, createdAt(sort: Desc)])
+}
+
+model AssetManagementRules {
+  id               String   @id @default(cuid())
+  accountAddress   String   @unique
+  aiManagedCapital Float
+  totalCapital     Float
+  assets           Json
+  maxFeesMonthly   Float    @default(0)
+  autoReinvest     Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([accountAddress])
+}
+
+model CapitalTransaction {
+  id             String   @id @default(cuid())
+  accountAddress String
+  type           String
+  amount         Float
+  balanceBefore  Float
+  balanceAfter   Float
+  reason         String?
+  txHash         String?
+  createdAt      DateTime @default(now())
+
+  @@index([accountAddress, createdAt(sort: Desc)])
+  @@index([type, createdAt(sort: Desc)])
+}
+
+model ExecutionRecord {
+  id             String   @id @default(cuid())
+  accountAddress String
+  action         String
+  protocol       String
+  amountUsd      Float
+  success        Boolean
+  profitUsd      Float    @default(0)
+  gasUsedUsd     Float    @default(0)
+  txHash         String?
+  aiConfidence   Float?
+  reasoning      String?
+  timestamp      DateTime @default(now())
+
+  @@index([accountAddress, timestamp(sort: Desc)])
+  @@index([success, timestamp(sort: Desc)])
+}
+
+model GasPrice {
+  id        String   @id @default(cuid())
+  priceGwei Float
+  chainId   Int      @default(10143)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt(sort: Desc)])
+}
+
+model FeeTransaction {
+  id             String   @id @default(cuid())
+  accountAddress String
+  txHash         String   @unique
+  action         String
+  protocol       String
+  gasUsed        BigInt
+  gasPriceGwei   Float
+  ethPrice       Float
+  amountUSD      Float
+  createdAt      DateTime @default(now())
+
+  @@index([accountAddress, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+}
+
+model DeferredTransaction {
+  id               String    @id @default(cuid())
+  accountAddress   String
+  recommendation   Json
+  deferredUntil    DateTime
+  originalGasPrice Float
+  targetGasPrice   Float
+  reason           String
+  status           String    @default("pending")
+  attemptCount     Int       @default(0)
+  createdAt        DateTime  @default(now())
+  executedAt       DateTime?
+  cancelledAt      DateTime?
+
+  @@index([accountAddress, status, deferredUntil])
+  @@index([status, deferredUntil])
+}
+
+// ERC-4337 AI Operations (enriched from UserOperations)
+model AIOperation {
+  id            String   @id @default(cuid())
+  userOpHash    String   @unique
+  smartAccount  String
+  protocol      String
+  action        String
+  token         String
+  amount        String
+  valueUsd      Float
+  riskScore     Int
+  success       Boolean
+  gasUsed       String
+  timestamp     DateTime
+
+  @@index([smartAccount, timestamp])
+  @@index([timestamp])
+}
+
+// Daily limit tracking for Smart Accounts
+model DailyLimitTracking {
+  id            String   @id @default(cuid())
+  smartAccount  String
+  date          DateTime
+  spentToday    Float
+  limit         Float
+
+  @@unique([smartAccount, date])
+  @@index([smartAccount])
+}
+
+// Quarantined pools - AI emergency withdrew funds
+model QuarantinedPool {
+  id            String   @id @default(cuid())
+  accountId     String
+  poolAddress   String
+  protocol      String
+  reason        String
+  withdrawnUsd  Float
+  reviewed      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  reviewedAt    DateTime?
+
+  @@index([accountId, reviewed])
+  @@index([createdAt])
+}
+
+// AI Safe Control per pool permissions
+model PoolMonitoringPermission {
+  id              String   @id @default(cuid())
+  accountAddress  String
+  poolAddress     String
+  protocol        String
+  enabled         Boolean  @default(false)
+  signature       String   // User signature for permission
+  signedAt        DateTime @default(now())
+  revokedAt       DateTime?
+
+  @@unique([accountAddress, poolAddress])
+  @@index([accountAddress, enabled])
+}
+
+// ========================================
+// AI POOL DISCOVERY & ANALYSIS
+// ========================================
+
+// Pool Discovery System - 20,000+ pools from DeFi Llama + Envio
+model Pool {
+  id              String   @id // Format: "protocol-chain-asset-address"
+  
+  // === BASIC INFO ===
+  protocol        String   // "Aave", "Uniswap V2", "Yearn", "Nabla"
+  chain           String   // "Ethereum", "Monad", "Base", "Arbitrum"
+  asset           String   // "USDC", "USDC/USDT", "wstETH"
+  address         String   @unique // Smart contract address
+  envioPoolId     String?  // Envio pool_id (e.g., "uniswap:0x...") for PoolTransaction queries
+  category        String   // "stablecoin", "eth-derivative", "volatile", "lp"
+  
+  // === METRICS (from DeFi Llama / Envio) ===
+  apy             Float    // Annual Percentage Yield (%)
+  tvl             Float    // Total Value Locked (USD)
+  volume24h       Float?   // 24h trading volume (USD)
+  
+  // === ADDITIONAL DEFI LLAMA METRICS ===
+  apyPct1D        Float?   // APY change over 1 day (%)
+  apyPct7D        Float?   // APY change over 7 days (%)
+  apyPct30D       Float?   // APY change over 30 days (%)
+  volumeUsd7d     Float?   // Volume over 7 days (USD)
+  
+  // === AI ANALYSIS ===
+  riskScore       Int?     // 1=safe, 2=low, 3=medium, 4=high, 5=very risky
+  aiScore         Float?   // 0-100 (higher = better investment)
+  aiReason        String?  @db.Text // Brief explanation (max 200 chars)
+  
+  // === SOURCE & STATE ===
+  source          String   // "defillama" | "envio"
+  isActive        Boolean  @default(true) // Pool is active & tradable
+  hasUserPositions Boolean @default(false) // Users have positions in this pool
+  
+  // === TIMESTAMPS ===
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  lastAnalyzedAt  DateTime? // Last AI analysis timestamp
+  lastSyncedAt    DateTime @default(now()) // Last sync from external API
+  
+  // === RELATIONS ===
+  userPositions   UserPoolPosition[]
+  snapshots       PoolSnapshot[]
+  
+  // === INDEXES FOR PERFORMANCE ===
+  @@index([chain, tvl(sort: Desc)]) // Fast filter by chain + sort by TVL
+  @@index([lastAnalyzedAt]) // For finding stale pools
+  @@index([hasUserPositions]) // Fast filter for user pools
+  @@index([aiScore(sort: Desc)]) // Sort by AI recommendation
+  @@index([category, aiScore(sort: Desc)]) // Category + AI score
+  @@index([source, isActive]) // Filter by source
+  @@index([envioPoolId]) // For fast PoolTransaction lookups
+  
+  @@map("Pool")
+}
+
+// User positions in pools
+model UserPoolPosition {
+  id         String   @id @default(cuid())
+  
+  // User identity (account address)
+  userAddress String
+  
+  // Pool reference
+  poolId     String
+  pool       Pool     @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  
+  // Position details
+  amount     Float    // Amount in pool (in pool's base asset)
+  valueUsd   Float?   // Current value in USD
+  shares     Float?   // LP tokens / shares amount
+  
+  // Timestamps
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  // Indexes
+  @@index([userAddress]) // Fast lookup by user
+  @@index([poolId]) // Fast lookup by pool
+  @@unique([userAddress, poolId]) // One position per user per pool
+  
+  @@map("UserPoolPosition")
+}
+
+// Historical snapshots for mainnet chart building
+model PoolSnapshot {
+  id          String   @id @default(cuid())
+  poolId      String
+  pool        Pool     @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  
+  tvl         Float
+  apy         Float
+  volume24h   Float
+  
+  timestamp   DateTime @default(now())
+  
+  @@index([poolId])
+  @@index([timestamp])
+  @@index([poolId, timestamp])
+  
+  @@map("PoolSnapshot")
+}
+
+// User-specific pool analysis (cached for 1 hour)
+model PoolUserAnalysis {
+  id            String   @id @default(cuid())
+  
+  // Identifiers
+  poolId        String   // Pool being analyzed
+  userAddress   String   // User requesting analysis
+  
+  // Analysis results
+  shouldAdd     Boolean  // Recommendation: add to whitelist?
+  reason        String   @db.Text // AI explanation
+  riskLevel     String   // "low" | "medium" | "high"
+  detailedAnalysis String? @db.Text // Detailed analysis if requested
+  
+  // Cache metadata
+  analysisType  String   // "simple" | "detailed"
+  validUntil    DateTime // Cache expiry (1 hour from creation)
+  
+  // Timestamps
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Indexes
+  @@index([poolId, userAddress])
+  @@index([validUntil])
+  @@unique([poolId, userAddress, analysisType])
+  
+  @@map("PoolUserAnalysis")
+}
+
+// AI Analysis Logs
+model PoolAnalysisLog {
+  id            String   @id @default(cuid())
+  
+  // Batch info
+  batchId       String   // UUID for the batch
+  poolCount     Int      // Number of pools in batch
+  
+  // AI analysis
+  modelUsed     String   // "mistralai/mistral-small-3.2-24b-instruct:free"
+  promptTokens  Int?
+  responseTokens Int?
+  totalTokens   Int?
+  
+  // Performance
+  durationMs    Int      // Time taken for analysis
+  errorMessage  String?  @db.Text
+  
+  // Timestamp
+  createdAt     DateTime @default(now())
+  
+  // Indexes
+  @@index([batchId])
+  @@index([createdAt(sort: Desc)])
+  
+  @@map("PoolAnalysisLog")
 }

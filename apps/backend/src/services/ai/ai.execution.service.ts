@@ -53,8 +53,14 @@ class AIExecutionService {
       const autoAllowance = portfolioSnapshot.totalValueUSD * (portfolioPercentage / 100)
       const remainingAllowance = Math.max(0, autoAllowance - autoExecutedUsd)
 
-      if (remainingAllowance <= 0) {
+      // Allow first execution even if balance is 0 (user needs to fund Smart Account)
+      if (remainingAllowance <= 0 && autoExecutedUsd > 0) {
         return { success: false, reason: 'Auto-execution allowance exhausted' }
+      }
+      
+      // For first execution with 0 balance, AI can still analyze but won't execute
+      if (remainingAllowance <= 0 && autoExecutedUsd === 0) {
+        logger.warn({ account }, 'First AI execution with 0 balance - will analyze but cannot execute')
       }
 
       const effectiveDailyLimit = Math.min(
@@ -62,16 +68,41 @@ class AIExecutionService {
         remainingAllowance
       )
 
-      // 6. Generate AI recommendations
+      // 6. Get allowed tokens from delegation record (from database)
+      const delegationRecord = await prisma.delegation.findFirst({
+        where: { smartAccountAddress: lowerAccount, active: true }
+      })
+      const caveats = (delegationRecord?.caveats as any) || {}
+      const selectedNetworks = caveats.selectedNetworks || []
+      const allowedTokens = selectedNetworks
+        .filter((n: any) => n.enabled !== false) // Network must be enabled
+        .flatMap((n: any) => (n.tokens || []).filter((t: any) => t.enabled === true)) // Only enabled tokens
+        .map((t: any) => t.symbol) // Extract symbols: ["MON", "USDC"]
+      
+      // Default to Monad native token if no tokens specified
+      const finalAllowedTokens = allowedTokens.length > 0 ? allowedTokens : ['MON']
+      
+      logger.info({ 
+        account, 
+        allowedTokens: finalAllowedTokens,
+        networksCount: selectedNetworks.length 
+      }, 'AI can use these tokens as initial source')
+
+      // 7. Generate AI recommendations with allowed tokens
       const aiRequest: AIRecommendationRequest = {
         portfolio: portfolioSnapshot,
         riskTolerance: 'conservative',
         protocols: delegation.allowedProtocols,
         constraints: {
           dailyLimitUsd: effectiveDailyLimit,
-          remainingDailyLimitUsd: effectiveDailyLimit - Number.parseFloat(delegation.spent24h),
+          remainingDailyLimitUsd: effectiveDailyLimit, // ✅ FIX: Use effectiveDailyLimit (already calculated above)
           maxRiskScore: delegation.maxRiskScore,
-          whitelist: delegation.allowedProtocols
+          whitelist: delegation.allowedProtocols,
+          allowedTokens: finalAllowedTokens, // ✅ PASS ALLOWED TOKENS TO AI!
+          // ✅ CRITICAL FIX: Pass delegation budget to AI so it knows how much it can use!
+          portfolioPercentage: portfolioPercentage,      // % of portfolio delegated
+          autoAllowance: autoAllowance,                  // Total USD AI can manage
+          remainingAllowance: remainingAllowance         // Remaining after previous executions
         },
         context: {
           account: lowerAccount,
@@ -84,6 +115,16 @@ class AIExecutionService {
       const recommendations = await aiService.generateRecommendations(aiRequest)
 
       // 7. Validate recommendations
+      logger.info({
+        account,
+        portfolioValue: portfolioSnapshot.totalValueUSD,
+        portfolioPercentage,
+        autoAllowance,
+        remainingAllowance,
+        effectiveDailyLimit,
+        allocationsCount: recommendations.allocations.length
+      }, 'AI execution context')
+      
       if (recommendations.allocations.length === 0) {
         return { success: false, reason: 'No recommendations generated' }
       }
@@ -93,6 +134,12 @@ class AIExecutionService {
         (sum, alloc) => sum + (alloc.amountUsd ?? 0),
         0
       )
+
+      logger.info({
+        account,
+        totalAmount,
+        allocations: recommendations.allocations.map(a => ({ protocol: a.protocol, amountUsd: a.amountUsd }))
+      }, 'AI allocations')
 
       if (totalAmount <= 0) {
         return { success: false, reason: 'No executable amount' }
@@ -106,21 +153,40 @@ class AIExecutionService {
       // 8. Execute first allocation (for MVP, execute one at a time)
       const primaryAllocation = recommendations.allocations[0]
       
-      const executionPlan = await blockchainService.prepareDelegatedExecution({
-        account: lowerAccount,
-        delegate: delegation.delegate,
-        protocolId: primaryAllocation.protocol,
-        protocolAddress: primaryAllocation.protocol, // TODO: resolve actual address
+      // ✅ FIX: Resolve protocol address from database!
+      const { resolveProtocolAddressFromDB } = await import('./protocol.registry')
+      const protocolAddress = await resolveProtocolAddressFromDB(primaryAllocation.protocol)
+      
+      if (!protocolAddress) {
+        logger.error({ protocol: primaryAllocation.protocol }, 'Failed to resolve protocol address from database')
+        return { success: false, reason: `Protocol address not found for: ${primaryAllocation.protocol}` }
+      }
+      
+      logger.info({ 
+        protocol: primaryAllocation.protocol, 
+        resolvedAddress: protocolAddress 
+      }, 'Protocol address resolved from database')
+      
+      // 9. Execute using MetaMask DelegationManager.redeemDelegations() V2 ✅
+      // V2: Uses ONE AI Agent SA + Alchemy Gas Manager for gas sponsorship
+      // AI agent doesn't need MON - Gas Manager sponsors transaction!
+      const { metaMaskRedemptionV2Service } = await import('../metamask/metamask-redemption-v2.service')
+      
+      console.log('[AI Execution Service] Using Redemption V2 (Gas Manager sponsorship)')
+      
+      const broadcastResult = await metaMaskRedemptionV2Service.redeemDelegation({
+        accountAddress: lowerAccount as `0x${string}`,
+        protocolAddress: protocolAddress as `0x${string}`,
+        callData: '0x', // Empty calldata for now (can add swap logic later)
         amountUsd: primaryAllocation.amountUsd ?? 0
       })
-
-      if (!executionPlan.ok) {
-        logger.error({ account: lowerAccount, reason: executionPlan.reason }, 'Execution plan failed')
-        return { success: false, reason: executionPlan.reason }
-      }
-
-      // 9. Broadcast transaction (AI agent signs)
-      const broadcastResult = await blockchainService.broadcastDelegatedExecution(executionPlan.plan)
+      
+      console.log('[AI Execution Service] Redemption V2 result:', {
+        ok: broadcastResult.ok,
+        userOpHash: broadcastResult.userOpHash,
+        txHash: broadcastResult.txHash,
+        reason: broadcastResult.reason
+      })
 
       if (!broadcastResult.ok) {
         logger.error({ account: lowerAccount, reason: broadcastResult.reason }, 'Transaction broadcast failed')
@@ -230,11 +296,30 @@ class AIExecutionService {
         }
       }
 
-      // Fallback to mock data
-      return {
-        positions: [],
-        totalValueUSD: 100000,
-        netAPY: 0
+      // Fallback: Get real balance from blockchain
+      try {
+        const { ethers } = await import('ethers')
+        const provider = new ethers.JsonRpcProvider('https://testnet-rpc.monad.xyz')
+        const balance = await provider.getBalance(account)
+        const balanceMON = parseFloat(ethers.formatEther(balance))
+        // Approximate MON price (update if needed)
+        const monPriceUSD = 5
+        const totalValueUSD = balanceMON * monPriceUSD
+        
+        logger.info({ account, balanceMON, totalValueUSD }, 'Portfolio snapshot fallback: real balance')
+        
+        return {
+          positions: [],
+          totalValueUSD: Math.max(totalValueUSD, 0),
+          netAPY: 0
+        }
+      } catch (balanceError) {
+        logger.error({ err: balanceError }, 'Failed to get real balance, using zero')
+        return {
+          positions: [],
+          totalValueUSD: 0,
+          netAPY: 0
+        }
       }
     } catch (error) {
       logger.error({ err: error, account }, 'Failed to get portfolio snapshot')

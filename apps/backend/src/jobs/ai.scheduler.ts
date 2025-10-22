@@ -157,6 +157,11 @@ export class AIScheduler {
 
       for (const account of accounts) {
         try {
+          // Add delay between accounts to avoid OpenRouter rate limits (free tier)
+          if (results.length > 0) {
+            await new Promise(resolve => setTimeout(resolve, 15000)) // 15 seconds
+          }
+
           const delegation = await blockchainService.getDelegationState(account.address)
           const executionResult = await aiExecutor.execute({
             account: account.address,

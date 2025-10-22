@@ -11,7 +11,7 @@ class MonitoringService {
     }
 
     const snapshot = await envioClient.fetchPortfolio(address)
-    const payload = snapshot ?? buildFallbackSnapshot()
+    const payload = snapshot ?? await buildFallbackSnapshot(address)
     monitoringStateService.setSnapshot(address, payload)
     return payload
   }
@@ -36,28 +36,37 @@ class MonitoringService {
 
 export const monitoringService = new MonitoringService()
 
-const buildFallbackSnapshot = (): PortfolioSnapshot => ({
-  totalValueUSD: 100_000,
-  netAPY: 8.2,
-  positions: [
-    {
-      protocol: 'Aave Monad',
-      asset: 'USDC',
-      amount: 50_000,
-      valueUSD: 50_000,
-      currentAPY: 8.4,
-      riskScore: 2
-    },
-    {
-      protocol: 'Yearn Monad',
-      asset: 'USDT',
-      amount: 25_000,
-      valueUSD: 24_900,
-      currentAPY: 11.8,
-      riskScore: 4
+const buildFallbackSnapshot = async (address: string): Promise<PortfolioSnapshot> => {
+  // Get REAL balance from Monad Testnet RPC
+  try {
+    const { ethers } = await import('ethers')
+    const provider = new ethers.JsonRpcProvider('https://testnet-rpc.monad.xyz')
+    const balance = await provider.getBalance(address)
+    const balanceMON = parseFloat(ethers.formatEther(balance))
+    // Approximate MON price (update if needed)
+    const monPriceUSD = 5
+    const totalValueUSD = balanceMON * monPriceUSD
+    
+    console.log('[Monitoring] Portfolio snapshot fallback: real balance', {
+      address,
+      balanceMON: balanceMON.toFixed(4),
+      totalValueUSD: totalValueUSD.toFixed(2)
+    })
+    
+    return {
+      totalValueUSD: Math.max(totalValueUSD, 0),
+      netAPY: 0,
+      positions: []
     }
-  ]
-})
+  } catch (error) {
+    console.error('[Monitoring] Failed to get real balance, using zero:', error)
+    return {
+      totalValueUSD: 0,
+      netAPY: 0,
+      positions: []
+    }
+  }
+}
 
 const buildFallbackAlerts = (): AlertEvent[] => ([
   {

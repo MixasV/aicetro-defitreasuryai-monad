@@ -11,6 +11,11 @@ import type {
 class AIExecutionHistoryService {
   async record (result: AIExecutionResult): Promise<void> {
     try {
+      // FIXED: Extract transaction hashes from result.transactions
+      const txHashes = result.transactions
+        ?.map(tx => tx.transactionHash)
+        .filter(Boolean) as string[] | undefined
+
       await prisma.aIExecutionLog.create({
         data: {
           accountAddress: result.account,
@@ -19,6 +24,7 @@ class AIExecutionHistoryService {
           totalExecutedUsd: result.totalExecutedUsd,
           remainingDailyLimitUsd: result.remainingDailyLimitUsd,
           actions: result.actions as unknown as Prisma.JsonArray,
+          txHashes: txHashes as unknown as Prisma.InputJsonValue,
           generatedAt: new Date(result.generatedAt),
           analysis: result.analysis,
           suggestedActions: result.suggestedActions != null ? (result.suggestedActions as unknown as Prisma.InputJsonValue) : undefined,

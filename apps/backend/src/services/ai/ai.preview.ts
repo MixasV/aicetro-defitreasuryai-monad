@@ -14,13 +14,13 @@ class AIPreviewService {
     const portfolio = await monitoringService.getPortfolioSnapshot(account)
     const protocolMetrics = await monitoringService.getProtocolMetrics().catch(() => null)
 
-    const resolvedWhitelist = resolveAllowedProtocolIdentifiers(delegationState.whitelist, protocolMetrics ?? undefined)
+    // ✅ FIX: DON'T expand whitelist! User explicitly chose these protocols
     let requestedProtocols = input.protocols != null && input.protocols.length > 0
       ? input.protocols
-      : (resolvedWhitelist.length > 0 ? resolvedWhitelist : delegationState.whitelist)
+      : delegationState.whitelist
 
     if (requestedProtocols.length === 0) {
-      requestedProtocols = resolvedWhitelist.length > 0 ? resolvedWhitelist : ['nabla:usdc']
+      requestedProtocols = ['Uniswap V2']
     }
 
     const normalizedWhitelistSet = new Set(requestedProtocols.map((id) => normalizeProtocolId(id)))

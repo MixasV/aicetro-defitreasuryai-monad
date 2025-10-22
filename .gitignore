@@ -67,8 +67,43 @@ lockfile
 .cache
 
 # Documentation (exclude all .md except README.md)
+# Keep only README.md public, hide all other docs
 *.md
 !README.md
+!.github/**/*.md
+
+# Sensitive documentation (never commit)
+HACKATHON_SUBMISSION.md
+AGENTS.md
+changelog.md
+*SUMMARY*.md
+*STATUS*.md
+*PLAN*.md
+*COMPLETE*.md
+*FIX*.md
+*GUIDE*.md
+handover*.md
+SESSION*.md
+RECOVER*.md
 
 # Update folder (local updates collection)
 /update/
+.deployer.key.enc
+.env.backup-*
+
+# Backup and temporary files
+*.backup
+*.tmp
+*.bak
+*~
+
+# Deployment artifacts
+contracts/deployments/*.json
+!contracts/deployments/.gitkeep
+
+# Sensitive configs
+.env.encryption
+.master.key
+*.key
+*.pem
+*.p12

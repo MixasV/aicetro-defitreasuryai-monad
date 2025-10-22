@@ -5,7 +5,7 @@ export interface PreviewProtocolSourceConfig {
   name: string
   category: PreviewProtocolCategory
   chain: string
-  symbol?: string
+  symbol?: string // Now used for Alchemy Prices API (was CoinGecko ID)
   url?: string
   riskScore: number
   fallbackApy: number
@@ -13,7 +13,7 @@ export interface PreviewProtocolSourceConfig {
   fallbackVolume24hUsd?: number
   sources?: {
     defiLlamaPoolId?: string
-    coinGeckoId?: string
+    coinGeckoId?: string // Deprecated: Now using symbol with Alchemy API
     oneInchAddress?: string
   }
 }

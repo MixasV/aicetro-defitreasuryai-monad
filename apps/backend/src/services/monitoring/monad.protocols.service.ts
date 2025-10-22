@@ -2,6 +2,7 @@ import { MONAD_PROTOCOLS } from '../../config/protocols.monad'
 import { env } from '../../config/env'
 import { logger } from '../../config/logger'
 import { envioClient } from './envio.client'
+import { prisma } from '../../db/prisma'
 import type {
   MonadProtocolMetrics,
   MonadProtocolMetricsSource,
@@ -77,46 +78,89 @@ class MonadProtocolsService {
   async getProtocolMetrics (): Promise<MonadProtocolMetrics> {
     const fetchedAt = new Date().toISOString()
 
-    if (!this.isEnvioConfigured()) {
-      logger.warn('[protocols] Envio client is not configured; returning fallback Monad protocol metrics')
-      return this.buildFallback('Envio client is not configured', fetchedAt)
-    }
-
+    // NEW APPROACH: Use ONLY real data from Pool table (synced from Envio)
+    // This eliminates fake Nabla data and uses actual on-chain Monad pools
     try {
-      const response = await envioClient.query<ProtocolMetricsQuery>(PROTOCOL_METRICS_QUERY)
+      logger.info('[protocols] Fetching Monad pools from database (Envio-synced data)')
+      
+      // Query Monad pools with TVL > $100 from Pool table
+      // ⚠️ CRITICAL: Monad Testnet is fresh, pools have TVL but 0 volume
+      // Use TVL filter instead of volume to allow AI to trade
+      const monadPools = await prisma.pool.findMany({
+        where: {
+          chain: 'Monad',
+          isActive: true,
+          tvl: { gt: 100 }  // Pools with TVL > $100 (testnet may have 0 volume)
+        },
+        select: {
+          id: true,
+          protocol: true,
+          address: true,
+          asset: true,
+          apy: true,
+          tvl: true,
+          volume24h: true,
+          riskScore: true,
+          aiScore: true
+        },
+        orderBy: { apy: 'desc' },  // ⚠️ CHANGED: Sort by APY to get profitable pools first
+        take: 50  // Top 50 by APY (increased to ensure we get pools with yield)
+      })
 
-      if (response == null) {
-        logger.warn('[protocols] Envio returned an empty response; using fallback data set')
-        return this.buildFallback('Envio returned empty dataset', fetchedAt)
-      }
+      logger.info(`[protocols] Found ${monadPools.length} Monad pools with TVL > $100 from database`)
 
-      const nabla = this.mergeNablaMetrics(response.nablaPoolMetrics ?? [])
-      const uniswap = this.mergeUniswapMetrics(response.uniswapV2PairMetrics ?? [])
+      // Convert to MonadProtocolMetrics format
+      const uniswapMetrics: MonadUniswapPairMetric[] = monadPools
+        .filter(p => p.protocol === 'Uniswap V2')
+        .map(p => {
+          // Parse asset "WMON/USDC" → token0: WMON, token1: USDC
+          const tokens = (p.asset || 'UNKNOWN/UNKNOWN').split('/')
+          
+          return {
+            id: p.id,
+            pairAddress: p.address as `0x${string}`,
+            token0Symbol: tokens[0] || 'UNKNOWN',
+            token1Symbol: tokens[1] || 'UNKNOWN',
+            volume24hUsd: p.volume24h || 0,
+            fees24hUsd: (p.volume24h || 0) * 0.003,  // 0.3% Uniswap V2 fee
+            apr: p.apy || 0,
+            reserve0: 0,  // Can be fetched from RPC if needed
+            reserve1: 0,
+            lastUpdate: fetchedAt,
+            isActive: true,
+            source: 'envio' as const  // Changed from 'database' to match type
+          }
+        })
 
-      const reasons = [...nabla.reasons, ...uniswap.reasons]
-      const source = this.resolveSource(nabla.source, uniswap.source)
-
-      if (source !== 'envio') {
-        logger.warn({ reasons }, '[protocols] Fallback data used for portions of Monad metrics')
+      if (uniswapMetrics.length === 0) {
+        logger.warn('[protocols] No Monad Uniswap pools found in database, using fallback')
+        return this.buildUniswapOnlyFallback(fetchedAt)
       }
 
       return {
-        source,
+        source: 'mixed',  // Changed from 'database' to match type
         fetchedAt,
-        fallbackReason: reasons.length > 0 ? reasons.join('; ') : undefined,
-        nablaPools: nabla.metrics,
-        uniswapPairs: uniswap.metrics
+        nablaPools: [],  // EMPTY! Nabla does not exist on Monad
+        uniswapPairs: uniswapMetrics
       }
+
     } catch (error) {
-      logger.error({ err: error }, '[protocols] Failed to fetch Monad metrics from Envio; returning fallback data')
-      return this.buildFallback('Envio query failed', fetchedAt)
+      logger.error({ err: error }, '[protocols] Failed to fetch Monad pools from database')
+      return this.buildUniswapOnlyFallback(fetchedAt)
     }
   }
 
+  // DEPRECATED: mergeNablaMetrics - Nabla pools do not exist on Monad
   private mergeNablaMetrics (nodes: EnvioNablaPoolNode[]): MergeResult<MonadNablaPoolMetric> {
+    // Return empty array - Nabla pools do not exist on Monad Testnet
+    return {
+      metrics: [],
+      source: 'fallback',
+      reasons: ['Nabla pools do not exist on Monad Testnet']
+    }
+    
+    /* OLD CODE - commented out
     const reasons: string[] = []
-    let hasEnvioData = false
-    let usedFallback = false
     const normalizedNow = new Date().toISOString()
 
     const metrics: MonadNablaPoolMetric[] = MONAD_PROTOCOLS.nabla.pools.map((config) => {
@@ -149,6 +193,7 @@ class MonadProtocolsService {
     const source = !hasEnvioData ? 'fallback' : usedFallback ? 'mixed' : 'envio'
 
     return { metrics, source, reasons }
+    */ // END OLD CODE
   }
 
   private mergeUniswapMetrics (nodes: EnvioUniswapPairNode[]): MergeResult<MonadUniswapPairMetric> {
@@ -189,9 +234,10 @@ class MonadProtocolsService {
     return { metrics, source, reasons }
   }
 
+  // DEPRECATED: toNablaMetric - Nabla pools do not exist on Monad
   private toNablaMetric (
     node: EnvioNablaPoolNode,
-    config: typeof MONAD_PROTOCOLS.nabla.pools[number] | undefined,
+    config: any | undefined,  // Was: typeof MONAD_PROTOCOLS.nabla.pools[number]
     fallbackTimestamp: string
   ): MonadNablaPoolMetric {
     const fallback = config?.fallback
@@ -268,11 +314,8 @@ class MonadProtocolsService {
     }
   }
 
-  private buildFallback (reason: string, fetchedAt: string): MonadProtocolMetrics {
-    const nabla = MONAD_PROTOCOLS.nabla.pools.map((config) =>
-      this.buildNablaMetricFromConfig(config, fetchedAt, 'fallback')
-    )
-
+  // NEW: Fallback with ONLY Uniswap (no Nabla)
+  private buildUniswapOnlyFallback (fetchedAt: string): MonadProtocolMetrics {
     const uniswap = MONAD_PROTOCOLS.uniswapV2.pairs.map((config) =>
       this.buildUniswapMetricFromConfig(config, fetchedAt, 'fallback')
     )
@@ -280,14 +323,25 @@ class MonadProtocolsService {
     return {
       source: 'fallback',
       fetchedAt,
-      fallbackReason: reason,
-      nablaPools: nabla,
+      fallbackReason: 'Database unavailable - using Uniswap fallback only (Nabla removed)',
+      nablaPools: [],  // EMPTY! Nabla does not exist
       uniswapPairs: uniswap
     }
   }
 
+  // DEPRECATED: Old buildFromConfig with Nabla (no longer used)
+  private buildFromConfig (fetchedAt: string): MonadProtocolMetrics {
+    return this.buildUniswapOnlyFallback(fetchedAt)
+  }
+
+  // DEPRECATED: Old buildFallback with Nabla (no longer used)
+  private buildFallback (reason: string, fetchedAt: string): MonadProtocolMetrics {
+    return this.buildUniswapOnlyFallback(fetchedAt)
+  }
+
+  // DEPRECATED: buildNablaMetricFromConfig - Nabla pools do not exist on Monad
   private buildNablaMetricFromConfig (
-    config: typeof MONAD_PROTOCOLS.nabla.pools[number],
+    config: any,  // Was: typeof MONAD_PROTOCOLS.nabla.pools[number]
     timestamp: string,
     source: MonadProtocolMetricsSource
   ): MonadNablaPoolMetric {

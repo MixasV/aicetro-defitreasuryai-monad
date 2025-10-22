@@ -1,0 +1,405 @@
+/**
+ * Transaction Enrichment Service
+ * 
+ * Enriches ERC-4337 UserOperations with protocol details:
+ * - Decodes calldata to identify protocol and action
+ * - Extracts token and amount information
+ * - Calculates USD values
+ * - Tracks daily limits
+ * - Calculates risk scores
+ */
+
+import { ethers } from 'ethers';
+import { prisma } from '../../lib/prisma';
+import { logger } from '../../config/logger';
+import { alchemyPricesService } from '../alchemy/alchemy-prices.service';
+import { AAVE_POOL_ABI, YEARN_VAULT_ABI, UNISWAP_ROUTER_ABI } from '../../abis/protocol-abis';
+import {
+  AAVE_POOL_ADDRESS,
+  COMPOUND_COMPTROLLER_ADDRESS,
+  YEARN_REGISTRY_ADDRESS,
+  UNISWAP_V2_ROUTER_ADDRESS
+} from '../../config/protocol-addresses';
+
+interface EnrichedOperation {
+  userOpHash: string;
+  smartAccount: string;
+  protocol: string;
+  action: string;
+  token: string;
+  amount: string;
+  valueUsd: number;
+  riskScore: number;
+  success: boolean;
+  gasUsed: bigint;
+  timestamp: Date;
+}
+
+interface CalldataDecoded {
+  target: string;
+  value: bigint;
+  data: string;
+  selector: string;
+}
+
+class TransactionEnrichmentService {
+  
+  /**
+   * Enrich a UserOperation with protocol details
+   */
+  async enrichUserOperation(
+    userOpHash: string,
+    sender: string,
+    callData: string,
+    success: boolean,
+    gasUsed: bigint,
+    timestamp: number
+  ): Promise<EnrichedOperation> {
+    logger.info({ userOpHash, sender }, '[Enrichment] Processing UserOperation');
+
+    try {
+      // 1. Decode Smart Account execute() calldata
+      const decoded = this.decodeSmartAccountCall(callData);
+      
+      // 2. Identify protocol
+      const protocol = this.identifyProtocol(decoded.target);
+      
+      // 3. Identify action from function selector
+      const action = this.identifyAction(protocol, decoded.selector);
+      
+      // 4. Extract token and amount
+      const { token, amount } = this.extractTokenAmount(protocol, decoded.selector, decoded.data);
+      
+      // 5. Calculate USD value
+      const valueUsd = await this.calculateUsdValue(token, amount);
+      
+      // 6. Calculate risk score
+      const riskScore = await this.calculateRisk(protocol, action, valueUsd);
+      
+      // 7. Create enriched object
+      const enriched: EnrichedOperation = {
+        userOpHash,
+        smartAccount: sender.toLowerCase(),
+        protocol,
+        action,
+        token,
+        amount: amount.toString(),
+        valueUsd,
+        riskScore,
+        success,
+        gasUsed,
+        timestamp: new Date(timestamp * 1000)
+      };
+
+      // 8. Save to database
+      await this.saveEnrichedOperation(enriched);
+      
+      // 9. Update daily limit tracking
+      if (success && valueUsd > 0) {
+        await this.updateDailyLimit(sender, valueUsd);
+      }
+      
+      logger.info(
+        { protocol, action, valueUsd, riskScore },
+        '[Enrichment] UserOperation enriched successfully'
+      );
+      
+      return enriched;
+      
+    } catch (error) {
+      logger.error({ err: error, userOpHash }, '[Enrichment] Failed to enrich UserOperation');
+      
+      // Return minimal enriched data on error
+      return {
+        userOpHash,
+        smartAccount: sender.toLowerCase(),
+        protocol: 'Unknown',
+        action: 'unknown',
+        token: ethers.ZeroAddress,
+        amount: '0',
+        valueUsd: 0,
+        riskScore: 0,
+        success,
+        gasUsed,
+        timestamp: new Date(timestamp * 1000)
+      };
+    }
+  }
+
+  /**
+   * Decode Smart Account execute() calldata
+   */
+  private decodeSmartAccountCall(callData: string): CalldataDecoded {
+    try {
+      const iface = new ethers.Interface([
+        'function execute(address dest, uint256 value, bytes calldata func)'
+      ]);
+      
+      const decoded = iface.decodeFunctionData('execute', callData);
+      const target = decoded.dest;
+      const value = decoded.value;
+      const innerData = decoded.func;
+      const selector = innerData.slice(0, 10); // 0x + 8 chars
+      
+      return {
+        target,
+        value,
+        data: innerData,
+        selector
+      };
+    } catch (error) {
+      logger.warn({ error }, '[Enrichment] Failed to decode calldata');
+      throw new Error('Failed to decode calldata');
+    }
+  }
+
+  /**
+   * Identify protocol from target address
+   */
+  private identifyProtocol(target: string): string {
+    const targetLower = target.toLowerCase();
+    
+    const protocols: Record<string, string> = {
+      [AAVE_POOL_ADDRESS.toLowerCase()]: 'Aave',
+      [COMPOUND_COMPTROLLER_ADDRESS.toLowerCase()]: 'Compound',
+      [YEARN_REGISTRY_ADDRESS.toLowerCase()]: 'Yearn',
+      [UNISWAP_V2_ROUTER_ADDRESS.toLowerCase()]: 'Uniswap'
+    };
+    
+    return protocols[targetLower] || 'Unknown';
+  }
+
+  /**
+   * Identify action from function selector
+   */
+  private identifyAction(protocol: string, selector: string): string {
+    // Common DeFi function selectors
+    const selectors: Record<string, Record<string, string>> = {
+      'Aave': {
+        '0x617ba037': 'deposit',      // supply()
+        '0xe8eda9df': 'deposit',      // supply() v3
+        '0x69328dec': 'withdraw',     // withdraw()
+        '0xa415bcad': 'borrow',       // borrow()
+        '0x573ade81': 'repay'         // repay()
+      },
+      'Yearn': {
+        '0xb6b55f25': 'deposit',      // deposit()
+        '0x2e1a7d4d': 'withdraw',     // withdraw()
+        '0x3ccfd60b': 'withdrawAll'   // withdrawAll()
+      },
+      'Uniswap': {
+        '0x38ed1739': 'swap',         // swapExactTokensForTokens()
+        '0x8803dbee': 'swap',         // swapTokensForExactTokens()
+        '0x7ff36ab5': 'swapETH'       // swapExactETHForTokens()
+      },
+      'Compound': {
+        '0xa0712d68': 'mint',          // mint()
+        '0xdb006a75': 'redeem',       // redeem()
+        '0xc5ebeaec': 'borrow',       // borrow()
+        '0x0e752702': 'repay'         // repayBorrow()
+      }
+    };
+    
+    return selectors[protocol]?.[selector] || 'unknown';
+  }
+
+  /**
+   * Extract token and amount from calldata
+   */
+  private extractTokenAmount(protocol: string, selector: string, data: string): {
+    token: string;
+    amount: bigint;
+  } {
+    try {
+      // Simplified: Just extract amount from data
+      // Typically: selector (4 bytes) + address (32 bytes) + amount (32 bytes)
+      if (data.length >= 68) {
+        const amountHex = data.slice(68, 132); // Skip selector + address
+        const amount = BigInt('0x' + amountHex);
+        return {
+          token: ethers.ZeroAddress, // TODO: Extract actual token
+          amount: amount
+        };
+      }
+      
+      // Default: try to extract first address and uint256
+      return {
+        token: ethers.ZeroAddress,
+        amount: BigInt(0)
+      };
+      
+    } catch (error) {
+      logger.warn({ error, selector }, '[Enrichment] Failed to extract token/amount');
+      return {
+        token: ethers.ZeroAddress,
+        amount: BigInt(0)
+      };
+    }
+  }
+
+  /**
+   * Calculate USD value of token amount
+   */
+  private async calculateUsdValue(token: string, amount: bigint): Promise<number> {
+    try {
+      if (amount === BigInt(0)) return 0;
+      
+      // Simplified: Use $1 per token for stablecoins
+      // TODO: Integrate with price API
+      const amountInTokens = Number(amount) / 1e6; // USDC/USDT use 6 decimals
+      return amountInTokens; // Assume $1 per token
+      
+    } catch (error) {
+      logger.warn({ error, token }, '[Enrichment] Failed to calculate USD value');
+      return 0;
+    }
+  }
+
+  /**
+   * Calculate risk score (0-100)
+   */
+  private async calculateRisk(protocol: string, action: string, valueUsd: number): Promise<number> {
+    let riskScore = 0;
+    
+    // Base risk by protocol
+    const protocolRisk: Record<string, number> = {
+      'Aave': 10,
+      'Compound': 10,
+      'Yearn': 20,
+      'Uniswap': 30,
+      'Unknown': 50
+    };
+    riskScore += protocolRisk[protocol] || 50;
+    
+    // Risk by action
+    const actionRisk: Record<string, number> = {
+      'deposit': 0,
+      'withdraw': 10,
+      'swap': 20,
+      'borrow': 30,
+      'unknown': 40
+    };
+    riskScore += actionRisk[action] || 40;
+    
+    // Risk by amount (higher amounts = higher risk)
+    if (valueUsd > 10000) riskScore += 30;
+    else if (valueUsd > 5000) riskScore += 20;
+    else if (valueUsd > 1000) riskScore += 10;
+    
+    return Math.min(riskScore, 100);
+  }
+
+  /**
+   * Save enriched operation to database
+   */
+  private async saveEnrichedOperation(enriched: EnrichedOperation): Promise<void> {
+    try {
+      await prisma.aIOperation.create({
+        data: {
+          userOpHash: enriched.userOpHash,
+          smartAccount: enriched.smartAccount,
+          protocol: enriched.protocol,
+          action: enriched.action,
+          token: enriched.token,
+          amount: enriched.amount,
+          valueUsd: enriched.valueUsd,
+          riskScore: enriched.riskScore,
+          success: enriched.success,
+          gasUsed: enriched.gasUsed.toString(),
+          timestamp: enriched.timestamp
+        }
+      });
+      
+      logger.debug({ userOpHash: enriched.userOpHash }, '[Enrichment] Saved to database');
+    } catch (error) {
+      logger.error({ err: error }, '[Enrichment] Failed to save to database');
+    }
+  }
+
+  /**
+   * Update daily limit tracking
+   */
+  private async updateDailyLimit(smartAccount: string, valueUsd: number): Promise<void> {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const tracking = await prisma.dailyLimitTracking.upsert({
+        where: {
+          smartAccount_date: {
+            smartAccount: smartAccount.toLowerCase(),
+            date: today
+          }
+        },
+        update: {
+          spentToday: {
+            increment: valueUsd
+          }
+        },
+        create: {
+          smartAccount: smartAccount.toLowerCase(),
+          date: today,
+          spentToday: valueUsd,
+          limit: 1000 // Default $1000, should be loaded from delegation
+        }
+      });
+      
+      logger.info(
+        { smartAccount, spentToday: tracking.spentToday, limit: tracking.limit },
+        '[Enrichment] Daily limit updated'
+      );
+      
+    } catch (error) {
+      logger.error({ err: error }, '[Enrichment] Failed to update daily limit');
+    }
+  }
+
+  /**
+   * Get enriched operations for an account
+   */
+  async getOperations(smartAccount: string, limit: number = 50) {
+    return await prisma.aIOperation.findMany({
+      where: { smartAccount: smartAccount.toLowerCase() },
+      orderBy: { timestamp: 'desc' },
+      take: limit
+    });
+  }
+
+  /**
+   * Get daily limit status
+   */
+  async getDailyLimitStatus(smartAccount: string) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const tracking = await prisma.dailyLimitTracking.findUnique({
+      where: {
+        smartAccount_date: {
+          smartAccount: smartAccount.toLowerCase(),
+          date: today
+        }
+      }
+    });
+    
+    if (!tracking) {
+      return {
+        spentToday: 0,
+        limit: 1000,
+        remaining: 1000,
+        percentUsed: 0
+      };
+    }
+    
+    const remaining = Math.max(0, tracking.limit - tracking.spentToday);
+    const percentUsed = (tracking.spentToday / tracking.limit) * 100;
+    
+    return {
+      spentToday: tracking.spentToday,
+      limit: tracking.limit,
+      remaining,
+      percentUsed
+    };
+  }
+}
+
+export const transactionEnrichmentService = new TransactionEnrichmentService();

@@ -241,7 +241,7 @@ describe('AI routes', () => {
       expect(generateRecommendationsMock).toHaveBeenCalledWith(requestPayload)
     })
 
-    it('возвращает 400 при некорректном запросе', async () => {
+    it('returns 400 при некорректном запросе', async () => {
       const res = await request(app)
         .post('/api/ai/recommendations')
         .send({})
@@ -250,7 +250,7 @@ describe('AI routes', () => {
       expect(generateRecommendationsMock).not.toHaveBeenCalled()
     })
 
-    it('возвращает 500 при ошибке сервиса', async () => {
+    it('returns 500 on service error', async () => {
       generateRecommendationsMock.mockRejectedValueOnce(new Error('boom'))
 
       const requestPayload = {
@@ -280,7 +280,7 @@ describe('AI routes', () => {
         .send(requestPayload)
 
       expect(res.status).toBe(500)
-      expect(res.body).toEqual({ message: 'Ошибка генерации AI-рекомендации' })
+      expect(res.body).toEqual({ message: 'Failed to generate AI recommendation' })
     })
   })
 
@@ -301,7 +301,7 @@ describe('AI routes', () => {
       expect(previewAIMock).toHaveBeenCalledWith({ account: CORPORATE_ACCOUNT, protocols: ['Aave Monad'] })
     })
 
-    it('возвращает 400 при некорректных данных', async () => {
+    it('returns 400 при некорректных данных', async () => {
       const res = await request(app)
         .post('/api/ai/preview')
         .send({})
@@ -310,7 +310,7 @@ describe('AI routes', () => {
       expect(previewAIMock).not.toHaveBeenCalled()
     })
 
-    it('возвращает 500 при ошибке сервиса', async () => {
+    it('returns 500 on service error', async () => {
       previewAIMock.mockRejectedValueOnce(new Error('preview failed'))
 
       const res = await request(app)
@@ -318,7 +318,7 @@ describe('AI routes', () => {
         .send({ account: CORPORATE_ACCOUNT, protocols: ['Aave Monad'] })
 
       expect(res.status).toBe(500)
-      expect(res.body).toEqual({ message: 'Не удалось построить AI preview' })
+      expect(res.body).toEqual({ message: 'Failed to build AI preview' })
     })
   })
 
@@ -339,7 +339,7 @@ describe('AI routes', () => {
       expect(executeAIMock).toHaveBeenCalledWith({ account: CORPORATE_ACCOUNT, protocols: ['Aave Monad'] })
     })
 
-    it('возвращает 400 при некорректных данных', async () => {
+    it('returns 400 при некорректных данных', async () => {
       const res = await request(app)
         .post('/api/ai/execute')
         .send({})
@@ -348,7 +348,7 @@ describe('AI routes', () => {
       expect(executeAIMock).not.toHaveBeenCalled()
     })
 
-    it('возвращает 500 при ошибке выполнения', async () => {
+    it('returns 500 on execution error', async () => {
       executeAIMock.mockRejectedValueOnce(new Error('failure'))
 
       const res = await request(app)
@@ -356,7 +356,7 @@ describe('AI routes', () => {
         .send({ account: CORPORATE_ACCOUNT, protocols: ['Aave Monad'] })
 
       expect(res.status).toBe(500)
-      expect(res.body).toEqual({ message: 'Ошибка исполнения AI стратегии' })
+      expect(res.body).toEqual({ message: 'Failed to execute AI strategy' })
     })
   })
 
@@ -374,12 +374,12 @@ describe('AI routes', () => {
       expect(listHistoryMock).toHaveBeenCalledWith(CORPORATE_ACCOUNT, 5)
     })
 
-    it('возвращает 400 при неверном адресе', async () => {
+    it('returns 400 при неверном адресе', async () => {
       const res = await request(app)
         .get('/api/ai/executions/not-an-address')
 
       expect(res.status).toBe(400)
-      expect(res.body).toEqual({ message: 'Некорректный адрес аккаунта' })
+      expect(res.body).toEqual({ message: 'Invalid account address' })
       expect(listHistoryMock).not.toHaveBeenCalled()
     })
 
@@ -408,23 +408,23 @@ describe('AI routes', () => {
       expect(getSummaryMock).toHaveBeenCalledWith(CORPORATE_ACCOUNT)
     })
 
-    it('возвращает 400 при неверном адресе', async () => {
+    it('returns 400 при неверном адресе', async () => {
       const res = await request(app)
         .get('/api/ai/executions/not-an-address/summary')
 
       expect(res.status).toBe(400)
-      expect(res.body).toEqual({ message: 'Некорректный адрес аккаунта' })
+      expect(res.body).toEqual({ message: 'Invalid account address' })
       expect(getSummaryMock).not.toHaveBeenCalled()
     })
 
-    it('возвращает 500 при ошибке сервиса', async () => {
+    it('returns 500 on service error', async () => {
       getSummaryMock.mockRejectedValueOnce(new Error('summary failed'))
 
       const res = await request(app)
         .get(`/api/ai/executions/${CORPORATE_ACCOUNT}/summary`)
 
       expect(res.status).toBe(500)
-      expect(res.body).toEqual({ message: 'Не удалось построить сводку AI-исполнений' })
+      expect(res.body).toEqual({ message: 'Failed to build AI execution summary' })
     })
   })
 
@@ -441,23 +441,23 @@ describe('AI routes', () => {
       expect(getAnalyticsMock).toHaveBeenCalledWith(CORPORATE_ACCOUNT)
     })
 
-    it('возвращает 400 при неверном адресе', async () => {
+    it('returns 400 при неверном адресе', async () => {
       const res = await request(app)
         .get('/api/ai/executions/not-an-address/analytics')
 
       expect(res.status).toBe(400)
-      expect(res.body).toEqual({ message: 'Некорректный адрес аккаунта' })
+      expect(res.body).toEqual({ message: 'Invalid account address' })
       expect(getAnalyticsMock).not.toHaveBeenCalled()
     })
 
-    it('возвращает 500 при ошибке сервиса', async () => {
+    it('returns 500 on service error', async () => {
       getAnalyticsMock.mockRejectedValueOnce(new Error('analytics failed'))
 
       const res = await request(app)
         .get(`/api/ai/executions/${CORPORATE_ACCOUNT}/analytics`)
 
       expect(res.status).toBe(500)
-      expect(res.body).toEqual({ message: 'Не удалось построить аналитику AI-исполнений' })
+      expect(res.body).toEqual({ message: 'Failed to build AI execution analytics' })
     })
   })
 
@@ -517,7 +517,7 @@ describe('AI routes', () => {
       expect(res.body).toEqual({ summary, status })
     })
 
-    it('возвращает 202 если запуск пропущен', async () => {
+    it('returns 202 if execution skipped', async () => {
       const status = buildSchedulerStatus()
       runSchedulerOnceMock.mockResolvedValueOnce(null)
       getSchedulerStatusMock.mockReturnValueOnce(status)
@@ -526,26 +526,26 @@ describe('AI routes', () => {
 
       expect(res.status).toBe(202)
       expect(res.body).toEqual({
-        message: 'Запуск пропущен: предыдущая итерация ещё выполняется.',
+        message: 'Execution skipped: previous iteration still running.',
         status
       })
     })
 
-    it('возвращает 409 при конкурирующем запуске', async () => {
+    it('returns 409 on concurrent execution', async () => {
       const status = buildSchedulerStatus({ running: true })
-      runSchedulerOnceMock.mockRejectedValueOnce(new Error('Scheduler уже выполняется'))
+      runSchedulerOnceMock.mockRejectedValueOnce(new Error('AI scheduler iteration already running'))
       getSchedulerStatusMock.mockReturnValueOnce(status)
 
       const res = await request(app).post('/api/ai/scheduler/run')
 
       expect(res.status).toBe(409)
       expect(res.body).toEqual({
-        message: expect.stringContaining('уже выполняется'),
+        message: expect.stringContaining('already running'),
         status
       })
     })
 
-    it('возвращает 500 при неожиданной ошибке', async () => {
+    it('returns 500 on unexpected error', async () => {
       const status = buildSchedulerStatus()
       runSchedulerOnceMock.mockRejectedValueOnce(new Error('unexpected'))
       getSchedulerStatusMock.mockReturnValueOnce(status)
@@ -554,7 +554,7 @@ describe('AI routes', () => {
 
       expect(res.status).toBe(500)
       expect(res.body).toEqual({
-        message: 'Не удалось выполнить AI scheduler вручную',
+        message: 'Failed to manually trigger AI scheduler',
         status
       })
     })

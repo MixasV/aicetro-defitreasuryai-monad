@@ -13,14 +13,8 @@ const buildConfigIndex = (): ProtocolConfigIndex => {
   const byAddress = new Map<string, string>()
   const byLabel = new Map<string, string>()
 
-  for (const pool of MONAD_PROTOCOLS.nabla.pools) {
-    const id = pool.id.toLowerCase()
-    const address = pool.address.toLowerCase()
-    byId.set(id, address)
-    byAddress.set(address, id)
-    byLabel.set(pool.assetSymbol.toLowerCase(), id)
-    byLabel.set(`nabla ${pool.assetSymbol}`.toLowerCase(), id)
-  }
+  // Nabla removed - pools do not exist on Monad Testnet
+  // for (const pool of MONAD_PROTOCOLS.nabla.pools) { ... }
 
   for (const pair of MONAD_PROTOCOLS.uniswapV2.pairs) {
     const id = pair.id.toLowerCase()
@@ -44,6 +38,7 @@ export const buildMetricsAddressIndex = (metrics?: MonadProtocolMetrics): Map<st
   const map = new Map<string, string>()
   if (metrics == null) return map
 
+  // Nabla removed - nablaPools will be empty array
   for (const pool of metrics.nablaPools) {
     map.set(pool.address.toLowerCase(), pool.id.toLowerCase())
   }
@@ -98,16 +93,130 @@ export const resolveAllowedProtocolIdentifiers = (
       continue
     }
 
+    // Fallback: If whitelist contains general protocol name (e.g., "uniswap v2"),
+    // add all pairs from that protocol AND the general name
+    if (normalized.includes('uniswap')) {
+      // Add all Uniswap pairs from config
+      for (const [id, _] of PROTOCOL_CONFIG_INDEX.byId) {
+        if (id.startsWith('uniswap:') || id.includes('uniswap')) {
+          identifiers.add(id)
+        }
+      }
+      // Also add the general name for matching
+      identifiers.add('uniswap')
+      identifiers.add('uniswap v2')
+      identifiers.add('uniswapv2')
+      continue
+    }
+
+    if (normalized.includes('nabla')) {
+      // Add all Nabla pools from config
+      for (const [id, _] of PROTOCOL_CONFIG_INDEX.byId) {
+        if (id.startsWith('nabla:') || id.includes('nabla')) {
+          identifiers.add(id)
+        }
+      }
+      identifiers.add('nabla')
+      continue
+    }
+
+    if (normalized.includes('aave')) {
+      identifiers.add('aave')
+      identifiers.add('aave monad')
+      continue
+    }
+
+    if (normalized.includes('yearn')) {
+      identifiers.add('yearn')
+      identifiers.add('yearn monad')
+      continue
+    }
+
     identifiers.add(normalized)
   }
 
   return Array.from(identifiers)
 }
 
+/**
+ * Resolve protocol address from database (async)
+ * ✅ NEW: Query Pool table for real pool addresses!
+ */
+export const resolveProtocolAddressFromDB = async (protocol: string): Promise<string | null> => {
+  const { prisma } = await import('../../lib/prisma')
+  const normalized = normalizeProtocolId(protocol)
+  
+  try {
+    // Try exact match by id first
+    const exactMatch = await prisma.pool.findFirst({
+      where: {
+        id: normalized,
+        chain: 'Monad',
+        isActive: true
+      },
+      select: { address: true }
+    })
+    
+    if (exactMatch) {
+      console.log(`[resolveProtocolAddressFromDB] Exact match found: ${normalized} → ${exactMatch.address}`)
+      return exactMatch.address
+    }
+    
+    // Try partial match for uniswap pairs (e.g., "uniswap:wmon-usdc")
+    if (normalized.includes('uniswap')) {
+      const tokens = normalized.split(':')[1]?.split('-') || []
+      
+      if (tokens.length >= 2) {
+        // Search for pool containing both tokens
+        const pool = await prisma.pool.findFirst({
+          where: {
+            protocol: 'Uniswap V2',
+            chain: 'Monad',
+            isActive: true,
+            OR: [
+              { id: { contains: tokens[0], mode: 'insensitive' } },
+              { id: { contains: tokens[1], mode: 'insensitive' } }
+            ]
+          },
+          select: { address: true, id: true }
+        })
+        
+        if (pool) {
+          console.log(`[resolveProtocolAddressFromDB] Partial match: ${normalized} → ${pool.address} (${pool.id})`)
+          return pool.address
+        }
+      }
+      
+      // Fallback: return ANY Uniswap V2 pool
+      const anyPool = await prisma.pool.findFirst({
+        where: {
+          protocol: 'Uniswap V2',
+          chain: 'Monad',
+          isActive: true
+        },
+        select: { address: true, id: true },
+        orderBy: { tvl: 'desc' } // Get highest TVL pool
+      })
+      
+      if (anyPool) {
+        console.log(`[resolveProtocolAddressFromDB] Fallback Uniswap pool: ${anyPool.address} (${anyPool.id})`)
+        return anyPool.address
+      }
+    }
+    
+    console.log(`[resolveProtocolAddressFromDB] No match found for: ${normalized}`)
+    return null
+  } catch (error) {
+    console.error('[resolveProtocolAddressFromDB] Error:', error)
+    return null
+  }
+}
+
 export const resolveProtocolAddress = (protocol: string, metrics?: MonadProtocolMetrics): string | null => {
   const normalized = normalizeProtocolId(protocol)
 
   if (metrics != null) {
+    // Nabla removed - nablaPools will be empty array
     for (const pool of metrics.nablaPools) {
       if (pool.id.toLowerCase() === normalized || pool.address.toLowerCase() === normalized) {
         return pool.address
@@ -129,5 +238,6 @@ export const resolveProtocolAddress = (protocol: string, metrics?: MonadProtocol
     return normalized
   }
 
+  // ❌ Removed fallback: now use database query instead
   return null
 }

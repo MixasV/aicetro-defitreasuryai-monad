@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && cp -r src/abis/*.json dist/abis/",
     "start": "node dist/index.js",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "format": "prettier --write \"src/**/*.{ts,tsx,json}\"",
@@ -23,10 +23,12 @@
   "dependencies": {
     "@defitreasuryai/types": "workspace:*",
     "@envio-dev/hypersync-client": "^0.6.6",
+    "@metamask/delegation-toolkit": "^0.13.0",
     "@prisma/client": "^5.18.0",
     "axios": "^1.7.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
+    "ethers": "^6.15.0",
     "express": "^4.19.2",
     "helmet": "^8.0.0",
     "ioredis": "^5.4.1",

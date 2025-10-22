@@ -237,3 +237,118 @@ export const runAISchedulerOnceHandler = async (_req: Request, res: Response) =>
     res.status(500).json({ message: 'Failed to manually trigger AI scheduler', status: getSchedulerStatus() })
   }
 }
+
+export const getAIStatsHandler = async (req: Request, res: Response) => {
+  try {
+    const { address } = req.params
+    const normalized = address.toLowerCase()
+    
+    if (!/^0x[a-f0-9]{40}$/.test(normalized)) {
+      res.status(400).json({ message: 'Invalid account address' })
+      return
+    }
+
+    const { prisma } = await import('../db/prisma')
+
+    const executions = await prisma.aIExecutionLog.findMany({
+      where: { accountAddress: normalized },
+      orderBy: { generatedAt: 'desc' }
+    })
+
+    // ✅ FIXED: Count only SUCCESSFUL on-chain transactions, not all attempts
+    const successfulExecutions = executions.filter(e => {
+      const actions = e.actions as any
+      return actions && Array.isArray(actions) && actions.some((a: any) => a.status === 'executed')
+    })
+    
+    const totalTransactions = successfulExecutions.length
+    
+    let totalGasCost = 0
+    for (const exec of executions) {
+      const actions = exec.actions as any
+      if (actions && Array.isArray(actions)) {
+        for (const action of actions) {
+          if (action.gasCost) {
+            totalGasCost += parseFloat(action.gasCost)
+          }
+        }
+      }
+    }
+    
+    const avgTransactionCost = totalTransactions > 0 ? totalGasCost / totalTransactions : 0
+
+    const monthStart = new Date()
+    monthStart.setDate(1)
+    monthStart.setHours(0, 0, 0, 0)
+    
+    const monthlyExecutions = executions.filter(
+      e => new Date(e.generatedAt) >= monthStart
+    )
+    
+    let monthlyGasCost = 0
+    for (const exec of monthlyExecutions) {
+      const actions = exec.actions as any
+      if (actions && Array.isArray(actions)) {
+        for (const action of actions) {
+          if (action.gasCost) {
+            monthlyGasCost += parseFloat(action.gasCost)
+          }
+        }
+      }
+    }
+    
+    const monthlyFees = monthlyGasCost
+
+    const totalProfitLoss = executions.reduce((sum, e) => {
+      return sum + (e.profitLossUsd || 0)
+    }, 0)
+
+    const lastExecution = executions.length > 0 ? executions[0] : null
+
+    // Calculate additional stats for frontend
+    // winRate: successful / total attempts (not just successful)
+    const winRate = executions.length > 0 
+      ? (successfulExecutions.length / executions.length) * 100 
+      : 0
+
+    // Find best position (highest single execution profit)
+    let bestPosition = { pool: 'N/A', profit: 0 }
+    for (const exec of executions) {
+      if (exec.profitLossUsd && exec.profitLossUsd > bestPosition.profit) {
+        const actions = exec.actions as any
+        const poolName = actions?.[0]?.protocol || 'Unknown Pool'
+        bestPosition = { pool: poolName, profit: exec.profitLossUsd }
+      }
+    }
+
+    // Calculate total amount managed (from recent executions)
+    const totalManaged = executions.reduce((sum, e) => sum + (e.totalExecutedUsd || 0), 0)
+    const totalProfitPercent = totalManaged > 0 ? (totalProfitLoss / totalManaged) * 100 : 0
+
+    res.json({
+      success: true,
+      totalTransactions,
+      avgTransactionCost,
+      monthlyFees,
+      monthlyFeeLimit: 500,
+      roi: totalProfitLoss,
+      // FIXED: Add missing fields for frontend
+      totalProfitUSD: totalProfitLoss,
+      totalProfitPercent: totalProfitPercent,
+      bestPosition: bestPosition,
+      winRate: winRate,
+      avgFeesUSD: avgTransactionCost,
+      savedByOptimization: 0,
+      avgGasGwei: 0,
+      lastExecutionAt: lastExecution?.generatedAt,
+      lastExecutionMode: lastExecution?.executionMode
+    })
+  } catch (error) {
+    console.error('[AI Stats] Error:', error)
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to get AI statistics',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    })
+  }
+}

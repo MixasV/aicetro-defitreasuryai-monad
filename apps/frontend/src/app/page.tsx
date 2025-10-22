@@ -1,4 +1,11 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Footer } from '@/components/layout/Footer';
+
+export const metadata: Metadata = {
+  title: 'Home | AIcetro',
+  description: 'AI-powered autonomous treasury management for corporate DeFi portfolios'
+};
 
 const featureList = [
   {
@@ -32,7 +39,7 @@ export default function Home() {
       </div>
 
       <section className="max-w-5xl space-y-16 text-center">
-        <div className="space-y-6">
+        <div className="space-y-8">
           <span className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1 text-xs uppercase tracking-[0.35em] text-primary-light">
             Aicetro • Monad Testnet • MetaMask Smart Accounts
           </span>
@@ -43,6 +50,22 @@ export default function Home() {
             Aicetro gives every finance leader a personal, trustless AI captain. Set the destination, define your
             constraints, and let the agent navigate yields, risks, and liquidity across Monad with absolute precision.
           </p>
+          
+          {/* Call to Action Buttons */}
+          <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+            <Link
+              href="/wizard"
+              className="rounded-full bg-primary px-8 py-3 text-base font-medium text-white transition hover:bg-primary-light"
+            >
+              Get Started →
+            </Link>
+            <Link
+              href="/dashboard"
+              className="rounded-full border border-white/20 px-8 py-3 text-base font-medium text-muted transition hover:border-primary hover:text-white"
+            >
+              Open Dashboard
+            </Link>
+          </div>
         </div>
 
         <div className="grid gap-6 sm:grid-cols-3">
@@ -61,22 +84,12 @@ export default function Home() {
             </div>
           ))}
         </div>
-
-        <div className="flex flex-wrap items-center justify-center gap-4">
-          <Link
-            href="/dashboard"
-            className="rounded-full bg-primary px-8 py-3 text-base font-medium text-white transition hover:bg-primary-light"
-          >
-            Open the autonomous dashboard
-          </Link>
-          <Link
-            href="/wizard"
-            className="rounded-full border border-white/20 px-8 py-3 text-base font-medium text-muted transition hover:border-primary hover:text-white"
-          >
-            Configure your treasury agent
-          </Link>
-        </div>
       </section>
+
+      {/* Footer with proper spacing */}
+      <div className="w-full">
+        <Footer />
+      </div>
     </main>
   );
 }

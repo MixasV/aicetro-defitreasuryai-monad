@@ -242,7 +242,7 @@ describe('AIService.generateRecommendations', () => {
     })
   })
 
-  it('повторяет запрос и использует fallback после ошибок OpenRouter', async () => {
+  it('retries request and uses fallback after OpenRouter errors', async () => {
     const { aiService, aiTelemetryService } = await loadModule({ openRouterMaxRetries: 2, openRouterRetryDelayMs: 1 })
 
     const error = new Error('429') as MockAxiosError

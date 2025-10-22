@@ -48,6 +48,36 @@ export class EnvioStreamService {
     return status
   }
 
+  async query (query: string, variables?: Record<string, unknown>): Promise<any> {
+    const url = env.envioGraphqlUrl
+    
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': env.envioApiKey || ''
+        },
+        body: JSON.stringify({ query, variables })
+      })
+
+      if (!response.ok) {
+        throw new Error(`GraphQL request failed: ${response.statusText}`)
+      }
+
+      const result = await response.json()
+      
+      if (result.errors) {
+        throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`)
+      }
+
+      return result.data
+    } catch (error) {
+      logger.warn({ err: error, url }, '[envio] GraphQL query failed, returning empty data')
+      return null
+    }
+  }
+
   async start (): Promise<boolean> {
     if (this.enabled) {
       logger.info('Envio stream already running, skipping start.')

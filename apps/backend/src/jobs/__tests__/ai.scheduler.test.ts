@@ -85,7 +85,7 @@ describe('AIScheduler', () => {
     const scheduler = new AIScheduler(5_000)
     const firstRun = scheduler.runOnce('manual')
 
-    await expect(scheduler.runOnce('manual')).rejects.toThrow('AI scheduler iteration уже выполняется.')
+    await expect(scheduler.runOnce('manual')).rejects.toThrow('AI scheduler iteration already running.')
 
     await firstRun
   })

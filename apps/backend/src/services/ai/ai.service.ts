@@ -70,7 +70,7 @@ class AIService {
   private nextProviderIndex = 0
 
   async generateRecommendations (payload: AIRecommendationRequest): Promise<AIRecommendationResponse> {
-    const prompt = this.buildPrompt(payload)
+    const prompt = await this.buildPrompt(payload)
     const startedAt = Date.now()
     const maxAttempts = Math.max(1, env.openRouterMaxRetries + 1)
     let retries = 0
@@ -141,7 +141,7 @@ class AIService {
             {
               role: 'system',
               content:
-                'You are the AI treasurer of a corporation operating on Monad. Respond strictly in JSON with fields summary, analysis, allocations[], suggestedActions[]. Each allocations[].protocol must use identifiers from the protocol hints (e.g. "nabla:usdc", "aave:usdc"). Propose optimal allocations based on risk/return analysis, even if some protocols are not currently whitelisted - the system will flag them for review.'
+                'You are the AI treasurer of a corporation operating on Monad. Respond strictly in JSON with fields summary, analysis, allocations[], suggestedActions[], suggestedProtocolsToAdd[]. CRITICAL: allocations[] must ONLY contain protocols from the user\'s whitelist - NO EXCEPTIONS. Use suggestedProtocolsToAdd[] to recommend non-whitelisted protocols with better opportunities for the user to manually add later. Each protocol must use identifiers from the protocol hints (e.g. "nabla:usdc", "aave:usdc").'
             },
             {
               role: 'user',
@@ -260,24 +260,83 @@ class AIService {
     return fallbackWithMeta
   }
 
-  private buildPrompt (payload: AIRecommendationRequest): string {
-    const { portfolio, riskTolerance, protocols, constraints, protocolMetrics } = payload
+  private async buildPrompt (payload: AIRecommendationRequest): Promise<string> {
+    const { portfolio, riskTolerance, protocols, constraints, protocolMetrics, context } = payload
 
-    const constraintLines = [
-      `Daily limit: ${(constraints.dailyLimitUsd ?? 0).toFixed(2)} USD`,
-      `Remaining limit: ${(constraints.remainingDailyLimitUsd ?? 0).toFixed(2)} USD`,
-      `Max allowed risk score: ${constraints.maxRiskScore ?? 5}`,
-      `Whitelisted protocols: ${protocols.join(', ')}`
-    ]
-
-    if (constraints.notes != null && constraints.notes.trim() !== '') {
-      constraintLines.push(`Notes: ${constraints.notes.trim()}`)
+    // Try to use enhanced prompt if available
+    try {
+      const { enhancedPromptService } = await import('./enhanced-prompt.service')
+      const { assetRulesService } = await import('../asset-management/asset-rules.service')
+      
+      const accountAddress = context?.account || 'unknown'
+      
+      // Get asset rules for this account
+      let assetRules = await assetRulesService.getRules(accountAddress)
+      
+      // If no rules, create default ones
+      if (!assetRules) {
+        const defaultRulesParams = await assetRulesService.getDefaultRules(accountAddress, portfolio.totalValueUSD)
+        assetRules = await assetRulesService.setRules(defaultRulesParams)
+      }
+      
+      // Build enhanced prompt with full context
+      const enhancedPrompt = await enhancedPromptService.buildPrompt(
+        {
+          accountAddress: portfolio.totalValueUSD > 0 ? accountAddress : 'demo',
+          totalValueUsd: portfolio.totalValueUSD,
+          netAPY: portfolio.netAPY,
+          riskScore: Math.min(5, Math.max(1, Math.round(portfolio.netAPY / 2))),
+          positions: portfolio.positions.map(p => ({
+            protocol: p.protocol,
+            asset: p.asset,
+            valueUSD: p.valueUSD,
+            currentAPY: p.currentAPY,
+            riskScore: p.riskScore
+          }))
+        },
+        {
+          dailyLimitUsd: constraints.dailyLimitUsd,
+          spent24h: constraints.dailyLimitUsd - constraints.remainingDailyLimitUsd,
+          remainingDailyLimitUsd: constraints.remainingDailyLimitUsd,
+          maxRiskScore: constraints.maxRiskScore,
+          validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+          // ✅ CRITICAL FIX: Pass delegation budget to AI!
+          portfolioPercentage: constraints.portfolioPercentage ?? 100,         // Default 100% if not set
+          autoAllowance: constraints.autoAllowance ?? portfolio.totalValueUSD, // Default full portfolio
+          remainingAllowance: constraints.remainingAllowance ?? portfolio.totalValueUSD // Default full portfolio
+        },
+        assetRules
+      )
+      
+      return enhancedPrompt
+    } catch (error) {
+      console.warn('[AI] Failed to use enhanced prompt, falling back to basic:', error)
+      // Fall back to basic prompt
     }
 
-    const summary = `Portfolio value ${(portfolio.totalValueUSD ?? 0).toFixed(2)} USD, net APY ${(portfolio.netAPY ?? 0).toFixed(2)}%. Risk tolerance: ${riskTolerance}.`
+    // Basic prompt (fallback)
+    const { portfolio: p, riskTolerance: rt, protocols: pr, constraints: c } = payload
 
-    const positionsBlock = portfolio.positions.length > 0
-      ? portfolio.positions
+    const allowedTokensStr = c.allowedTokens && c.allowedTokens.length > 0 
+      ? c.allowedTokens.join(', ') 
+      : 'Any tokens'
+    
+    const constraintLines = [
+      `Daily limit: ${(c.dailyLimitUsd ?? 0).toFixed(2)} USD`,
+      `Remaining limit: ${(c.remainingDailyLimitUsd ?? 0).toFixed(2)} USD`,
+      `Max allowed risk score: ${c.maxRiskScore ?? 5}`,
+      `Whitelisted protocols: ${pr.join(', ')}`,
+      `Allowed source tokens: ${allowedTokensStr} (you can ONLY use these as initial funding source, but can swap them after)`
+    ]
+
+    if (c.notes != null && c.notes.trim() !== '') {
+      constraintLines.push(`Notes: ${c.notes.trim()}`)
+    }
+
+    const summary = `Portfolio value ${(p.totalValueUSD ?? 0).toFixed(2)} USD, net APY ${(p.netAPY ?? 0).toFixed(2)}%. Risk tolerance: ${rt}.`
+
+    const positionsBlock = p.positions.length > 0
+      ? p.positions
         .map((position) =>
           `${position.protocol} (${position.asset}) — ${(position.valueUSD ?? 0).toFixed(2)} USD, APY ${(position.currentAPY ?? 0).toFixed(2)}%, risk ${position.riskScore ?? 0}`
         )
@@ -299,7 +358,9 @@ class AIService {
       `Daily spending limit: ${(constraints.remainingDailyLimitUsd ?? 0).toFixed(2)} USD remaining`,
       `Maximum allowed risk score: ${constraints.maxRiskScore ?? 5}`,
       '',
-      'Propose the optimal allocation strategy. You may suggest protocols outside the current whitelist if they offer better risk/return - the system will generate warnings for human review.'
+      '⚠️ CRITICAL CONSTRAINT: Your allocations[] MUST ONLY use protocols from the whitelist above - NO EXCEPTIONS.',
+      'If you find better opportunities in non-whitelisted protocols, add them to suggestedProtocolsToAdd[] with reasoning.',
+      'The user can then manually review and add them to the whitelist if desired.'
     ].join('\n')
   }
 
@@ -337,17 +398,9 @@ class AIService {
 
     const candidates: ProtocolCandidate[] = []
 
-    for (const pool of metrics.nablaPools) {
-      candidates.push({
-        id: pool.id.toLowerCase(),
-        label: `Nabla ${pool.asset}`,
-        apy: pool.currentApy ?? 0,
-        risk: pool.riskScore ?? 0,
-        tvlUsd: pool.tvlUsd ?? 0,
-        volume24hUsd: pool.volume24hUsd ?? 0,
-        source: pool.source ?? 'fallback'
-      })
-    }
+    // FIXED: Nabla pools DO NOT EXIST on Monad Testnet - removed iteration
+    // Nabla was removed from protocol list but code still processed nablaPools array
+    // Reference: AGENTS.md "Nabla не существует на Monad Testnet"
 
     for (const pair of metrics.uniswapPairs) {
       const label = `Uniswap ${pair.token0Symbol}/${pair.token1Symbol}`
@@ -447,26 +500,53 @@ class AIService {
       riskScore: Number(Math.max(0, Math.min(5, allocation.riskScore ?? 0)).toFixed(2))
     }))
 
-    const whitelist = new Set(payload.constraints.whitelist.map((item) => item.trim().toLowerCase()))
+    // Normalize whitelist: "Uniswap V2" → "uniswap", "Nabla" → "nabla"
+    console.log('[AI Service] Account:', payload.context?.account, '| Input whitelist:', payload.constraints.whitelist)
+    const normalizedWhitelist = new Set<string>()
+    for (const item of payload.constraints.whitelist) {
+      const trimmed = item.trim().toLowerCase()
+      normalizedWhitelist.add(trimmed)
+      // Extract base protocol: "uniswap v2" → "uniswap"
+      const baseProtocol = trimmed.split(/\s+/)[0]
+      normalizedWhitelist.add(baseProtocol)
+    }
+    console.log('[AI Service] normalizedWhitelist:', Array.from(normalizedWhitelist))
+    
     const warnings: string[] = []
     let simulatedUsd = 0
     let remaining = Math.max(payload.constraints.remainingDailyLimitUsd, 0)
 
+    // CRITICAL: Filter out non-whitelisted allocations (AI models ignore constraints)
+    const whitelistedAllocations: typeof normalizedAllocations = []
+    const rejectedAllocations: typeof normalizedAllocations = []
+
     for (const allocation of normalizedAllocations) {
+      const baseProtocol = allocation.protocol.split(':')[0].toLowerCase()
+      const isWhitelisted = normalizedWhitelist.has(allocation.protocol.toLowerCase()) || normalizedWhitelist.has(baseProtocol)
+      
+      console.log('[AI Service] Checking allocation:', allocation.protocol, '| base:', baseProtocol, '| whitelisted:', isWhitelisted)
+      
+      if (!isWhitelisted) {
+        rejectedAllocations.push(allocation)
+        warnings.push(`Protocol ${allocation.protocol} is not whitelisted - REMOVED from allocations.`)
+        continue
+      }
+      
+      whitelistedAllocations.push(allocation)
+    }
+
+    // Use only whitelisted allocations from here
+    for (const allocation of whitelistedAllocations) {
       const planned = Number((payload.portfolio.totalValueUSD * (allocation.allocationPercent / 100)).toFixed(2))
       const executable = Math.min(remaining, planned)
       allocation.rationale = allocation.rationale ?? 'No rationale provided.'
-
-      // Extract base protocol from identifiers like "aave:usdc" or "nabla:usdc"
-      const baseProtocol = allocation.protocol.split(':')[0].toLowerCase()
-      const isWhitelisted = whitelist.has(allocation.protocol.toLowerCase()) || whitelist.has(baseProtocol)
       
-      if (!isWhitelisted) {
-        warnings.push(`Protocol ${allocation.protocol} is not whitelisted.`)
-      }
+      // ✅ CRITICAL FIX: Set amountUsd on allocation!
+      allocation.amountUsd = executable
 
       if (allocation.riskScore > payload.constraints.maxRiskScore) {
         warnings.push(`Protocol ${allocation.protocol} risk score (${allocation.riskScore}) exceeds the limit ${payload.constraints.maxRiskScore}.`)
+        allocation.amountUsd = 0 // Risk too high
       }
 
       if (planned > remaining) {
@@ -518,7 +598,8 @@ class AIService {
 
     return {
       ...response,
-      allocations: normalizedAllocations,
+      allocations: whitelistedAllocations,
+      rejectedAllocations: rejectedAllocations.length > 0 ? rejectedAllocations : undefined,
       suggestedActions,
       analysis: (typeof response.analysis === 'string' && response.analysis.trim() !== '') ? response.analysis.trim() : 'No analytical commentary provided.',
       summary: (typeof response.summary === 'string' && response.summary.trim() !== '') ? response.summary.trim() : 'AI generated a portfolio rebalancing plan.',

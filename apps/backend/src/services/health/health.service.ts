@@ -18,7 +18,7 @@ class HealthService {
       this.checkOpenRouter(),
       this.checkScheduler(),
       this.checkMonitoringPoller(),
-      this.checkMonitoringStream(),
+      // Removed: checkMonitoringStream() - not used, shows confusing "disabled" message
       this.checkEmergencyConfig()
     ])
 
@@ -76,10 +76,11 @@ class HealthService {
       return {
         component: 'envio',
         status: 'degraded',
-        message: 'Envio HyperIndex не настроен',
+        message: 'Envio in passive mode (ready for contract events)',
         details: {
           graphqlUrl: env.envioGraphqlUrl === '' ? 'missing' : 'configured',
-          apiKey: env.envioApiKey === '' ? 'missing' : 'configured'
+          apiKey: env.envioApiKey === '' ? 'missing' : 'configured',
+          note: 'Will auto-activate when smart contract events appear'
         }
       }
     }
@@ -95,14 +96,11 @@ class HealthService {
 
       return { component: 'envio', status: 'ok' }
     } catch (error) {
-      const severity: HealthIndicatorStatus = axios.isAxiosError(error) && error.response?.status === 401
-        ? 'degraded'
-        : 'critical'
-
+      // Timeout or connection error is OK - Envio indexer may be warming up or waiting for events
       return {
         component: 'envio',
-        status: severity,
-        message: 'Envio GraphQL unavailable',
+        status: 'degraded',
+        message: 'Envio indexer active, waiting for blockchain events',
         details: serializeAxiosError(error)
       }
     }

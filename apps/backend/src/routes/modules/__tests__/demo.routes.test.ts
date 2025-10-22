@@ -112,13 +112,13 @@ describe('demo routes', () => {
       expect(runScenarioMock).toHaveBeenCalledTimes(1)
     })
 
-    it('возвращает 500 при ошибке', async () => {
+    it('returns 500 on error', async () => {
       runScenarioMock.mockRejectedValueOnce(new Error('demo failed'))
 
       const res = await request(app).post('/api/demo/run')
 
       expect(res.status).toBe(500)
-      expect(res.body).toEqual({ message: 'Не удалось выполнить демо-сценарий' })
+      expect(res.body).toEqual({ message: 'Failed to run demo scenario' })
     })
   })
 
@@ -146,21 +146,21 @@ describe('demo routes', () => {
       expect(res.body).toEqual(summary)
     })
 
-    it('возвращает 400 при некорректном адресе', async () => {
+    it('returns 400 with invalid address', async () => {
       const res = await request(app).get('/api/demo/summary/not-an-address')
 
       expect(res.status).toBe(400)
-      expect(res.body.message).toBe('Некорректный адрес аккаунта')
+      expect(res.body.message).toBe('Invalid account address')
       expect(getSummaryMock).not.toHaveBeenCalled()
     })
 
-    it('возвращает 500 при ошибке сервиса', async () => {
+    it('returns 500 on service error', async () => {
       getSummaryMock.mockRejectedValueOnce(new Error('load failed'))
 
       const res = await request(app).get('/api/demo/summary')
 
       expect(res.status).toBe(500)
-      expect(res.body).toEqual({ message: 'Не удалось загрузить демо-сценарий' })
+      expect(res.body).toEqual({ message: 'Failed to load demo scenario' })
     })
   })
 })

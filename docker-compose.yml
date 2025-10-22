@@ -7,6 +7,8 @@ services:
       POSTGRES_DB: defitreasury
       POSTGRES_USER: monad
       POSTGRES_PASSWORD: monad
+    ports:
+      - "127.0.0.1:5434:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -18,6 +20,8 @@ services:
   redis:
     image: redis:7-alpine
     command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis-data:/data
     healthcheck:
@@ -38,10 +42,21 @@ services:
     env_file:
       - apps/backend/.env.production
     environment:
-      DATABASE_URL: postgres://monad:monad@postgres:5432/defitreasury?schema=public
+      DATABASE_URL: postgresql://monad:monad@postgres:5432/defitreasury?schema=public
       REDIS_URL: redis://redis:6379
+      ENVIO_GRAPHQL_URL: http://hasura:8080/v1/graphql
+      ENVIO_WS_URL: ws://hasura:8080/v1/graphql
+      ENVIO_STREAM_ENABLED: "false"
+      MONITORING_STREAM_ENABLED: "false"
+      AI_AUTO_EXECUTION_ENABLED: "true"
+      # AI Agent Key Encryption (MVP Solution)
+      # ⚠️ CRITICAL: Required for encrypting AI agent private keys
+      # Generate secure password: openssl rand -base64 32
+      MASTER_ENCRYPTION_PASSWORD: "${MASTER_ENCRYPTION_PASSWORD:-changeme-insecure-default}"
+      HOST: 0.0.0.0
+      PORT: 4000
     ports:
-      - '127.0.0.1:4000:4000'
+      - "127.0.0.1:4000:4000"
     restart: unless-stopped
 
   frontend:
@@ -49,7 +64,7 @@ services:
       context: .
       dockerfile: apps/frontend/Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://81.91.177.168:8080/api
+        NEXT_PUBLIC_API_URL: /api
         NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: ${NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID:-demo-project}
         NEXT_PUBLIC_TRUSTLESS_TREASURY_ADDRESS: ${NEXT_PUBLIC_TRUSTLESS_TREASURY_ADDRESS:-0x5a531079eCe02e2bBF83853027d135d9f80fEdDA}
     depends_on:
@@ -58,9 +73,9 @@ services:
     env_file:
       - apps/frontend/.env.production
     environment:
-      NEXT_PUBLIC_API_URL: http://81.91.177.168:8080/api
+      NEXT_PUBLIC_API_URL: /api
     ports:
-      - '0.0.0.0:3000:3000'
+      - '127.0.0.1:3000:3000'
     restart: unless-stopped
 
   envio-indexer:
@@ -69,6 +84,33 @@ services:
       dockerfile: Dockerfile
     env_file:
       - envio-indexers/defitreasury/.env.production
+    environment:
+      DATABASE_URL: postgresql://monad:monad@postgres:5432/defitreasury_envio
+      ENVIO_PG_HOST: postgres
+      ENVIO_PG_PORT: 5432
+      ENVIO_PG_USER: monad
+      ENVIO_PG_PASSWORD: monad
+      ENVIO_PG_DATABASE: defitreasury_envio
+    # No exposed ports - envio-indexer only writes to DB
+    # GraphQL is served by Hasura (separate service)
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  hasura:
+    image: hasura/graphql-engine:v2.43.0
+    ports:
+      - "127.0.0.1:8081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: postgresql://monad:monad@postgres:5432/defitreasury_envio
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:-testing}
+      HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES: "true"
+      HASURA_GRAPHQL_UNAUTHORIZED_ROLE: public
+      HASURA_GRAPHQL_NO_OF_RETRIES: 10
     restart: unless-stopped
 
 volumes:

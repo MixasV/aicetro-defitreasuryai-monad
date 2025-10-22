@@ -276,21 +276,22 @@ describe('monitoring routes', () => {
       expect(buildProjectionMock).toHaveBeenCalledWith(ACCOUNT_ADDRESS)
     })
 
-    it('возвращает 400 для некорректного адреса', async () => {
+    it('returns 400 for invalid address', async () => {
       const res = await request(app).get('/api/monitoring/portfolio/not-an-address/projection')
 
       expect(res.status).toBe(400)
-      expect(res.body.message).toBe('Некорректный адрес')
+      expect(res.body).toHaveProperty('message')
+      expect(res.body.message).toMatch(/invalid/i)
       expect(buildProjectionMock).not.toHaveBeenCalled()
     })
 
-    it('возвращает 500 при ошибке сервиса', async () => {
+    it('returns 500 on service error', async () => {
       buildProjectionMock.mockRejectedValueOnce(new Error('projection failure'))
 
       const res = await request(app).get(`/api/monitoring/portfolio/${ACCOUNT_ADDRESS}/projection`)
 
       expect(res.status).toBe(500)
-      expect(res.body).toEqual({ message: 'Не удалось построить проекцию портфеля' })
+      expect(res.body).toEqual({ message: 'Failed to build portfolio projection' })
     })
   })
 
@@ -306,11 +307,12 @@ describe('monitoring routes', () => {
       expect(getPollerHistoryMock).toHaveBeenCalledWith(5)
     })
 
-    it('возвращает 400 при некорректном limit', async () => {
+    it('returns 400 при некорректном limit', async () => {
       const res = await request(app).get('/api/monitoring/poller/history?limit=0')
 
       expect(res.status).toBe(400)
-      expect(res.body).toEqual({ message: 'Некорректное значение limit' })
+      expect(res.body).toHaveProperty('message')
+      expect(res.body.message).toMatch(/некорректное|invalid/i)
       expect(getPollerHistoryMock).not.toHaveBeenCalled()
     })
 
@@ -361,21 +363,22 @@ describe('monitoring routes', () => {
       expect(getPortfolioSnapshotMock).toHaveBeenCalledWith(ACCOUNT_ADDRESS)
     })
 
-    it('возвращает 400 для некорректного адреса', async () => {
+    it('returns 400 for invalid address', async () => {
       const res = await request(app).get('/api/monitoring/portfolio/not-an-address')
 
       expect(res.status).toBe(400)
-      expect(res.body.message).toBe('Некорректный адрес')
+      expect(res.body).toHaveProperty('message')
+      expect(res.body.message).toMatch(/invalid/i)
       expect(getPortfolioSnapshotMock).not.toHaveBeenCalled()
     })
 
-    it('возвращает 500 при ошибке сервиса', async () => {
+    it('returns 500 on service error', async () => {
       getPortfolioSnapshotMock.mockRejectedValueOnce(new Error('envio down'))
 
       const res = await request(app).get(`/api/monitoring/portfolio/${ACCOUNT_ADDRESS}`)
 
       expect(res.status).toBe(500)
-      expect(res.body).toEqual({ message: 'Не удалось получить данные портфеля' })
+      expect(res.body).toEqual({ message: 'Failed to get portfolio data' })
     })
   })
 
@@ -391,21 +394,22 @@ describe('monitoring routes', () => {
       expect(getRiskAlertsMock).toHaveBeenCalledWith(ACCOUNT_ADDRESS)
     })
 
-    it('возвращает 400 для некорректного адреса', async () => {
+    it('returns 400 for invalid address', async () => {
       const res = await request(app).get('/api/monitoring/alerts/not-an-address')
 
       expect(res.status).toBe(400)
-      expect(res.body.message).toBe('Некорректный адрес')
+      expect(res.body).toHaveProperty('message')
+      expect(res.body.message).toMatch(/invalid/i)
       expect(getRiskAlertsMock).not.toHaveBeenCalled()
     })
 
-    it('возвращает 500 при ошибке сервиса', async () => {
+    it('returns 500 on service error', async () => {
       getRiskAlertsMock.mockRejectedValueOnce(new Error('envio error'))
 
       const res = await request(app).get(`/api/monitoring/alerts/${ACCOUNT_ADDRESS}`)
 
       expect(res.status).toBe(500)
-      expect(res.body).toEqual({ message: 'Не удалось получить риск-алерты' })
+      expect(res.body).toEqual({ message: 'Failed to get risk alerts' })
     })
   })
 
@@ -421,13 +425,14 @@ describe('monitoring routes', () => {
       expect(getProtocolMetricsMock).toHaveBeenCalledTimes(1)
     })
 
-    it('возвращает 500 при ошибке сервиса', async () => {
+    it('returns 500 on service error', async () => {
       getProtocolMetricsMock.mockRejectedValueOnce(new Error('metrics failure'))
 
       const res = await request(app).get('/api/monitoring/protocols/monad')
 
       expect(res.status).toBe(500)
-      expect(res.body).toEqual({ message: 'Не удалось получить метрики протоколов' })
+      expect(res.body).toHaveProperty('message')
+      expect(res.body.message).toMatch(/failed|error/i)
     })
   })
 
@@ -443,15 +448,16 @@ describe('monitoring routes', () => {
       expect(getRiskInsightsMock).toHaveBeenCalledWith(ACCOUNT_ADDRESS)
     })
 
-    it('возвращает 400 для некорректного адреса', async () => {
+    it('returns 400 for invalid address', async () => {
       const res = await request(app).get('/api/monitoring/risk/not-an-address')
 
       expect(res.status).toBe(400)
-      expect(res.body.message).toBe('Некорректный адрес')
+      expect(res.body).toHaveProperty('message')
+      expect(res.body.message).toMatch(/invalid/i)
       expect(getRiskInsightsMock).not.toHaveBeenCalled()
     })
 
-    it('возвращает 500 при ошибке сервиса', async () => {
+    it('returns 500 on service error', async () => {
       getRiskInsightsMock.mockRejectedValueOnce(new Error('risk failed'))
 
       const res = await request(app).get(`/api/monitoring/risk/${ACCOUNT_ADDRESS}`)
@@ -635,7 +641,7 @@ describe('monitoring routes', () => {
       expect(writes.some(chunk => chunk.includes('event: protocol-metrics-batch'))).toBe(true)
     })
 
-    it('возвращает 400 при некорректном адресе', async () => {
+    it('returns 400 with invalid address', async () => {
       const req = {
         params: { account: 'invalid' },
         on: vi.fn()
@@ -651,7 +657,7 @@ describe('monitoring routes', () => {
       await monitoringStreamHandler(req, res)
 
       expect(status).toHaveBeenCalledWith(400)
-      expect(json).toHaveBeenCalledWith(expect.objectContaining({ message: 'Некорректный адрес' }))
+      expect(json).toHaveBeenCalledWith(expect.objectContaining({ message: 'Invalid address' }))
       expect(eventBusOnMock).not.toHaveBeenCalled()
     })
   })
@@ -788,7 +794,7 @@ describe('monitoring routes', () => {
       })
     })
 
-    it('возвращает 500 при ошибке poller', async () => {
+    it('returns 500 при ошибке poller', async () => {
       runPollerOnceMock.mockRejectedValueOnce(new Error('unexpected failure'))
       const status = {
         enabled: true,

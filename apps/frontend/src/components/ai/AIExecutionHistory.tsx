@@ -204,7 +204,7 @@ const ExecutionCard = ({ execution, index }: ExecutionCardProps) => {
           {execution.txHashes.map((hash) => (
             <a
               key={hash}
-              href={`https://testnet.monadscan.io/tx/${hash}`}
+              href={`https://testnet.monadexplorer.com/tx/${hash}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 rounded-lg bg-blue-500/10 px-2 py-1 text-xs text-blue-400 hover:bg-blue-500/20 transition-colors"

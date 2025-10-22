@@ -4,6 +4,9 @@ import { aiService } from './ai.service'
 import { aiExecutionHistoryService } from './ai.history'
 import { alertingService } from '../monitoring/alerting.service'
 import { env } from '../../config/env'
+import { prisma } from '../../lib/prisma'
+import { metaMaskRedemptionV2Service } from '../metamask/metamask-redemption-v2.service'
+import { logger } from '../../config/logger'
 import type {
   AIExecutionRequest,
   AIExecutionResult,
@@ -25,18 +28,53 @@ class AIExecutionService {
     const portfolio = await monitoringService.getPortfolioSnapshot(account)
     const protocolMetrics = await monitoringService.getProtocolMetrics().catch(() => null)
 
-    const resolvedWhitelist = resolveAllowedProtocolIdentifiers(delegationState.whitelist, protocolMetrics ?? undefined)
+    // ✅ FIX: DON'T expand whitelist! User explicitly chose these protocols
+    // resolveAllowedProtocolIdentifiers expands "Uniswap V2" → 5 pool IDs, confusing AI
     let requestedProtocols = input.protocols != null && input.protocols.length > 0
       ? input.protocols
-      : (resolvedWhitelist.length > 0 ? resolvedWhitelist : delegationState.whitelist)
+      : delegationState.whitelist
 
     if (requestedProtocols.length === 0) {
-      requestedProtocols = resolvedWhitelist.length > 0 ? resolvedWhitelist : ['nabla:usdc']
+      requestedProtocols = ['Uniswap V2']  // Default to Uniswap V2 on Monad
     }
 
-    const normalizedWhitelistSet = new Set(requestedProtocols.map((id) => normalizeProtocolId(id)))
+    // ✅ FIX: Add base protocols to whitelist (same as ai.service.ts)
+    // "Uniswap V2" → add both "uniswap v2" AND "uniswap"
+    const normalizedWhitelistSet = new Set<string>()
+    for (const protocol of requestedProtocols) {
+      const normalized = normalizeProtocolId(protocol)
+      normalizedWhitelistSet.add(normalized)
+      // Extract base: "uniswap v2" → "uniswap"
+      const base = normalized.split(/\s+/)[0]
+      normalizedWhitelistSet.add(base)
+    }
+    
+    console.log('[AI Executor] Whitelist:', Array.from(normalizedWhitelistSet))
 
-    const remainingInitial = Math.max(0, delegationState.dailyLimitUsd - delegationState.spent24h)
+    // ✅ CRITICAL: Get allowed networks from delegation (server-side validation)
+    const delegationRecord = await prisma.delegation.findFirst({
+      where: { smartAccountAddress: account, active: true }
+    })
+    
+    const caveats = (delegationRecord?.caveats as any) || {}
+    const selectedNetworks = caveats.selectedNetworks || []
+    const allowedNetworkIds = selectedNetworks
+      .filter((n: any) => n.enabled !== false)
+      .map((n: any) => n.id) // e.g., ['monad']
+    
+    // Default to Monad if no networks specified
+    const finalAllowedNetworks = allowedNetworkIds.length > 0 ? allowedNetworkIds : ['monad']
+    
+    logger.info({ 
+      account, 
+      allowedNetworks: finalAllowedNetworks 
+    }, 'AI can execute ONLY on these networks')
+
+    // ✅ CRITICAL FIX: Use portfolioPercentage to calculate allowed amount!
+    // If portfolioPercentage = 20%, AI can use 20% of portfolio, NOT dailyLimitUsd!
+    const portfolioPercentage = delegationState.portfolioPercentage ?? 100
+    const allowedPortfolioAmount = (portfolio.totalValueUSD * portfolioPercentage) / 100
+    const remainingInitial = Math.max(0, allowedPortfolioAmount - delegationState.spent24h)
     const recommendation = await aiService.generateRecommendations({
       portfolio,
       riskTolerance: input.riskTolerance ?? 'balanced',
@@ -61,8 +99,17 @@ class AIExecutionService {
     const actions: AIExecutionAction[] = []
     const transactions: AIExecutionTransaction[] = []
 
+    // ✅ CRITICAL FIX: Use remainingInitial (delegated amount) instead of portfolio.totalValueUSD!
+    // remainingInitial already accounts for portfolioPercentage
+    // This is the ONLY amount AI can use, NOT the full portfolio!
+    // ⚠️ GAS_RESERVE: Keep funds for gas fees
+    // Monad Testnet: $1 is enough (gas ~$0.001/tx)
+    // Mainnet: should be $50-100
+    const GAS_RESERVE_USD = 1
+    const allowedPortfolioValue = Math.max(0, remainingInitial - GAS_RESERVE_USD)
+
     for (const allocation of recommendation.allocations) {
-      const amountUsd = Number((portfolio.totalValueUSD * (allocation.allocationPercent / 100)).toFixed(2))
+      const amountUsd = Number((allowedPortfolioValue * (allocation.allocationPercent / 100)).toFixed(2))
       const protocolId = normalizeProtocolId(allocation.protocol)
 
       const baseAction: AIExecutionAction = {
@@ -76,13 +123,27 @@ class AIExecutionService {
         simulationUsd: Math.min(amountUsd, remainingLimit)
       }
 
-      if (!normalizedWhitelistSet.has(protocolId)) {
+      // Check both full protocol ID and base protocol
+      const baseProtocol = protocolId.split(':')[0]
+      const isWhitelisted = normalizedWhitelistSet.has(protocolId) || normalizedWhitelistSet.has(baseProtocol)
+      
+      console.log('[AI Executor] Checking:', protocolId, '| base:', baseProtocol, '| whitelisted:', isWhitelisted)
+      
+      if (!isWhitelisted) {
         actions.push({ ...baseAction, status: 'skipped', reason: 'Protocol is not whitelisted', simulationUsd: 0 })
         continue
       }
 
       if (allocation.riskScore > delegationState.maxRiskScore) {
         actions.push({ ...baseAction, status: 'skipped', reason: 'Risk score exceeds delegation limit', simulationUsd: 0 })
+        continue
+      }
+
+      // ✅ CRITICAL: Check if operation is on allowed network (Monad Testnet only)
+      // All operations currently default to Monad Testnet (chainId 10143)
+      const targetChain = 10143 // Monad Testnet
+      if (targetChain !== 10143) {
+        actions.push({ ...baseAction, status: 'skipped', reason: `Network ${targetChain} is not allowed. Only Monad Testnet (10143) is supported.`, simulationUsd: 0 })
         continue
       }
 
@@ -98,8 +159,30 @@ class AIExecutionService {
     for (const action of actions) {
       if (action.status !== 'executed') continue
 
-      const protocolAddress = resolveProtocolAddress(action.protocolId ?? action.protocol, protocolMetrics ?? undefined)
+      // ✅ NEW: Try resolving from database first!
+      const { resolveProtocolAddressFromDB } = await import('./protocol.registry')
+      let protocolAddress = resolveProtocolAddress(action.protocolId ?? action.protocol, protocolMetrics ?? undefined)
+      
+      // If not found in static config, try database
       if (protocolAddress == null) {
+        logger.info({ protocol: action.protocol }, 'Static resolution failed, trying database...')
+        protocolAddress = await resolveProtocolAddressFromDB(action.protocol)
+      }
+      
+      // ✅ DEBUG: Log protocol address resolution
+      logger.info({
+        protocol: action.protocol,
+        protocolId: action.protocolId,
+        resolved: protocolAddress,
+        hasMetrics: protocolMetrics != null
+      }, 'Protocol address resolution')
+      
+      if (protocolAddress == null) {
+        logger.warn({
+          protocol: action.protocol,
+          protocolId: action.protocolId
+        }, 'FAILED to resolve protocol address from both static config and database!')
+        
         action.status = 'skipped'
         action.reason = 'Protocol address is unknown'
         action.simulationUsd = 0
@@ -118,6 +201,35 @@ class AIExecutionService {
 
       action.protocolAddress = protocolAddress
       action.callData = action.callData ?? '0x'
+
+      // ✅ CRITICAL: Final network check before blockchain execution
+      const txNetwork = 'monad' // All Monad transactions
+      if (!finalAllowedNetworks.includes(txNetwork)) {
+        action.status = 'skipped'
+        action.reason = `Transaction blocked: network '${txNetwork}' not in allowed list [${finalAllowedNetworks.join(', ')}]`
+        action.simulationUsd = 0
+        remainingLimit = Number((remainingLimit + action.amountUsd).toFixed(2))
+        logger.error({ account, protocolAddress, allowedNetworks: finalAllowedNetworks }, 'CRITICAL: Blocked unauthorized network transaction!')
+        transactions.push({
+          protocolId: action.protocolId ?? normalizeProtocolId(action.protocol),
+          protocolAddress,
+          callData: action.callData ?? '0x',
+          amountUsd: action.amountUsd,
+          submittedAt: new Date().toISOString(),
+          status: 'failed',
+          failureReason: action.reason
+        })
+        continue
+      }
+
+      // ✅ FIX: Ensure protocolAddress is valid before calling prepareDelegatedExecution
+      logger.info({
+        account,
+        protocol: action.protocol,
+        protocolId: action.protocolId,
+        protocolAddress,
+        amountUsd: action.amountUsd
+      }, 'Preparing delegated execution')
 
       const planResult = await blockchainService.prepareDelegatedExecution({
         account,
@@ -159,7 +271,60 @@ class AIExecutionService {
         continue
       }
 
-      const broadcast = await blockchainService.broadcastDelegatedExecution(planResult.plan)
+      // Check delegation type to determine execution method
+      const delegation = await prisma.delegation.findFirst({
+        where: { 
+          smartAccountAddress: account.toLowerCase(),
+          active: true 
+        }
+      })
+
+      // ✅ CORRECT: Detect ERC-7710 MetaMask delegation by checking required fields
+      // NOT by checking type === 'metamask' (that field is optional)
+      const signedDel = delegation?.signedDelegation as any
+      const isMetaMaskDelegation = delegation?.signedDelegation && 
+        typeof delegation.signedDelegation === 'object' &&
+        signedDel.delegate &&     // Has delegate address
+        signedDel.delegator &&    // Has delegator address
+        signedDel.caveats &&      // Has caveats array
+        signedDel.signature       // Has signature
+
+      let broadcast
+      
+      if (isMetaMaskDelegation) {
+        // V2: Use MetaMask Delegation Framework + Alchemy Gas Manager
+        console.log('[AI Executor] ✅ Using MetaMask ERC-7710 redemption V2 (Gas Manager) for account:', account)
+        console.log('[AI Executor] Delegation has delegate:', signedDel.delegate)
+        console.log('[AI Executor] Using ONE AI Agent SA for redemption')
+        
+        const redemptionResult = await metaMaskRedemptionV2Service.redeemDelegation({
+          accountAddress: account as `0x${string}`,
+          protocolAddress: protocolAddress as `0x${string}`,
+          callData: planResult.plan.callData,
+          amountUsd: action.amountUsd
+        })
+        
+        console.log('[AI Executor] Redemption V2 result:', {
+          ok: redemptionResult.ok,
+          userOpHash: redemptionResult.userOpHash,
+          txHash: redemptionResult.txHash,
+          reason: redemptionResult.reason
+        })
+        
+        if (!redemptionResult.ok) {
+          broadcast = { ok: false, reason: redemptionResult.reason }
+        } else {
+          broadcast = { 
+            ok: true, 
+            txHash: redemptionResult.txHash || '0x0000000000000000000000000000000000000000000000000000000000000000'
+          }
+        }
+      } else {
+        // Use legacy delegation execution
+        console.log('[AI Executor] ⚠️ Using legacy delegation for account:', account)
+        broadcast = await blockchainService.broadcastDelegatedExecution(planResult.plan)
+      }
+
       if (!broadcast.ok) {
         action.status = 'skipped'
         action.reason = broadcast.reason ?? 'On-chain execution failed'

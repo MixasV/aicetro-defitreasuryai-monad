@@ -27,7 +27,12 @@ COPY --from=builder /app/apps/backend/prisma ./apps/backend/prisma
 COPY --from=builder /app/apps/backend/scripts ./apps/backend/scripts
 COPY --from=builder /app/packages/types ./packages/types
 
+# Install production dependencies FIRST
 RUN pnpm install --frozen-lockfile --prod --filter defitreasuryai-backend...
+
+# Copy generated Prisma Client from builder stage
+COPY --from=builder /app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/@prisma/client ./node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/@prisma/client
+COPY --from=builder /app/node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma ./node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma
 RUN chmod +x ./apps/backend/scripts/docker-entrypoint.sh
 
 EXPOSE 4000

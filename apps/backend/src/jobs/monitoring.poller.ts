@@ -202,6 +202,14 @@ export class MonitoringPoller {
         errorCount += 1
         logger.error({ err: error }, 'Monitoring poller: не удалось обновить метрики протоколов')
       }
+
+      // Mark pools with user positions (for AI analysis prioritization)
+      try {
+        const { poolDiscoveryService } = await import('../services/pools/pool-discovery.service')
+        await poolDiscoveryService.markUserPools()
+      } catch (error) {
+        logger.error({ err: error }, 'Monitoring poller: не удалось пометить пулы с позициями пользователей')
+      }
     } catch (error) {
       errorCount += 1
       const errMessage = extractErrorMessage(error, 'poller')

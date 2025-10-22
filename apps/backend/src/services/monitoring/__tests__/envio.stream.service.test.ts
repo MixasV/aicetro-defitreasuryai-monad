@@ -107,7 +107,7 @@ describe('EnvioStreamService', () => {
     } catch {}
   })
 
-  it('не запускается, если стрим отключён', async () => {
+  it('does not start if stream is disabled', async () => {
     envMock.envioStreamEnabled = false
 
     const started = await envioStreamService.start()
@@ -119,15 +119,21 @@ describe('EnvioStreamService', () => {
       running: false,
       connected: false,
       observedAccounts: 0,
-      lastError: 'Envio stream не настроен'
+      lastError: 'Envio stream not configured'
     })
   })
 
-  it('обновляет данные аккаунта при получении события', async () => {
+  it('updates account data when receiving event', async () => {
+    // Setup all env values properly
     envMock.envioStreamEnabled = true
     envMock.envioWsUrl = 'wss://envio.example'
     envMock.envioApiKey = 'test-key'
+    envMock.envioHttpUrl = 'https://envio.example'
     envMock.envioStreamStartBlock = 12345
+    envMock.envioStreamRefreshIntervalMs = 1000
+
+    // Create a fresh service instance with updated env
+    envioStreamService = new EnvioStreamService()
 
     const corporateAccount = {
       address: '0xABCDEF1234567890abcdef1234567890ABCDEF12',
@@ -160,8 +166,8 @@ describe('EnvioStreamService', () => {
 
     expect(listCorporateAccountsMock).toHaveBeenCalled()
     expect(hypersyncNewMock).toHaveBeenCalledWith({
-      url: envMock.envioWsUrl,
-      bearerToken: envMock.envioApiKey,
+      url: 'wss://envio.example',
+      bearerToken: 'test-key',
       enableChecksumAddresses: true
     })
     expect(streamEventsMock).toHaveBeenCalledWith(

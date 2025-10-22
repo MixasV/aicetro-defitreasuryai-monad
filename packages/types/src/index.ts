@@ -73,7 +73,12 @@ export interface AIRecommendationConstraints {
   remainingDailyLimitUsd: number;
   maxRiskScore: number;
   whitelist: string[];
+  allowedTokens?: string[]; // Tokens user allowed AI to use as initial source
   notes?: string;
+  // ✅ CRITICAL FIX: AI must know its actual budget (portfolioPercentage)
+  portfolioPercentage?: number;     // % of portfolio delegated to AI (e.g. 25 = AI can use 25%)
+  autoAllowance?: number;            // Total USD AI can manage (portfolio * percentage)
+  remainingAllowance?: number;       // Remaining after previous executions
 }
 
 export interface AIRecommendationContext {
@@ -115,6 +120,7 @@ export interface AIRecommendationResponse {
   summary: string;
   analysis: string;
   allocations: AllocationRecommendation[];
+  rejectedAllocations?: AllocationRecommendation[]; // Non-whitelisted protocols removed by post-processing
   suggestedActions: string[];
   generatedAt: string;
   evaluation?: AIRecommendationEvaluation;
@@ -172,7 +178,7 @@ export interface AIExecutionAction {
   amountUsd: number;
   expectedAPY: number;
   riskScore: number;
-  status: 'executed' | 'skipped';
+  status: 'executed' | 'skipped' | 'deferred';
   reason?: string;
   protocolId?: string;
   protocolAddress?: string;

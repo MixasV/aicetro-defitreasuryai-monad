@@ -5,10 +5,12 @@ import { AppShell } from '../../components/layout/AppShell';
 import { AIControlsPanel } from '../../components/ai/AIControlsPanel';
 import { usePortfolio } from '../../hooks/usePortfolio';
 import { useMonitoringEvents } from '../../hooks/useMonitoringEvents';
+import { usePageTitle } from '../../hooks/usePageTitle';
 import { DEMO_CORPORATE_ACCOUNT } from '../../config/demo';
 import { useCorporateAccount } from '../../hooks/useCorporateAccount';
 
 export default function AIControlsPage() {
+  usePageTitle('AI Controls');
   const { account } = useCorporateAccount();
   const accountAddress = account.address ?? DEMO_CORPORATE_ACCOUNT;
   const usingDemo = !account.address;
@@ -25,33 +27,26 @@ export default function AIControlsPage() {
   });
 
   // Show demo portfolio if loading or error
+  // NOTE: Demo uses ONLY real protocols available on Monad Testnet
   const demoPortfolio = {
     totalValueUSD: 100000,
-    netAPY: 8.2,
+    netAPY: 12.5,
     positions: [
       {
-        protocol: "Aave Monad",
-        asset: "USDC",
-        amount: 50000,
-        valueUSD: 50000,
-        currentAPY: 8.4,
-        riskScore: 2
+        protocol: "Uniswap V2 Monad",
+        asset: "WMON-USDC LP",
+        amount: 70000,
+        valueUSD: 70000,
+        currentAPY: 15.03,  // Real APY from Pool table
+        riskScore: 3
       },
       {
-        protocol: "Yearn Monad",
-        asset: "USDT",
-        amount: 25000,
-        valueUSD: 24900,
-        currentAPY: 11.8,
-        riskScore: 4
-      },
-      {
-        protocol: "Nabla Finance",
-        asset: "USDC",
-        amount: 25000,
-        valueUSD: 25100,
-        currentAPY: 15.6,
-        riskScore: 6
+        protocol: "Cash Reserve",
+        asset: "MON",
+        amount: 30000,
+        valueUSD: 30000,
+        currentAPY: 0,
+        riskScore: 1
       }
     ]
   };

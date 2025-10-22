@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState, useEffect } from 'react';
 import { createDelegation, getDeleGatorEnvironment, PREFERRED_VERSION } from '@metamask/delegation-toolkit';
 import type { Hex } from 'viem';
 import { bytesToHex } from 'viem';
@@ -25,6 +25,10 @@ const MONAD_TESTNET_CHAIN_ID = 10143;
 const DEFAULT_METHOD_SELECTORS: `0x${string}`[] = ['0xa9059cbb', '0x095ea7b3', '0x23b872dd', '0x2e1a7d4d'];
 
 export const PROTOCOL_REGISTRY: Record<string, { target: Hex; selectors: `0x${string}`[] }> = {
+  'Uniswap V2': {
+    target: '0x733e88f248b742db6c14c0b1713af5ad7fdd59d0',  // Real Uniswap V2 Factory on Monad Testnet
+    selectors: DEFAULT_METHOD_SELECTORS
+  },
   'Aave Monad': {
     target: '0x1111111111111111111111111111111111111111',
     selectors: DEFAULT_METHOD_SELECTORS
@@ -82,13 +86,44 @@ const buildScope = (protocols: string[]): DelegationScope => {
 };
 
 export const useDelegationToolkit = () => {
-  const environment = useMemo(() => getDeleGatorEnvironment(MONAD_TESTNET_CHAIN_ID, PREFERRED_VERSION), []);
+  // CRITICAL: Use custom environment from backend for Monad Testnet!
+  // getDeleGatorEnvironment(10143) doesn't work - Monad not in MetaMask SDK by default
+  const [environment, setEnvironment] = useState<any>(null);
+  const [environmentLoading, setEnvironmentLoading] = useState(true);
+
+  // Fetch Monad Testnet environment from backend
+  useEffect(() => {
+    async function fetchEnvironment() {
+      try {
+        const response = await fetch('/api/metamask/environment');
+        if (!response.ok) {
+          throw new Error('Failed to fetch MetaMask environment');
+        }
+        const data = await response.json();
+        setEnvironment(data.environment);
+        console.log('[Delegation Toolkit] Loaded Monad Testnet environment from backend');
+      } catch (error) {
+        console.error('[Delegation Toolkit] Failed to load environment:', error);
+        // Fallback to SDK default (will create wrong authority!)
+        setEnvironment(getDeleGatorEnvironment(MONAD_TESTNET_CHAIN_ID, PREFERRED_VERSION));
+      } finally {
+        setEnvironmentLoading(false);
+      }
+    }
+    fetchEnvironment();
+  }, []);
 
   const createDelegationDraft = useCallback(
     async (delegator: string, delegate: string, allowedProtocols: string[]): Promise<DelegationDraft> => {
+      if (!environment) {
+        throw new Error('Environment not loaded yet');
+      }
       const scope = buildScope(allowedProtocols);
       const delegatorAddress = normalizeAddress(delegator);
       const delegateAddress = normalizeAddress(delegate);
+      
+      // ⚠️ SDK createDelegation() for Monad Testnet creates wrong authority (0xffff...)
+      // Backend will fix this to 0x0000... before saving!
       const delegation = createDelegation({
         environment,
         scope,
@@ -106,12 +141,13 @@ export const useDelegationToolkit = () => {
         delegation
       };
 
-      console.info('[DelegationToolkit] delegation created', {
+      console.info('[DelegationToolkit] delegation created (authority will be fixed on backend)', {
         delegator: draft.delegator,
         delegate: draft.delegate,
         scope: draft.scope,
         caveats: delegation.caveats.length,
-        salt: delegation.salt
+        salt: delegation.salt,
+        authority: delegation.authority, // SDK gives wrong authority for Monad
       });
 
       return draft;
@@ -119,5 +155,9 @@ export const useDelegationToolkit = () => {
     [environment]
   );
 
-  return { createDelegation: createDelegationDraft };
+  return { 
+    createDelegation: createDelegationDraft,
+    environment,
+    environmentLoading
+  };
 };

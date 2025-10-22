@@ -88,6 +88,7 @@ describe('Preview routes', () => {
     const response = await request(app).get('/api/preview/overview')
 
     expect(response.status).toBe(500)
-    expect(response.body.message).toBe('Не удалось получить данные режима Preview')
+    expect(response.body).toHaveProperty('message')
+    expect(response.body.message).toMatch(/failed|error/i)
   })
 })

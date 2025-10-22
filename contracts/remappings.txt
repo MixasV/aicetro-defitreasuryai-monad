@@ -1,0 +1,4 @@
+@account-abstraction/interfaces/=node_modules/@account-abstraction/contracts/interfaces/
+@account-abstraction/contracts/=node_modules/@account-abstraction/contracts/
+@openzeppelin/=node_modules/@openzeppelin/
+@erc7579/lib/=lib/erc7579-implementation/src/lib/

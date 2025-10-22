@@ -31,4 +31,98 @@ networks:
     events:
       - name: EmergencyStatusChanged
         event: EmergencyStatusChanged(bool paused)
+  - name: EntryPoint
+    address: 0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789
+    abi_file_path: ./abi/EntryPoint.json
+    handler: ./src/mappings/entryPoint.ts
+    events:
+      - name: UserOperationEvent
+        event: UserOperationEvent(bytes32 indexed userOpHash, address indexed sender, address indexed paymaster, uint256 nonce, bool success, uint256 actualGasCost, uint256 actualGasUsed)
+  - name: AISmartAccountFactory
+    address: 0xf2200e301d66a3E77C370A813bea612d064EB64D
+    abi_file_path: ./abi/AISmartAccountFactory.json
+    handler: ./src/mappings/smartAccountFactory.ts
+    events:
+      - name: AccountCreated
+        event: AccountCreated(address indexed account, address indexed owner, uint256 salt)
+  - name: AITreasurySmartAccount
+    address:
+      - 0xeCAa3fd31db6530239D35aB69618f28EBB4770f3
+    abi_file_path: ./abi/AITreasurySmartAccount.json
+    handler: ./src/mappings/smartAccount.ts
+    events:
+      - name: DailyLimitUpdated
+        event: DailyLimitUpdated(uint256 spentToday, uint256 remainingLimit, uint256 resetTime)
+      - name: EmergencyRevoke
+        event: EmergencyRevoke(address indexed revokedBy, string reason, uint256 timestamp)
+      - name: HighRiskAlert
+        event: HighRiskAlert(address indexed protocol, uint256 estimatedLossUsd, string alertType, uint256 timestamp)
+      - name: DelegationConfigured
+        event: DelegationConfigured(address indexed aiAgent, uint256 dailyLimitUsd, uint256 validUntil)
+  - name: NablaUSDCPool
+    address: 0x01B0932F609caE2Ac96DaF6f2319c7dd7cEb4426
+    abi_file_path: ./abi/NablaPool.json
+    handler: ./src/mappings/nablaPool.ts
+    events:
+      - name: Deposit
+        event: Deposit(address indexed user, uint256 assets, uint256 shares)
+      - name: Withdraw
+        event: Withdraw(address indexed user, uint256 assets, uint256 shares)
+      - name: Swap
+        event: Swap(address indexed sender, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut)
+  - name: NablaUSDTPool
+    address: 0x356Fa6Db41717eccE81e7732A42eB4E99AE0D7D9
+    abi_file_path: ./abi/NablaPool.json
+    handler: ./src/mappings/nablaPool.ts
+    events:
+      - name: Deposit
+        event: Deposit(address indexed user, uint256 assets, uint256 shares)
+      - name: Withdraw
+        event: Withdraw(address indexed user, uint256 assets, uint256 shares)
+      - name: Swap
+        event: Swap(address indexed sender, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut)
+  - name: NablaWBTCPool
+    address: 0x5b90901818F0d92825F8b19409323C82ABe911FC
+    abi_file_path: ./abi/NablaPool.json
+    handler: ./src/mappings/nablaPool.ts
+    events:
+      - name: Deposit
+        event: Deposit(address indexed user, uint256 assets, uint256 shares)
+      - name: Withdraw
+        event: Withdraw(address indexed user, uint256 assets, uint256 shares)
+      - name: Swap
+        event: Swap(address indexed sender, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut)
+  - name: UniswapV2Factory
+    address: 0x733e88f248b742db6c14c0b1713af5ad7fdd59d0
+    abi_file_path: ./abi/UniswapV2Factory.json
+    handler: ./src/mappings/uniswapFactory.ts
+    events:
+      - name: PairCreated
+        event: PairCreated(address indexed token0, address indexed token1, address pair, uint256)
+  - name: UniswapV2Pair_USDC_USDT
+    address: 0x3D44D591C8FC89daE3bc5f312c67CA0b44497b86
+    abi_file_path: ./abi/UniswapV2Pair.json
+    handler: ./src/mappings/uniswapPair.ts
+    events:
+      - name: Mint
+        event: Mint(address indexed sender, uint256 amount0, uint256 amount1)
+      - name: Burn
+        event: Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed to)
+      - name: Swap
+        event: Swap(address indexed sender, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out, address indexed to)
+      - name: Sync
+        event: Sync(uint112 reserve0, uint112 reserve1)
+  - name: UniswapV2Pair_USDC_WMON
+    address: 0x5323821dE342c56b80c99fbc7cD725f2da8eB87B
+    abi_file_path: ./abi/UniswapV2Pair.json
+    handler: ./src/mappings/uniswapPair.ts
+    events:
+      - name: Mint
+        event: Mint(address indexed sender, uint256 amount0, uint256 amount1)
+      - name: Burn
+        event: Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed to)
+      - name: Swap
+        event: Swap(address indexed sender, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out, address indexed to)
+      - name: Sync
+        event: Sync(uint112 reserve0, uint112 reserve1)
 unordered_multichain_mode: false

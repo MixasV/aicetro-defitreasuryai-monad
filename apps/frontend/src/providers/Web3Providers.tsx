@@ -36,7 +36,7 @@ export const Web3Providers = ({ children }: Props) => {
   const wagmiConfig = useMemo(
     () =>
       getDefaultConfig({
-        appName: 'DeFiTreasury AI',
+        appName: 'AIcetro',
         projectId,
         chains: CHAINS,
         transports: {
@@ -50,32 +50,38 @@ export const Web3Providers = ({ children }: Props) => {
   const metamaskSdkOptions = useMemo(
     () => ({
       dappMetadata: {
-        name: 'DeFiTreasury AI',
-        url: typeof window !== 'undefined' ? window.location.origin : 'https://defitreasury.ai'
+        name: 'AIcetro',
+        url: typeof window !== 'undefined' ? window.location.origin : 'https://aicetro.com'
       },
-      logging: { developerMode: process.env.NODE_ENV !== 'production' },
-      checkInstallationImmediately: true
+      logging: { developerMode: false },
+      checkInstallationImmediately: false
     }),
     []
   );
 
-  const content = (
-    <WagmiProvider config={wagmiConfig}>
-      <RainbowKitProvider theme={darkTheme({ accentColor: '#346ef0' })} modalSize="compact">
-        {children}
-      </RainbowKitProvider>
-    </WagmiProvider>
-  );
+  // Use MetaMaskProvider for compatibility with custom hooks (AppShell)
+  // Note: MetaMask will appear in both MetaMaskProvider and RainbowKit
+  const content = mounted ? (
+    <MetaMaskProvider sdkOptions={metamaskSdkOptions}>
+      <WagmiProvider config={wagmiConfig}>
+        <RainbowKitProvider 
+          theme={darkTheme({ 
+            accentColor: '#346ef0',
+            accentColorForeground: 'white',
+            borderRadius: 'medium'
+          })} 
+          modalSize="compact"
+          locale="en-US"
+        >
+          {children}
+        </RainbowKitProvider>
+      </WagmiProvider>
+    </MetaMaskProvider>
+  ) : null;
 
   return (
     <QueryClientProvider client={queryClient}>
-      {mounted ? (
-        <MetaMaskProvider debug={process.env.NODE_ENV !== 'production'} sdkOptions={metamaskSdkOptions}>
-          {content}
-        </MetaMaskProvider>
-      ) : (
-        content
-      )}
+      {content}
     </QueryClientProvider>
   );
 };

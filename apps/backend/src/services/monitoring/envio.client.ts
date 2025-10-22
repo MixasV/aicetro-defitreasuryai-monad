@@ -47,25 +47,34 @@ class EnvioClient {
     if (!this.isConfigured) return null
 
     try {
-      const response = await this.query<EnvioPortfolioData>(PORTFOLIO_QUERY, { address })
-      if (response == null) return null
+      const response = await this.query<{ UserPosition?: any[] }>(PORTFOLIO_QUERY, { address })
+      if (response == null || !response.UserPosition) return null
 
-      const totalValueUSD = response.portfolio?.totalValueUsd ?? null
-      const netAPY = response.portfolio?.netApy ?? null
-      const positions = response.positions?.map((position) => ({
-        protocol: position.protocol ?? 'Unknown protocol',
-        asset: position.asset ?? 'Unknown asset',
-        amount: position.amount ?? 0,
-        valueUSD: position.valueUsd ?? 0,
-        currentAPY: position.currentApy ?? 0,
-        riskScore: position.riskScore ?? 0
-      })) ?? []
+      // Map UserPosition data to portfolio format
+      const positions = response.UserPosition.map((position: any) => {
+        // Extract protocol from pool_id (format: "protocol:poolAddress")
+        const protocol = position.pool_id?.split(':')[0] ?? 'Unknown protocol'
+        const poolAddress = position.pool_id?.split(':')[1] ?? 'Unknown pool'
 
-      if (totalValueUSD == null || netAPY == null) return null
+        return {
+          protocol,
+          asset: poolAddress, // Pool address as asset identifier
+          amount: Number(position.shares ?? 0),
+          valueUSD: Number(position.totalDeposited ?? 0), // Use totalDeposited as value estimate
+          currentAPY: 0, // Not tracked in UserPosition
+          riskScore: 0 // Not tracked in UserPosition
+        }
+      })
+
+      // Calculate total from positions
+      const totalValueUSD = positions.reduce((sum, p) => sum + p.valueUSD, 0)
+      
+      // Return null if no positions (avoid empty portfolio)
+      if (positions.length === 0) return null
 
       return {
         totalValueUSD,
-        netAPY,
+        netAPY: 0, // Not calculated from on-chain data
         positions
       }
     } catch (error) {
@@ -78,15 +87,15 @@ class EnvioClient {
     if (!this.isConfigured) return null
 
     try {
-      const response = await this.query<EnvioAlertsData>(ALERTS_QUERY, { address })
-      if (response == null) return null
+      const response = await this.query<{ AITreasurySmartAccount_HighRiskAlert?: any[] }>(ALERTS_QUERY, { address })
+      if (response == null || !response.AITreasurySmartAccount_HighRiskAlert) return null
 
-      return (response.alerts ?? []).map((alert) => ({
-        id: alert.id ?? randomUUID(),
+      return response.AITreasurySmartAccount_HighRiskAlert.map((alert: any) => ({
+        id: randomUUID(),
         title: buildAlertTitle(alert.protocol),
-        severity: toAlertSeverity(alert.severity),
-        description: alert.message ?? 'Event detected',
-        createdAt: alert.detectedAt ?? new Date().toISOString()
+        severity: toAlertSeverity(alert.alertType),
+        description: `Estimated loss: $${alert.estimatedLossUsd || 0}`,
+        createdAt: new Date(Number(alert.alertTimestamp) * 1000).toISOString()
       }))
     } catch (error) {
       logger.warn({ err: error }, '[envio] Failed to fetch alerts')
@@ -101,7 +110,7 @@ class EnvioClient {
           'Content-Type': 'application/json',
           'x-api-key': this.apiKey
         },
-        timeout: 10_000
+        timeout: 30_000 // Increased from 10s to 30s for slow Envio indexer
       })
 
       if (data.errors != null && data.errors.length > 0) {
@@ -128,30 +137,36 @@ const toAlertSeverity = (severity?: string): AlertEvent['severity'] => {
   return 'info'
 }
 
+// ⚠️ FIXED: Use correct Envio schema fields
+// UserPosition table has: user, pool_id, shares, totalDeposited, totalWithdrawn
+// Need to join with Pool table to get protocol info
+
 const PORTFOLIO_QUERY = `
-  query CorporatePortfolio($address: String!) {
-    portfolio: corporatePortfolio(args: { address: $address }) {
-      totalValueUsd
-      netApy
-    }
-    positions: corporatePositions(args: { address: $address }) {
-      protocol
-      asset
-      amount
-      valueUsd
-      currentApy
-      riskScore
+  query UserPortfolio($address: String!) {
+    UserPosition(where: { user: { _eq: $address } }) {
+      id
+      user
+      pool_id
+      shares
+      totalDeposited
+      totalWithdrawn
+      depositCount
+      withdrawCount
     }
   }
 `
 
 const ALERTS_QUERY = `
-  query RiskAlerts($address: String!) {
-    alerts: riskAlerts(args: { address: $address }) {
+  query HighRiskAlerts($address: String!) {
+    AITreasurySmartAccount_HighRiskAlert(
+      where: { smartAccount: { _eq: $address } }
+      order_by: { timestamp: desc }
+      limit: 10
+    ) {
       protocol
-      severity
-      message
-      detectedAt
+      alertType
+      estimatedLossUsd
+      alertTimestamp
     }
   }
 `

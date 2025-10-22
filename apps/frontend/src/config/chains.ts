@@ -9,7 +9,7 @@ export const monadTestnet: Chain = {
     public: { http: ['https://testnet-rpc.monad.xyz'] }
   },
   blockExplorers: {
-    default: { name: 'Monad Scan', url: 'https://testnet.monadscan.io' }
+    default: { name: 'Monad Explorer', url: 'https://testnet.monadexplorer.com' }
   },
   contracts: {}
 };

@@ -23,7 +23,9 @@
     "npm": ">=9"
   },
   "dependencies": {
-    "fake-indexeddb": "^6.2.2"
+    "@metamask/delegation-toolkit": "^0.13.0",
+    "fake-indexeddb": "^6.2.2",
+    "viem": "^2.21.6"
   },
   "pnpm": {
     "overrides": {

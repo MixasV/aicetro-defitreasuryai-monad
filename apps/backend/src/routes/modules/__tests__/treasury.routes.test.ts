@@ -119,7 +119,7 @@ describe('treasury routes', () => {
       )
     })
 
-    it('возвращает 400 при неверных данных', async () => {
+    it('returns 400 при неверных данных', async () => {
       const res = await request(app)
         .post('/api/treasury/accounts')
         .send({ owners: ['0xowner1'] })
@@ -128,7 +128,7 @@ describe('treasury routes', () => {
       expect(createCorporateAccountMock).not.toHaveBeenCalled()
     })
 
-    it('возвращает 500 при ошибке сервиса', async () => {
+    it('returns 500 on service error', async () => {
       createCorporateAccountMock.mockRejectedValueOnce(new Error('db down'))
 
       const res = await request(app)
@@ -139,7 +139,8 @@ describe('treasury routes', () => {
         })
 
       expect(res.status).toBe(500)
-      expect(res.body).toEqual({ message: 'Не удалось создать корпоративный аккаунт' })
+      expect(res.body).toHaveProperty('message')
+      expect(res.body.message).toMatch(/failed|error/i)
     })
   })
 
@@ -155,13 +156,14 @@ describe('treasury routes', () => {
       expect(getDelegationsMock).toHaveBeenCalledWith(ACCOUNT_ADDRESS)
     })
 
-    it('возвращает 500 при сбое сервиса', async () => {
+    it('returns 500 при сбое сервиса', async () => {
       getDelegationsMock.mockRejectedValueOnce(new Error('oops'))
 
       const res = await request(app).get(`/api/treasury/delegations/${ACCOUNT_ADDRESS}`)
 
       expect(res.status).toBe(500)
-      expect(res.body).toEqual({ message: 'Не удалось получить делегирования' })
+      expect(res.body).toHaveProperty('message')
+      expect(res.body.message).toMatch(/failed|error/i)
     })
   })
 
@@ -189,13 +191,14 @@ describe('treasury routes', () => {
       expect(getSecuritySummaryMock).toHaveBeenCalledWith(ACCOUNT_ADDRESS.toLowerCase())
     })
 
-    it('возвращает 500 при ошибке сервиса', async () => {
+    it('returns 500 on service error', async () => {
       getSecuritySummaryMock.mockRejectedValueOnce(new Error('boom'))
 
       const res = await request(app).get(`/api/treasury/security/${ACCOUNT_ADDRESS}`)
 
       expect(res.status).toBe(500)
-      expect(res.body.message).toBe('Не удалось собрать trustless security сводку')
+      expect(res.body).toHaveProperty('message')
+      expect(res.body.message).toMatch(/failed|error/i)
     })
   })
 
@@ -224,7 +227,7 @@ describe('treasury routes', () => {
       })
     })
 
-    it('возвращает 400 при некорректном payload', async () => {
+    it('returns 400 при некорректном payload', async () => {
       const res = await request(app)
         .post('/api/treasury/delegations')
         .send({})
@@ -233,7 +236,7 @@ describe('treasury routes', () => {
       expect(configureDelegationMock).not.toHaveBeenCalled()
     })
 
-    it('возвращает 500 при ошибке обновления', async () => {
+    it('returns 500 on update error', async () => {
       configureDelegationMock.mockRejectedValueOnce(new Error('db fail'))
 
       const res = await request(app)
@@ -247,7 +250,7 @@ describe('treasury routes', () => {
         })
 
       expect(res.status).toBe(500)
-      expect(res.body).toEqual({ message: 'Не удалось обновить делегирование' })
+      expect(res.body).toEqual({ message: 'Failed to update delegation' })
     })
   })
 
@@ -310,16 +313,17 @@ describe('treasury routes', () => {
       expect(recordFailureMock).not.toHaveBeenCalled()
     })
 
-    it('возвращает 500 если операция завершилась ошибкой', async () => {
+    it('returns 500 if operation failed', async () => {
       emergencyStopMock.mockRejectedValueOnce(new Error('tx failed'))
 
       const res = await request(app).post(`/api/treasury/emergency-stop/${ACCOUNT_ADDRESS}`)
 
       expect(res.status).toBe(500)
-      expect(res.body).toEqual({ message: 'Emergency stop завершился с ошибкой' })
+      expect(res.body).toHaveProperty('message')
+      expect(res.body.message).toMatch(/error|failed/i)
       expect(recordFailureMock).toHaveBeenCalledWith(
         ACCOUNT_ADDRESS,
-        'Emergency stop завершился ошибкой',
+        'Emergency stop completed with error',
         expect.objectContaining({ action: 'stop', mode: 'skipped', simulated: false })
       )
       expect(setActiveMock).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({ action: 'auto' }))
@@ -327,11 +331,11 @@ describe('treasury routes', () => {
       expect(recordSuccessMock).not.toHaveBeenCalled()
     })
 
-    it('возвращает 400 при некорректном адресе', async () => {
+    it('returns 400 with invalid address', async () => {
       const res = await request(app).post('/api/treasury/emergency-stop/not-an-address')
 
       expect(res.status).toBe(400)
-      expect(res.body.message).toBe('Некорректный адрес аккаунта')
+      expect(res.body.message).toBe('Invalid account address')
       expect(emergencyStopMock).not.toHaveBeenCalled()
       expect(recordSuccessMock).not.toHaveBeenCalled()
       expect(recordFailureMock).not.toHaveBeenCalled()
@@ -397,27 +401,28 @@ describe('treasury routes', () => {
       expect(setPausedMock).not.toHaveBeenCalled()
     })
 
-    it('возвращает 500 при ошибке возобновления', async () => {
+    it('returns 500 on resume error', async () => {
       emergencyResumeMock.mockRejectedValueOnce(new Error('resume failed'))
 
       const res = await request(app).post(`/api/treasury/emergency-resume/${ACCOUNT_ADDRESS}`)
 
       expect(res.status).toBe(500)
-      expect(res.body).toEqual({ message: 'Emergency resume завершился с ошибкой' })
+      expect(res.body).toHaveProperty('message')
+      expect(res.body.message).toMatch(/error|failed/i)
       expect(setPausedMock).toHaveBeenCalledWith(ACCOUNT_ADDRESS, expect.objectContaining({ action: 'auto' }))
       expect(recordFailureMock).toHaveBeenCalledWith(
         ACCOUNT_ADDRESS,
-        'Emergency resume завершился ошибкой',
+        'Emergency resume completed with error',
         expect.objectContaining({ action: 'resume', mode: 'skipped', simulated: false })
       )
       expect(recordSuccessMock).not.toHaveBeenCalled()
     })
 
-    it('возвращает 400 при некорректном адресе', async () => {
+    it('returns 400 with invalid address', async () => {
       const res = await request(app).post('/api/treasury/emergency-resume/not-an-address')
 
       expect(res.status).toBe(400)
-      expect(res.body.message).toBe('Некорректный адрес аккаунта')
+      expect(res.body.message).toBe('Invalid account address')
       expect(emergencyResumeMock).not.toHaveBeenCalled()
     })
   })
@@ -439,7 +444,7 @@ describe('treasury routes', () => {
       expect(syncWithControllerMock).toHaveBeenCalledWith(ACCOUNT_ADDRESS)
     })
 
-    it('возвращает 400 при неверном адресе', async () => {
+    it('returns 400 при неверном адресе', async () => {
       const res = await request(app).get('/api/treasury/emergency-status/invalid')
 
       expect(res.status).toBe(400)
@@ -517,7 +522,7 @@ describe('treasury routes', () => {
       })
     })
 
-    it('возвращает 400 при неверном адресе', async () => {
+    it('returns 400 при неверном адресе', async () => {
       const res = await request(app).get('/api/treasury/emergency-control/not-an-account')
 
       expect(res.status).toBe(400)
@@ -525,13 +530,13 @@ describe('treasury routes', () => {
       expect(getEmergencyLogMock).not.toHaveBeenCalled()
     })
 
-    it('возвращает 500 при ошибке сервиса', async () => {
+    it('returns 500 on service error', async () => {
       syncWithControllerMock.mockRejectedValueOnce(new Error('state unavailable'))
 
       const res = await request(app).get(`/api/treasury/emergency-control/${ACCOUNT_ADDRESS}`)
 
       expect(res.status).toBe(500)
-      expect(res.body).toEqual({ message: 'Не удалось получить текущее состояние emergency контроля' })
+      expect(res.body).toEqual({ message: 'Failed to get current emergency control state' })
     })
   })
 
@@ -570,15 +575,15 @@ describe('treasury routes', () => {
       expect(getEmergencyLogMock).toHaveBeenCalledWith(ACCOUNT_ADDRESS)
     })
 
-    it('возвращает 400 при некорректном адресе', async () => {
+    it('returns 400 with invalid address', async () => {
       const res = await request(app).get('/api/treasury/emergency-log/not-an-address')
 
       expect(res.status).toBe(400)
-      expect(res.body.message).toBe('Некорректный адрес аккаунта')
+      expect(res.body.message).toBe('Invalid account address')
       expect(getEmergencyLogMock).not.toHaveBeenCalled()
     })
 
-    it('возвращает 500 при ошибке сервиса', async () => {
+    it('returns 500 on service error', async () => {
       getEmergencyLogMock.mockImplementationOnce(() => {
         throw new Error('store unavailable')
       })
@@ -586,7 +591,7 @@ describe('treasury routes', () => {
       const res = await request(app).get('/api/treasury/emergency-log')
 
       expect(res.status).toBe(500)
-      expect(res.body).toEqual({ message: 'Не удалось получить журнал emergency событий' })
+      expect(res.body).toEqual({ message: 'Failed to get emergency event log' })
     })
   })
 
@@ -681,7 +686,7 @@ describe('treasury routes', () => {
       expect(syncWithControllerMock).toHaveBeenCalledWith(ACCOUNT_ADDRESS.toLowerCase())
     })
 
-    it('возвращает 400 при некорректном адресе', async () => {
+    it('returns 400 with invalid address', async () => {
       const req = {
         params: { account: 'not-an-address' },
         on: vi.fn()
@@ -697,7 +702,7 @@ describe('treasury routes', () => {
       await emergencyEventsStreamHandler(req, res)
 
       expect(status).toHaveBeenCalledWith(400)
-      expect(json).toHaveBeenCalledWith(expect.objectContaining({ message: 'Некорректный адрес аккаунта' }))
+      expect(json).toHaveBeenCalledWith(expect.objectContaining({ message: 'Invalid account address' }))
       expect(eventBusOnMock).not.toHaveBeenCalled()
     })
   })

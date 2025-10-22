@@ -1,0 +1,201 @@
+/**
+ * Smart Account Routes (ERC-4337)
+ * 
+ * Endpoints for Smart Account management:
+ * - Create Smart Account
+ * - Configure delegation
+ * - Get operations history
+ * - Get daily limit status
+ */
+
+import { Router, type Request, type Response } from 'express';
+import { ethers } from 'ethers';
+import { prisma } from '../../lib/prisma';
+import { logger } from '../../config/logger';
+import { monadTestnet } from '../../chains';
+
+const router = Router();
+
+const FACTORY_ADDRESS = process.env.SMART_ACCOUNT_FACTORY_ADDRESS || '';
+const ENTRY_POINT_ADDRESS = process.env.ENTRY_POINT_ADDRESS || '';
+
+const FACTORY_ABI = [
+  'function createAccount(address owner, uint256 salt) returns (address)',
+  'function getAddress(address owner, uint256 salt) view returns (address)',
+  'event AccountCreated(address indexed account, address indexed owner, uint256 salt)'
+];
+
+/**
+ * POST /api/smart-account/create
+ * Create a new Smart Account for a user
+ */
+router.post('/create', async (req: Request, res: Response) => {
+  try {
+    const { ownerAddress } = req.body;
+    
+    if (!ownerAddress || !ethers.isAddress(ownerAddress)) {
+      return res.status(400).json({ error: 'Valid owner address required' });
+    }
+    
+    if (!FACTORY_ADDRESS) {
+      return res.status(500).json({ error: 'Factory address not configured' });
+    }
+    
+    logger.info({ ownerAddress }, '[SmartAccount] Creating Smart Account');
+    
+    // Generate deterministic salt based on owner address  
+    const salt = ethers.keccak256(ethers.toUtf8Bytes(ownerAddress));
+    
+    // Create provider and signer
+    const provider = new ethers.JsonRpcProvider(monadTestnet.rpcUrls.default.http[0]);
+    const deployer = new ethers.Wallet(process.env.DEPLOYER_PRIVATE_KEY || '', provider);
+    
+    // Create factory contract instance
+    const factory = new ethers.Contract(FACTORY_ADDRESS, FACTORY_ABI, deployer);
+    
+    // Get predicted address
+    const predictedAddress = await factory.getAddress(ownerAddress, salt);
+    
+    // Check if already deployed
+    const code = await provider.getCode(predictedAddress);
+    if (code && code !== '0x') {
+      logger.info({ predictedAddress }, '[SmartAccount] Account already exists');
+      
+      return res.json({
+        success: true,
+        smartAccount: predictedAddress,
+        owner: ownerAddress,
+        alreadyExists: true
+      });
+    }
+    
+    // Deploy Smart Account
+    logger.info('[SmartAccount] Deploying new Smart Account...');
+    const tx = await factory.createAccount(ownerAddress, saltBigInt);
+    const receipt = await tx.wait();
+    
+    logger.info({ txHash: receipt.hash, smartAccount: predictedAddress }, '[SmartAccount] Smart Account created');
+    
+    // Save to database
+    await prisma.corporateAccount.create({
+      data: {
+        address: predictedAddress.toLowerCase(),
+        owners: [ownerAddress.toLowerCase()],
+        threshold: 1,
+        aiAgentName: 'AI Treasury Agent'
+      }
+    });
+    
+    res.json({
+      success: true,
+      smartAccount: predictedAddress,
+      owner: ownerAddress,
+      txHash: receipt.hash,
+      blockNumber: receipt.blockNumber
+    });
+    
+  } catch (error: any) {
+    logger.error({ err: error }, '[SmartAccount] Failed to create account');
+    res.status(500).json({ 
+      error: 'Failed to create Smart Account',
+      details: error.message 
+    });
+  }
+});
+
+/**
+ * GET /api/smart-account/:address/operations
+ * Get AI operations history for a Smart Account
+ */
+router.get('/:address/operations', async (req: Request, res: Response) => {
+  try {
+    const { address } = req.params;
+    const limit = parseInt(req.query.limit as string) || 50;
+    
+    if (!ethers.isAddress(address)) {
+      return res.status(400).json({ error: 'Invalid address' });
+    }
+    
+    const operations = await transactionEnrichmentService.getOperations(address, limit);
+    
+    res.json({
+      smartAccount: address,
+      operations,
+      count: operations.length
+    });
+    
+  } catch (error: any) {
+    logger.error({ err: error }, '[SmartAccount] Failed to get operations');
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /api/smart-account/:address/daily-limit
+ * Get daily limit status for a Smart Account
+ */
+router.get('/:address/daily-limit', async (req: Request, res: Response) => {
+  try {
+    const { address } = req.params;
+    
+    if (!ethers.isAddress(address)) {
+      return res.status(400).json({ error: 'Invalid address' });
+    }
+    
+    const status = await transactionEnrichmentService.getDailyLimitStatus(address);
+    
+    res.json({
+      smartAccount: address,
+      ...status
+    });
+    
+  } catch (error: any) {
+    logger.error({ err: error }, '[SmartAccount] Failed to get daily limit');
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /api/smart-account/:address/info
+ * Get Smart Account information
+ */
+router.get('/:address/info', async (req: Request, res: Response) => {
+  try {
+    const { address } = req.params;
+    
+    if (!ethers.isAddress(address)) {
+      return res.status(400).json({ error: 'Invalid address' });
+    }
+    
+    const provider = new ethers.JsonRpcProvider(monadTestnet.rpcUrls.default.http[0]);
+    const code = await provider.getCode(address);
+    const exists = code && code !== '0x';
+    
+    if (!exists) {
+      return res.json({
+        exists: false,
+        address
+      });
+    }
+    
+    // Get from database
+    const account = await prisma.corporateAccount.findUnique({
+      where: { address: address.toLowerCase() },
+      include: { delegations: true }
+    });
+    
+    res.json({
+      exists: true,
+      address,
+      owners: account?.owners || [],
+      threshold: account?.threshold || 1,
+      delegations: account?.delegations || []
+    });
+    
+  } catch (error: any) {
+    logger.error({ err: error }, '[SmartAccount] Failed to get info');
+    res.status(500).json({ error: error.message });
+  }
+});
+
+export default router;

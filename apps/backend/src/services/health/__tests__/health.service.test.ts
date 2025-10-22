@@ -178,7 +178,7 @@ describe('healthService', () => {
     expect(emergencyIndicator).toEqual(expect.objectContaining({
       component: 'emergency_controls',
       status: 'degraded',
-      message: 'Emergency controller не настроен'
+      message: 'Emergency controller not configured'
     }))
   })
 })

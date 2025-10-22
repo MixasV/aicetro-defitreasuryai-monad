@@ -8,8 +8,17 @@ type id = string
 type contractRegistrations = {
   log: Envio.logger,
   // TODO: only add contracts we've registered for the event in the config
+  addAISmartAccountFactory: (Address.t) => unit,
+  addAITreasurySmartAccount: (Address.t) => unit,
   addEmergencyController: (Address.t) => unit,
+  addEntryPoint: (Address.t) => unit,
+  addNablaUSDCPool: (Address.t) => unit,
+  addNablaUSDTPool: (Address.t) => unit,
+  addNablaWBTCPool: (Address.t) => unit,
   addTrustlessDeFiTreasury: (Address.t) => unit,
+  addUniswapV2Factory: (Address.t) => unit,
+  addUniswapV2Pair_USDC_USDT: (Address.t) => unit,
+  addUniswapV2Pair_USDC_WMON: (Address.t) => unit,
 }
 
 @genType
@@ -27,9 +36,18 @@ type loaderContext = {
   log: Envio.logger,
   effect: 'input 'output. (Envio.effect<'input, 'output>, 'input) => promise<'output>,
   isPreload: bool,
+  @as("AISmartAccountFactory_AccountCreated") aISmartAccountFactory_AccountCreated: entityLoaderContext<Entities.AISmartAccountFactory_AccountCreated.t, Entities.AISmartAccountFactory_AccountCreated.indexedFieldOperations>,
+  @as("AITreasurySmartAccount_DailyLimitUpdated") aITreasurySmartAccount_DailyLimitUpdated: entityLoaderContext<Entities.AITreasurySmartAccount_DailyLimitUpdated.t, Entities.AITreasurySmartAccount_DailyLimitUpdated.indexedFieldOperations>,
+  @as("AITreasurySmartAccount_DelegationConfigured") aITreasurySmartAccount_DelegationConfigured: entityLoaderContext<Entities.AITreasurySmartAccount_DelegationConfigured.t, Entities.AITreasurySmartAccount_DelegationConfigured.indexedFieldOperations>,
+  @as("AITreasurySmartAccount_EmergencyRevoke") aITreasurySmartAccount_EmergencyRevoke: entityLoaderContext<Entities.AITreasurySmartAccount_EmergencyRevoke.t, Entities.AITreasurySmartAccount_EmergencyRevoke.indexedFieldOperations>,
+  @as("AITreasurySmartAccount_HighRiskAlert") aITreasurySmartAccount_HighRiskAlert: entityLoaderContext<Entities.AITreasurySmartAccount_HighRiskAlert.t, Entities.AITreasurySmartAccount_HighRiskAlert.indexedFieldOperations>,
   @as("EmergencyController_EmergencyStatusChanged") emergencyController_EmergencyStatusChanged: entityLoaderContext<Entities.EmergencyController_EmergencyStatusChanged.t, Entities.EmergencyController_EmergencyStatusChanged.indexedFieldOperations>,
+  @as("EntryPoint_UserOperationEvent") entryPoint_UserOperationEvent: entityLoaderContext<Entities.EntryPoint_UserOperationEvent.t, Entities.EntryPoint_UserOperationEvent.indexedFieldOperations>,
+  @as("Pool") pool: entityLoaderContext<Entities.Pool.t, Entities.Pool.indexedFieldOperations>,
+  @as("PoolTransaction") poolTransaction: entityLoaderContext<Entities.PoolTransaction.t, Entities.PoolTransaction.indexedFieldOperations>,
   @as("TrustlessDeFiTreasury_Delegation") trustlessDeFiTreasury_Delegation: entityLoaderContext<Entities.TrustlessDeFiTreasury_Delegation.t, Entities.TrustlessDeFiTreasury_Delegation.indexedFieldOperations>,
   @as("TrustlessDeFiTreasury_SpendRecorded") trustlessDeFiTreasury_SpendRecorded: entityLoaderContext<Entities.TrustlessDeFiTreasury_SpendRecorded.t, Entities.TrustlessDeFiTreasury_SpendRecorded.indexedFieldOperations>,
+  @as("UserPosition") userPosition: entityLoaderContext<Entities.UserPosition.t, Entities.UserPosition.indexedFieldOperations>,
 }
 
 @genType
@@ -39,18 +57,45 @@ type entityHandlerContext<'entity> = Internal.entityHandlerContext<'entity>
 type handlerContext = {
   log: Envio.logger,
   effect: 'input 'output. (Envio.effect<'input, 'output>, 'input) => promise<'output>,
+  @as("AISmartAccountFactory_AccountCreated") aISmartAccountFactory_AccountCreated: entityHandlerContext<Entities.AISmartAccountFactory_AccountCreated.t>,
+  @as("AITreasurySmartAccount_DailyLimitUpdated") aITreasurySmartAccount_DailyLimitUpdated: entityHandlerContext<Entities.AITreasurySmartAccount_DailyLimitUpdated.t>,
+  @as("AITreasurySmartAccount_DelegationConfigured") aITreasurySmartAccount_DelegationConfigured: entityHandlerContext<Entities.AITreasurySmartAccount_DelegationConfigured.t>,
+  @as("AITreasurySmartAccount_EmergencyRevoke") aITreasurySmartAccount_EmergencyRevoke: entityHandlerContext<Entities.AITreasurySmartAccount_EmergencyRevoke.t>,
+  @as("AITreasurySmartAccount_HighRiskAlert") aITreasurySmartAccount_HighRiskAlert: entityHandlerContext<Entities.AITreasurySmartAccount_HighRiskAlert.t>,
   @as("EmergencyController_EmergencyStatusChanged") emergencyController_EmergencyStatusChanged: entityHandlerContext<Entities.EmergencyController_EmergencyStatusChanged.t>,
+  @as("EntryPoint_UserOperationEvent") entryPoint_UserOperationEvent: entityHandlerContext<Entities.EntryPoint_UserOperationEvent.t>,
+  @as("Pool") pool: entityHandlerContext<Entities.Pool.t>,
+  @as("PoolTransaction") poolTransaction: entityHandlerContext<Entities.PoolTransaction.t>,
   @as("TrustlessDeFiTreasury_Delegation") trustlessDeFiTreasury_Delegation: entityHandlerContext<Entities.TrustlessDeFiTreasury_Delegation.t>,
   @as("TrustlessDeFiTreasury_SpendRecorded") trustlessDeFiTreasury_SpendRecorded: entityHandlerContext<Entities.TrustlessDeFiTreasury_SpendRecorded.t>,
+  @as("UserPosition") userPosition: entityHandlerContext<Entities.UserPosition.t>,
 }
 
 //Re-exporting types for backwards compatability
+@genType.as("AISmartAccountFactory_AccountCreated")
+type aISmartAccountFactory_AccountCreated = Entities.AISmartAccountFactory_AccountCreated.t
+@genType.as("AITreasurySmartAccount_DailyLimitUpdated")
+type aITreasurySmartAccount_DailyLimitUpdated = Entities.AITreasurySmartAccount_DailyLimitUpdated.t
+@genType.as("AITreasurySmartAccount_DelegationConfigured")
+type aITreasurySmartAccount_DelegationConfigured = Entities.AITreasurySmartAccount_DelegationConfigured.t
+@genType.as("AITreasurySmartAccount_EmergencyRevoke")
+type aITreasurySmartAccount_EmergencyRevoke = Entities.AITreasurySmartAccount_EmergencyRevoke.t
+@genType.as("AITreasurySmartAccount_HighRiskAlert")
+type aITreasurySmartAccount_HighRiskAlert = Entities.AITreasurySmartAccount_HighRiskAlert.t
 @genType.as("EmergencyController_EmergencyStatusChanged")
 type emergencyController_EmergencyStatusChanged = Entities.EmergencyController_EmergencyStatusChanged.t
+@genType.as("EntryPoint_UserOperationEvent")
+type entryPoint_UserOperationEvent = Entities.EntryPoint_UserOperationEvent.t
+@genType.as("Pool")
+type pool = Entities.Pool.t
+@genType.as("PoolTransaction")
+type poolTransaction = Entities.PoolTransaction.t
 @genType.as("TrustlessDeFiTreasury_Delegation")
 type trustlessDeFiTreasury_Delegation = Entities.TrustlessDeFiTreasury_Delegation.t
 @genType.as("TrustlessDeFiTreasury_SpendRecorded")
 type trustlessDeFiTreasury_SpendRecorded = Entities.TrustlessDeFiTreasury_SpendRecorded.t
+@genType.as("UserPosition")
+type userPosition = Entities.UserPosition.t
 
 type eventIdentifier = {
   chainId: int,
@@ -319,6 +364,411 @@ module MakeRegister = (Event: Event) => {
   }
 }
 
+module AISmartAccountFactory = {
+let abi = Ethers.makeAbi((%raw(`[{"type":"event","name":"AccountCreated","inputs":[{"name":"account","type":"address","indexed":true},{"name":"owner","type":"address","indexed":true},{"name":"salt","type":"uint256","indexed":false}],"anonymous":false}]`): Js.Json.t))
+let eventSignatures = ["AccountCreated(address indexed account, address indexed owner, uint256 salt)"]
+@genType type chainId = [#10143]
+let contractName = "AISmartAccountFactory"
+
+module AccountCreated = {
+
+let id = "0x33310a89c32d8cc00057ad6ef6274d2f8fe22389a992cf89983e09fc84f6cfff_3"
+let sighash = "0x33310a89c32d8cc00057ad6ef6274d2f8fe22389a992cf89983e09fc84f6cfff"
+let name = "AccountCreated"
+let contractName = contractName
+
+@genType
+type eventArgs = {account: Address.t, owner: Address.t, salt: bigint}
+@genType
+type block = Block.t
+@genType
+type transaction = Transaction.t
+
+@genType
+type event = {
+  /** The parameters or arguments associated with this event. */
+  params: eventArgs,
+  /** The unique identifier of the blockchain network where this event occurred. */
+  chainId: chainId,
+  /** The address of the contract that emitted this event. */
+  srcAddress: Address.t,
+  /** The index of this event's log within the block. */
+  logIndex: int,
+  /** The transaction that triggered this event. Configurable in `config.yaml` via the `field_selection` option. */
+  transaction: transaction,
+  /** The block in which this event was recorded. Configurable in `config.yaml` via the `field_selection` option. */
+  block: block,
+}
+
+@genType
+type loaderArgs = Internal.genericLoaderArgs<event, loaderContext>
+@genType
+type loader<'loaderReturn> = Internal.genericLoader<loaderArgs, 'loaderReturn>
+@genType
+type handlerArgs<'loaderReturn> = Internal.genericHandlerArgs<event, handlerContext, 'loaderReturn>
+@genType
+type handler<'loaderReturn> = Internal.genericHandler<handlerArgs<'loaderReturn>>
+@genType
+type contractRegister = Internal.genericContractRegister<Internal.genericContractRegisterArgs<event, contractRegistrations>>
+
+let paramsRawEventSchema = S.object((s): eventArgs => {account: s.field("account", Address.schema), owner: s.field("owner", Address.schema), salt: s.field("salt", BigInt.schema)})
+let blockSchema = Block.schema
+let transactionSchema = Transaction.schema
+
+let handlerRegister: EventRegister.t = EventRegister.make(
+  ~contractName,
+  ~eventName=name,
+)
+
+@genType
+type eventFilter = {@as("account") account?: SingleOrMultiple.t<Address.t>, @as("owner") owner?: SingleOrMultiple.t<Address.t>}
+
+@genType type eventFiltersArgs = {/** The unique identifier of the blockchain network where this event occurred. */ chainId: chainId, /** Addresses of the contracts indexing the event. */ addresses: array<Address.t>}
+
+@genType @unboxed type eventFiltersDefinition = Single(eventFilter) | Multiple(array<eventFilter>)
+
+@genType @unboxed type eventFilters = | ...eventFiltersDefinition | Dynamic(eventFiltersArgs => eventFiltersDefinition)
+
+let register = (): Internal.evmEventConfig => {
+  let {getEventFiltersOrThrow, filterByAddresses} = LogSelection.parseEventFiltersOrThrow(~eventFilters=handlerRegister->EventRegister.getEventFilters, ~sighash, ~params=["account","owner",], ~topic1=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("account")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)), ~topic2=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("owner")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)))
+  {
+    getEventFiltersOrThrow,
+    filterByAddresses,
+    dependsOnAddresses: !(handlerRegister->EventRegister.isWildcard) || filterByAddresses,
+    blockSchema: blockSchema->(Utils.magic: S.t<block> => S.t<Internal.eventBlock>),
+    transactionSchema: transactionSchema->(Utils.magic: S.t<transaction> => S.t<Internal.eventTransaction>),
+    convertHyperSyncEventArgs: (decodedEvent: HyperSyncClient.Decoder.decodedEvent) => {account: decodedEvent.indexed->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, owner: decodedEvent.indexed->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, salt: decodedEvent.body->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, }->(Utils.magic: eventArgs => Internal.eventParams),
+    id,
+  name,
+  contractName,
+  isWildcard: (handlerRegister->EventRegister.isWildcard),
+  handler: handlerRegister->EventRegister.getHandler,
+  contractRegister: handlerRegister->EventRegister.getContractRegister,
+  paramsRawEventSchema: paramsRawEventSchema->(Utils.magic: S.t<eventArgs> => S.t<Internal.eventParams>),
+  }
+}
+}
+}
+
+module AITreasurySmartAccount = {
+let abi = Ethers.makeAbi((%raw(`[{"type":"event","name":"DailyLimitUpdated","inputs":[{"name":"spentToday","type":"uint256","indexed":false},{"name":"remainingLimit","type":"uint256","indexed":false},{"name":"resetTime","type":"uint256","indexed":false}],"anonymous":false},{"type":"event","name":"DelegationConfigured","inputs":[{"name":"aiAgent","type":"address","indexed":true},{"name":"dailyLimitUsd","type":"uint256","indexed":false},{"name":"validUntil","type":"uint256","indexed":false}],"anonymous":false},{"type":"event","name":"EmergencyRevoke","inputs":[{"name":"revokedBy","type":"address","indexed":true},{"name":"reason","type":"string","indexed":false},{"name":"timestamp","type":"uint256","indexed":false}],"anonymous":false},{"type":"event","name":"HighRiskAlert","inputs":[{"name":"protocol","type":"address","indexed":true},{"name":"estimatedLossUsd","type":"uint256","indexed":false},{"name":"alertType","type":"string","indexed":false},{"name":"timestamp","type":"uint256","indexed":false}],"anonymous":false}]`): Js.Json.t))
+let eventSignatures = ["DailyLimitUpdated(uint256 spentToday, uint256 remainingLimit, uint256 resetTime)", "DelegationConfigured(address indexed aiAgent, uint256 dailyLimitUsd, uint256 validUntil)", "EmergencyRevoke(address indexed revokedBy, string reason, uint256 timestamp)", "HighRiskAlert(address indexed protocol, uint256 estimatedLossUsd, string alertType, uint256 timestamp)"]
+@genType type chainId = [#10143]
+let contractName = "AITreasurySmartAccount"
+
+module DailyLimitUpdated = {
+
+let id = "0x7334e583fad80c5ef0be90393ede8adf1ade756b3b59875fbaac036ed1a876a6_1"
+let sighash = "0x7334e583fad80c5ef0be90393ede8adf1ade756b3b59875fbaac036ed1a876a6"
+let name = "DailyLimitUpdated"
+let contractName = contractName
+
+@genType
+type eventArgs = {spentToday: bigint, remainingLimit: bigint, resetTime: bigint}
+@genType
+type block = Block.t
+@genType
+type transaction = Transaction.t
+
+@genType
+type event = {
+  /** The parameters or arguments associated with this event. */
+  params: eventArgs,
+  /** The unique identifier of the blockchain network where this event occurred. */
+  chainId: chainId,
+  /** The address of the contract that emitted this event. */
+  srcAddress: Address.t,
+  /** The index of this event's log within the block. */
+  logIndex: int,
+  /** The transaction that triggered this event. Configurable in `config.yaml` via the `field_selection` option. */
+  transaction: transaction,
+  /** The block in which this event was recorded. Configurable in `config.yaml` via the `field_selection` option. */
+  block: block,
+}
+
+@genType
+type loaderArgs = Internal.genericLoaderArgs<event, loaderContext>
+@genType
+type loader<'loaderReturn> = Internal.genericLoader<loaderArgs, 'loaderReturn>
+@genType
+type handlerArgs<'loaderReturn> = Internal.genericHandlerArgs<event, handlerContext, 'loaderReturn>
+@genType
+type handler<'loaderReturn> = Internal.genericHandler<handlerArgs<'loaderReturn>>
+@genType
+type contractRegister = Internal.genericContractRegister<Internal.genericContractRegisterArgs<event, contractRegistrations>>
+
+let paramsRawEventSchema = S.object((s): eventArgs => {spentToday: s.field("spentToday", BigInt.schema), remainingLimit: s.field("remainingLimit", BigInt.schema), resetTime: s.field("resetTime", BigInt.schema)})
+let blockSchema = Block.schema
+let transactionSchema = Transaction.schema
+
+let handlerRegister: EventRegister.t = EventRegister.make(
+  ~contractName,
+  ~eventName=name,
+)
+
+@genType
+type eventFilter = {}
+
+@genType type eventFilters = Internal.noEventFilters
+
+let register = (): Internal.evmEventConfig => {
+  let {getEventFiltersOrThrow, filterByAddresses} = LogSelection.parseEventFiltersOrThrow(~eventFilters=handlerRegister->EventRegister.getEventFilters, ~sighash, ~params=[])
+  {
+    getEventFiltersOrThrow,
+    filterByAddresses,
+    dependsOnAddresses: !(handlerRegister->EventRegister.isWildcard) || filterByAddresses,
+    blockSchema: blockSchema->(Utils.magic: S.t<block> => S.t<Internal.eventBlock>),
+    transactionSchema: transactionSchema->(Utils.magic: S.t<transaction> => S.t<Internal.eventTransaction>),
+    convertHyperSyncEventArgs: (decodedEvent: HyperSyncClient.Decoder.decodedEvent) => {spentToday: decodedEvent.body->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, remainingLimit: decodedEvent.body->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, resetTime: decodedEvent.body->Js.Array2.unsafe_get(2)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, }->(Utils.magic: eventArgs => Internal.eventParams),
+    id,
+  name,
+  contractName,
+  isWildcard: (handlerRegister->EventRegister.isWildcard),
+  handler: handlerRegister->EventRegister.getHandler,
+  contractRegister: handlerRegister->EventRegister.getContractRegister,
+  paramsRawEventSchema: paramsRawEventSchema->(Utils.magic: S.t<eventArgs> => S.t<Internal.eventParams>),
+  }
+}
+}
+
+module EmergencyRevoke = {
+
+let id = "0x9e6ed828a9acda16ab38c7f55ccbe781e9b745384833bc63bffc2489ad82d522_2"
+let sighash = "0x9e6ed828a9acda16ab38c7f55ccbe781e9b745384833bc63bffc2489ad82d522"
+let name = "EmergencyRevoke"
+let contractName = contractName
+
+@genType
+type eventArgs = {revokedBy: Address.t, reason: string, timestamp: bigint}
+@genType
+type block = Block.t
+@genType
+type transaction = Transaction.t
+
+@genType
+type event = {
+  /** The parameters or arguments associated with this event. */
+  params: eventArgs,
+  /** The unique identifier of the blockchain network where this event occurred. */
+  chainId: chainId,
+  /** The address of the contract that emitted this event. */
+  srcAddress: Address.t,
+  /** The index of this event's log within the block. */
+  logIndex: int,
+  /** The transaction that triggered this event. Configurable in `config.yaml` via the `field_selection` option. */
+  transaction: transaction,
+  /** The block in which this event was recorded. Configurable in `config.yaml` via the `field_selection` option. */
+  block: block,
+}
+
+@genType
+type loaderArgs = Internal.genericLoaderArgs<event, loaderContext>
+@genType
+type loader<'loaderReturn> = Internal.genericLoader<loaderArgs, 'loaderReturn>
+@genType
+type handlerArgs<'loaderReturn> = Internal.genericHandlerArgs<event, handlerContext, 'loaderReturn>
+@genType
+type handler<'loaderReturn> = Internal.genericHandler<handlerArgs<'loaderReturn>>
+@genType
+type contractRegister = Internal.genericContractRegister<Internal.genericContractRegisterArgs<event, contractRegistrations>>
+
+let paramsRawEventSchema = S.object((s): eventArgs => {revokedBy: s.field("revokedBy", Address.schema), reason: s.field("reason", S.string), timestamp: s.field("timestamp", BigInt.schema)})
+let blockSchema = Block.schema
+let transactionSchema = Transaction.schema
+
+let handlerRegister: EventRegister.t = EventRegister.make(
+  ~contractName,
+  ~eventName=name,
+)
+
+@genType
+type eventFilter = {@as("revokedBy") revokedBy?: SingleOrMultiple.t<Address.t>}
+
+@genType type eventFiltersArgs = {/** The unique identifier of the blockchain network where this event occurred. */ chainId: chainId, /** Addresses of the contracts indexing the event. */ addresses: array<Address.t>}
+
+@genType @unboxed type eventFiltersDefinition = Single(eventFilter) | Multiple(array<eventFilter>)
+
+@genType @unboxed type eventFilters = | ...eventFiltersDefinition | Dynamic(eventFiltersArgs => eventFiltersDefinition)
+
+let register = (): Internal.evmEventConfig => {
+  let {getEventFiltersOrThrow, filterByAddresses} = LogSelection.parseEventFiltersOrThrow(~eventFilters=handlerRegister->EventRegister.getEventFilters, ~sighash, ~params=["revokedBy",], ~topic1=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("revokedBy")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)))
+  {
+    getEventFiltersOrThrow,
+    filterByAddresses,
+    dependsOnAddresses: !(handlerRegister->EventRegister.isWildcard) || filterByAddresses,
+    blockSchema: blockSchema->(Utils.magic: S.t<block> => S.t<Internal.eventBlock>),
+    transactionSchema: transactionSchema->(Utils.magic: S.t<transaction> => S.t<Internal.eventTransaction>),
+    convertHyperSyncEventArgs: (decodedEvent: HyperSyncClient.Decoder.decodedEvent) => {revokedBy: decodedEvent.indexed->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, reason: decodedEvent.body->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, timestamp: decodedEvent.body->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, }->(Utils.magic: eventArgs => Internal.eventParams),
+    id,
+  name,
+  contractName,
+  isWildcard: (handlerRegister->EventRegister.isWildcard),
+  handler: handlerRegister->EventRegister.getHandler,
+  contractRegister: handlerRegister->EventRegister.getContractRegister,
+  paramsRawEventSchema: paramsRawEventSchema->(Utils.magic: S.t<eventArgs> => S.t<Internal.eventParams>),
+  }
+}
+}
+
+module HighRiskAlert = {
+
+let id = "0xe7655669166606767a8f36a37dafcce7e2fd660bc2673b935ce89125f499b71f_2"
+let sighash = "0xe7655669166606767a8f36a37dafcce7e2fd660bc2673b935ce89125f499b71f"
+let name = "HighRiskAlert"
+let contractName = contractName
+
+@genType
+type eventArgs = {protocol: Address.t, estimatedLossUsd: bigint, alertType: string, timestamp: bigint}
+@genType
+type block = Block.t
+@genType
+type transaction = Transaction.t
+
+@genType
+type event = {
+  /** The parameters or arguments associated with this event. */
+  params: eventArgs,
+  /** The unique identifier of the blockchain network where this event occurred. */
+  chainId: chainId,
+  /** The address of the contract that emitted this event. */
+  srcAddress: Address.t,
+  /** The index of this event's log within the block. */
+  logIndex: int,
+  /** The transaction that triggered this event. Configurable in `config.yaml` via the `field_selection` option. */
+  transaction: transaction,
+  /** The block in which this event was recorded. Configurable in `config.yaml` via the `field_selection` option. */
+  block: block,
+}
+
+@genType
+type loaderArgs = Internal.genericLoaderArgs<event, loaderContext>
+@genType
+type loader<'loaderReturn> = Internal.genericLoader<loaderArgs, 'loaderReturn>
+@genType
+type handlerArgs<'loaderReturn> = Internal.genericHandlerArgs<event, handlerContext, 'loaderReturn>
+@genType
+type handler<'loaderReturn> = Internal.genericHandler<handlerArgs<'loaderReturn>>
+@genType
+type contractRegister = Internal.genericContractRegister<Internal.genericContractRegisterArgs<event, contractRegistrations>>
+
+let paramsRawEventSchema = S.object((s): eventArgs => {protocol: s.field("protocol", Address.schema), estimatedLossUsd: s.field("estimatedLossUsd", BigInt.schema), alertType: s.field("alertType", S.string), timestamp: s.field("timestamp", BigInt.schema)})
+let blockSchema = Block.schema
+let transactionSchema = Transaction.schema
+
+let handlerRegister: EventRegister.t = EventRegister.make(
+  ~contractName,
+  ~eventName=name,
+)
+
+@genType
+type eventFilter = {@as("protocol") protocol?: SingleOrMultiple.t<Address.t>}
+
+@genType type eventFiltersArgs = {/** The unique identifier of the blockchain network where this event occurred. */ chainId: chainId, /** Addresses of the contracts indexing the event. */ addresses: array<Address.t>}
+
+@genType @unboxed type eventFiltersDefinition = Single(eventFilter) | Multiple(array<eventFilter>)
+
+@genType @unboxed type eventFilters = | ...eventFiltersDefinition | Dynamic(eventFiltersArgs => eventFiltersDefinition)
+
+let register = (): Internal.evmEventConfig => {
+  let {getEventFiltersOrThrow, filterByAddresses} = LogSelection.parseEventFiltersOrThrow(~eventFilters=handlerRegister->EventRegister.getEventFilters, ~sighash, ~params=["protocol",], ~topic1=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("protocol")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)))
+  {
+    getEventFiltersOrThrow,
+    filterByAddresses,
+    dependsOnAddresses: !(handlerRegister->EventRegister.isWildcard) || filterByAddresses,
+    blockSchema: blockSchema->(Utils.magic: S.t<block> => S.t<Internal.eventBlock>),
+    transactionSchema: transactionSchema->(Utils.magic: S.t<transaction> => S.t<Internal.eventTransaction>),
+    convertHyperSyncEventArgs: (decodedEvent: HyperSyncClient.Decoder.decodedEvent) => {protocol: decodedEvent.indexed->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, estimatedLossUsd: decodedEvent.body->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, alertType: decodedEvent.body->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, timestamp: decodedEvent.body->Js.Array2.unsafe_get(2)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, }->(Utils.magic: eventArgs => Internal.eventParams),
+    id,
+  name,
+  contractName,
+  isWildcard: (handlerRegister->EventRegister.isWildcard),
+  handler: handlerRegister->EventRegister.getHandler,
+  contractRegister: handlerRegister->EventRegister.getContractRegister,
+  paramsRawEventSchema: paramsRawEventSchema->(Utils.magic: S.t<eventArgs> => S.t<Internal.eventParams>),
+  }
+}
+}
+
+module DelegationConfigured = {
+
+let id = "0x748bf350abb9a0df801f89c4e78cd9f1589c9aa2c24400014d156b7ff21ad574_2"
+let sighash = "0x748bf350abb9a0df801f89c4e78cd9f1589c9aa2c24400014d156b7ff21ad574"
+let name = "DelegationConfigured"
+let contractName = contractName
+
+@genType
+type eventArgs = {aiAgent: Address.t, dailyLimitUsd: bigint, validUntil: bigint}
+@genType
+type block = Block.t
+@genType
+type transaction = Transaction.t
+
+@genType
+type event = {
+  /** The parameters or arguments associated with this event. */
+  params: eventArgs,
+  /** The unique identifier of the blockchain network where this event occurred. */
+  chainId: chainId,
+  /** The address of the contract that emitted this event. */
+  srcAddress: Address.t,
+  /** The index of this event's log within the block. */
+  logIndex: int,
+  /** The transaction that triggered this event. Configurable in `config.yaml` via the `field_selection` option. */
+  transaction: transaction,
+  /** The block in which this event was recorded. Configurable in `config.yaml` via the `field_selection` option. */
+  block: block,
+}
+
+@genType
+type loaderArgs = Internal.genericLoaderArgs<event, loaderContext>
+@genType
+type loader<'loaderReturn> = Internal.genericLoader<loaderArgs, 'loaderReturn>
+@genType
+type handlerArgs<'loaderReturn> = Internal.genericHandlerArgs<event, handlerContext, 'loaderReturn>
+@genType
+type handler<'loaderReturn> = Internal.genericHandler<handlerArgs<'loaderReturn>>
+@genType
+type contractRegister = Internal.genericContractRegister<Internal.genericContractRegisterArgs<event, contractRegistrations>>
+
+let paramsRawEventSchema = S.object((s): eventArgs => {aiAgent: s.field("aiAgent", Address.schema), dailyLimitUsd: s.field("dailyLimitUsd", BigInt.schema), validUntil: s.field("validUntil", BigInt.schema)})
+let blockSchema = Block.schema
+let transactionSchema = Transaction.schema
+
+let handlerRegister: EventRegister.t = EventRegister.make(
+  ~contractName,
+  ~eventName=name,
+)
+
+@genType
+type eventFilter = {@as("aiAgent") aiAgent?: SingleOrMultiple.t<Address.t>}
+
+@genType type eventFiltersArgs = {/** The unique identifier of the blockchain network where this event occurred. */ chainId: chainId, /** Addresses of the contracts indexing the event. */ addresses: array<Address.t>}
+
+@genType @unboxed type eventFiltersDefinition = Single(eventFilter) | Multiple(array<eventFilter>)
+
+@genType @unboxed type eventFilters = | ...eventFiltersDefinition | Dynamic(eventFiltersArgs => eventFiltersDefinition)
+
+let register = (): Internal.evmEventConfig => {
+  let {getEventFiltersOrThrow, filterByAddresses} = LogSelection.parseEventFiltersOrThrow(~eventFilters=handlerRegister->EventRegister.getEventFilters, ~sighash, ~params=["aiAgent",], ~topic1=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("aiAgent")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)))
+  {
+    getEventFiltersOrThrow,
+    filterByAddresses,
+    dependsOnAddresses: !(handlerRegister->EventRegister.isWildcard) || filterByAddresses,
+    blockSchema: blockSchema->(Utils.magic: S.t<block> => S.t<Internal.eventBlock>),
+    transactionSchema: transactionSchema->(Utils.magic: S.t<transaction> => S.t<Internal.eventTransaction>),
+    convertHyperSyncEventArgs: (decodedEvent: HyperSyncClient.Decoder.decodedEvent) => {aiAgent: decodedEvent.indexed->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, dailyLimitUsd: decodedEvent.body->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, validUntil: decodedEvent.body->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, }->(Utils.magic: eventArgs => Internal.eventParams),
+    id,
+  name,
+  contractName,
+  isWildcard: (handlerRegister->EventRegister.isWildcard),
+  handler: handlerRegister->EventRegister.getHandler,
+  contractRegister: handlerRegister->EventRegister.getContractRegister,
+  paramsRawEventSchema: paramsRawEventSchema->(Utils.magic: S.t<eventArgs> => S.t<Internal.eventParams>),
+  }
+}
+}
+}
+
 module EmergencyController = {
 let abi = Ethers.makeAbi((%raw(`[{"type":"event","name":"EmergencyStatusChanged","inputs":[{"name":"paused","type":"bool","indexed":false}],"anonymous":false}]`): Js.Json.t))
 let eventSignatures = ["EmergencyStatusChanged(bool paused)"]
@@ -389,6 +839,824 @@ let register = (): Internal.evmEventConfig => {
     blockSchema: blockSchema->(Utils.magic: S.t<block> => S.t<Internal.eventBlock>),
     transactionSchema: transactionSchema->(Utils.magic: S.t<transaction> => S.t<Internal.eventTransaction>),
     convertHyperSyncEventArgs: (decodedEvent: HyperSyncClient.Decoder.decodedEvent) => {paused: decodedEvent.body->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, }->(Utils.magic: eventArgs => Internal.eventParams),
+    id,
+  name,
+  contractName,
+  isWildcard: (handlerRegister->EventRegister.isWildcard),
+  handler: handlerRegister->EventRegister.getHandler,
+  contractRegister: handlerRegister->EventRegister.getContractRegister,
+  paramsRawEventSchema: paramsRawEventSchema->(Utils.magic: S.t<eventArgs> => S.t<Internal.eventParams>),
+  }
+}
+}
+}
+
+module EntryPoint = {
+let abi = Ethers.makeAbi((%raw(`[{"type":"event","name":"UserOperationEvent","inputs":[{"name":"userOpHash","type":"bytes32","indexed":true},{"name":"sender","type":"address","indexed":true},{"name":"paymaster","type":"address","indexed":true},{"name":"nonce","type":"uint256","indexed":false},{"name":"success","type":"bool","indexed":false},{"name":"actualGasCost","type":"uint256","indexed":false},{"name":"actualGasUsed","type":"uint256","indexed":false}],"anonymous":false}]`): Js.Json.t))
+let eventSignatures = ["UserOperationEvent(bytes32 indexed userOpHash, address indexed sender, address indexed paymaster, uint256 nonce, bool success, uint256 actualGasCost, uint256 actualGasUsed)"]
+@genType type chainId = [#10143]
+let contractName = "EntryPoint"
+
+module UserOperationEvent = {
+
+let id = "0x49628fd1471006c1482da88028e9ce4dbb080b815c9b0344d39e5a8e6ec1419f_4"
+let sighash = "0x49628fd1471006c1482da88028e9ce4dbb080b815c9b0344d39e5a8e6ec1419f"
+let name = "UserOperationEvent"
+let contractName = contractName
+
+@genType
+type eventArgs = {userOpHash: string, sender: Address.t, paymaster: Address.t, nonce: bigint, success: bool, actualGasCost: bigint, actualGasUsed: bigint}
+@genType
+type block = Block.t
+@genType
+type transaction = Transaction.t
+
+@genType
+type event = {
+  /** The parameters or arguments associated with this event. */
+  params: eventArgs,
+  /** The unique identifier of the blockchain network where this event occurred. */
+  chainId: chainId,
+  /** The address of the contract that emitted this event. */
+  srcAddress: Address.t,
+  /** The index of this event's log within the block. */
+  logIndex: int,
+  /** The transaction that triggered this event. Configurable in `config.yaml` via the `field_selection` option. */
+  transaction: transaction,
+  /** The block in which this event was recorded. Configurable in `config.yaml` via the `field_selection` option. */
+  block: block,
+}
+
+@genType
+type loaderArgs = Internal.genericLoaderArgs<event, loaderContext>
+@genType
+type loader<'loaderReturn> = Internal.genericLoader<loaderArgs, 'loaderReturn>
+@genType
+type handlerArgs<'loaderReturn> = Internal.genericHandlerArgs<event, handlerContext, 'loaderReturn>
+@genType
+type handler<'loaderReturn> = Internal.genericHandler<handlerArgs<'loaderReturn>>
+@genType
+type contractRegister = Internal.genericContractRegister<Internal.genericContractRegisterArgs<event, contractRegistrations>>
+
+let paramsRawEventSchema = S.object((s): eventArgs => {userOpHash: s.field("userOpHash", S.string), sender: s.field("sender", Address.schema), paymaster: s.field("paymaster", Address.schema), nonce: s.field("nonce", BigInt.schema), success: s.field("success", S.bool), actualGasCost: s.field("actualGasCost", BigInt.schema), actualGasUsed: s.field("actualGasUsed", BigInt.schema)})
+let blockSchema = Block.schema
+let transactionSchema = Transaction.schema
+
+let handlerRegister: EventRegister.t = EventRegister.make(
+  ~contractName,
+  ~eventName=name,
+)
+
+@genType
+type eventFilter = {@as("userOpHash") userOpHash?: SingleOrMultiple.t<string>, @as("sender") sender?: SingleOrMultiple.t<Address.t>, @as("paymaster") paymaster?: SingleOrMultiple.t<Address.t>}
+
+@genType type eventFiltersArgs = {/** The unique identifier of the blockchain network where this event occurred. */ chainId: chainId, /** Addresses of the contracts indexing the event. */ addresses: array<Address.t>}
+
+@genType @unboxed type eventFiltersDefinition = Single(eventFilter) | Multiple(array<eventFilter>)
+
+@genType @unboxed type eventFilters = | ...eventFiltersDefinition | Dynamic(eventFiltersArgs => eventFiltersDefinition)
+
+let register = (): Internal.evmEventConfig => {
+  let {getEventFiltersOrThrow, filterByAddresses} = LogSelection.parseEventFiltersOrThrow(~eventFilters=handlerRegister->EventRegister.getEventFilters, ~sighash, ~params=["userOpHash","sender","paymaster",], ~topic1=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("userOpHash")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.castToHexUnsafe)), ~topic2=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("sender")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)), ~topic3=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("paymaster")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)))
+  {
+    getEventFiltersOrThrow,
+    filterByAddresses,
+    dependsOnAddresses: !(handlerRegister->EventRegister.isWildcard) || filterByAddresses,
+    blockSchema: blockSchema->(Utils.magic: S.t<block> => S.t<Internal.eventBlock>),
+    transactionSchema: transactionSchema->(Utils.magic: S.t<transaction> => S.t<Internal.eventTransaction>),
+    convertHyperSyncEventArgs: (decodedEvent: HyperSyncClient.Decoder.decodedEvent) => {userOpHash: decodedEvent.indexed->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, sender: decodedEvent.indexed->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, paymaster: decodedEvent.indexed->Js.Array2.unsafe_get(2)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, nonce: decodedEvent.body->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, success: decodedEvent.body->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, actualGasCost: decodedEvent.body->Js.Array2.unsafe_get(2)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, actualGasUsed: decodedEvent.body->Js.Array2.unsafe_get(3)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, }->(Utils.magic: eventArgs => Internal.eventParams),
+    id,
+  name,
+  contractName,
+  isWildcard: (handlerRegister->EventRegister.isWildcard),
+  handler: handlerRegister->EventRegister.getHandler,
+  contractRegister: handlerRegister->EventRegister.getContractRegister,
+  paramsRawEventSchema: paramsRawEventSchema->(Utils.magic: S.t<eventArgs> => S.t<Internal.eventParams>),
+  }
+}
+}
+}
+
+module NablaUSDCPool = {
+let abi = Ethers.makeAbi((%raw(`[{"type":"event","name":"Deposit","inputs":[{"name":"user","type":"address","indexed":true},{"name":"assets","type":"uint256","indexed":false},{"name":"shares","type":"uint256","indexed":false}],"anonymous":false},{"type":"event","name":"Swap","inputs":[{"name":"sender","type":"address","indexed":true},{"name":"tokenIn","type":"address","indexed":false},{"name":"tokenOut","type":"address","indexed":false},{"name":"amountIn","type":"uint256","indexed":false},{"name":"amountOut","type":"uint256","indexed":false}],"anonymous":false},{"type":"event","name":"Withdraw","inputs":[{"name":"user","type":"address","indexed":true},{"name":"assets","type":"uint256","indexed":false},{"name":"shares","type":"uint256","indexed":false}],"anonymous":false}]`): Js.Json.t))
+let eventSignatures = ["Deposit(address indexed user, uint256 assets, uint256 shares)", "Swap(address indexed sender, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut)", "Withdraw(address indexed user, uint256 assets, uint256 shares)"]
+@genType type chainId = [#10143]
+let contractName = "NablaUSDCPool"
+
+module Deposit = {
+
+let id = "0x90890809c654f11d6e72a28fa60149770a0d11ec6c92319d6ceb2bb0a4ea1a15_2"
+let sighash = "0x90890809c654f11d6e72a28fa60149770a0d11ec6c92319d6ceb2bb0a4ea1a15"
+let name = "Deposit"
+let contractName = contractName
+
+@genType
+type eventArgs = {user: Address.t, assets: bigint, shares: bigint}
+@genType
+type block = Block.t
+@genType
+type transaction = Transaction.t
+
+@genType
+type event = {
+  /** The parameters or arguments associated with this event. */
+  params: eventArgs,
+  /** The unique identifier of the blockchain network where this event occurred. */
+  chainId: chainId,
+  /** The address of the contract that emitted this event. */
+  srcAddress: Address.t,
+  /** The index of this event's log within the block. */
+  logIndex: int,
+  /** The transaction that triggered this event. Configurable in `config.yaml` via the `field_selection` option. */
+  transaction: transaction,
+  /** The block in which this event was recorded. Configurable in `config.yaml` via the `field_selection` option. */
+  block: block,
+}
+
+@genType
+type loaderArgs = Internal.genericLoaderArgs<event, loaderContext>
+@genType
+type loader<'loaderReturn> = Internal.genericLoader<loaderArgs, 'loaderReturn>
+@genType
+type handlerArgs<'loaderReturn> = Internal.genericHandlerArgs<event, handlerContext, 'loaderReturn>
+@genType
+type handler<'loaderReturn> = Internal.genericHandler<handlerArgs<'loaderReturn>>
+@genType
+type contractRegister = Internal.genericContractRegister<Internal.genericContractRegisterArgs<event, contractRegistrations>>
+
+let paramsRawEventSchema = S.object((s): eventArgs => {user: s.field("user", Address.schema), assets: s.field("assets", BigInt.schema), shares: s.field("shares", BigInt.schema)})
+let blockSchema = Block.schema
+let transactionSchema = Transaction.schema
+
+let handlerRegister: EventRegister.t = EventRegister.make(
+  ~contractName,
+  ~eventName=name,
+)
+
+@genType
+type eventFilter = {@as("user") user?: SingleOrMultiple.t<Address.t>}
+
+@genType type eventFiltersArgs = {/** The unique identifier of the blockchain network where this event occurred. */ chainId: chainId, /** Addresses of the contracts indexing the event. */ addresses: array<Address.t>}
+
+@genType @unboxed type eventFiltersDefinition = Single(eventFilter) | Multiple(array<eventFilter>)
+
+@genType @unboxed type eventFilters = | ...eventFiltersDefinition | Dynamic(eventFiltersArgs => eventFiltersDefinition)
+
+let register = (): Internal.evmEventConfig => {
+  let {getEventFiltersOrThrow, filterByAddresses} = LogSelection.parseEventFiltersOrThrow(~eventFilters=handlerRegister->EventRegister.getEventFilters, ~sighash, ~params=["user",], ~topic1=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("user")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)))
+  {
+    getEventFiltersOrThrow,
+    filterByAddresses,
+    dependsOnAddresses: !(handlerRegister->EventRegister.isWildcard) || filterByAddresses,
+    blockSchema: blockSchema->(Utils.magic: S.t<block> => S.t<Internal.eventBlock>),
+    transactionSchema: transactionSchema->(Utils.magic: S.t<transaction> => S.t<Internal.eventTransaction>),
+    convertHyperSyncEventArgs: (decodedEvent: HyperSyncClient.Decoder.decodedEvent) => {user: decodedEvent.indexed->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, assets: decodedEvent.body->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, shares: decodedEvent.body->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, }->(Utils.magic: eventArgs => Internal.eventParams),
+    id,
+  name,
+  contractName,
+  isWildcard: (handlerRegister->EventRegister.isWildcard),
+  handler: handlerRegister->EventRegister.getHandler,
+  contractRegister: handlerRegister->EventRegister.getContractRegister,
+  paramsRawEventSchema: paramsRawEventSchema->(Utils.magic: S.t<eventArgs> => S.t<Internal.eventParams>),
+  }
+}
+}
+
+module Withdraw = {
+
+let id = "0xf279e6a1f5e320cca91135676d9cb6e44ca8a08c0b88342bcdb1144f6511b568_2"
+let sighash = "0xf279e6a1f5e320cca91135676d9cb6e44ca8a08c0b88342bcdb1144f6511b568"
+let name = "Withdraw"
+let contractName = contractName
+
+@genType
+type eventArgs = {user: Address.t, assets: bigint, shares: bigint}
+@genType
+type block = Block.t
+@genType
+type transaction = Transaction.t
+
+@genType
+type event = {
+  /** The parameters or arguments associated with this event. */
+  params: eventArgs,
+  /** The unique identifier of the blockchain network where this event occurred. */
+  chainId: chainId,
+  /** The address of the contract that emitted this event. */
+  srcAddress: Address.t,
+  /** The index of this event's log within the block. */
+  logIndex: int,
+  /** The transaction that triggered this event. Configurable in `config.yaml` via the `field_selection` option. */
+  transaction: transaction,
+  /** The block in which this event was recorded. Configurable in `config.yaml` via the `field_selection` option. */
+  block: block,
+}
+
+@genType
+type loaderArgs = Internal.genericLoaderArgs<event, loaderContext>
+@genType
+type loader<'loaderReturn> = Internal.genericLoader<loaderArgs, 'loaderReturn>
+@genType
+type handlerArgs<'loaderReturn> = Internal.genericHandlerArgs<event, handlerContext, 'loaderReturn>
+@genType
+type handler<'loaderReturn> = Internal.genericHandler<handlerArgs<'loaderReturn>>
+@genType
+type contractRegister = Internal.genericContractRegister<Internal.genericContractRegisterArgs<event, contractRegistrations>>
+
+let paramsRawEventSchema = S.object((s): eventArgs => {user: s.field("user", Address.schema), assets: s.field("assets", BigInt.schema), shares: s.field("shares", BigInt.schema)})
+let blockSchema = Block.schema
+let transactionSchema = Transaction.schema
+
+let handlerRegister: EventRegister.t = EventRegister.make(
+  ~contractName,
+  ~eventName=name,
+)
+
+@genType
+type eventFilter = {@as("user") user?: SingleOrMultiple.t<Address.t>}
+
+@genType type eventFiltersArgs = {/** The unique identifier of the blockchain network where this event occurred. */ chainId: chainId, /** Addresses of the contracts indexing the event. */ addresses: array<Address.t>}
+
+@genType @unboxed type eventFiltersDefinition = Single(eventFilter) | Multiple(array<eventFilter>)
+
+@genType @unboxed type eventFilters = | ...eventFiltersDefinition | Dynamic(eventFiltersArgs => eventFiltersDefinition)
+
+let register = (): Internal.evmEventConfig => {
+  let {getEventFiltersOrThrow, filterByAddresses} = LogSelection.parseEventFiltersOrThrow(~eventFilters=handlerRegister->EventRegister.getEventFilters, ~sighash, ~params=["user",], ~topic1=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("user")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)))
+  {
+    getEventFiltersOrThrow,
+    filterByAddresses,
+    dependsOnAddresses: !(handlerRegister->EventRegister.isWildcard) || filterByAddresses,
+    blockSchema: blockSchema->(Utils.magic: S.t<block> => S.t<Internal.eventBlock>),
+    transactionSchema: transactionSchema->(Utils.magic: S.t<transaction> => S.t<Internal.eventTransaction>),
+    convertHyperSyncEventArgs: (decodedEvent: HyperSyncClient.Decoder.decodedEvent) => {user: decodedEvent.indexed->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, assets: decodedEvent.body->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, shares: decodedEvent.body->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, }->(Utils.magic: eventArgs => Internal.eventParams),
+    id,
+  name,
+  contractName,
+  isWildcard: (handlerRegister->EventRegister.isWildcard),
+  handler: handlerRegister->EventRegister.getHandler,
+  contractRegister: handlerRegister->EventRegister.getContractRegister,
+  paramsRawEventSchema: paramsRawEventSchema->(Utils.magic: S.t<eventArgs> => S.t<Internal.eventParams>),
+  }
+}
+}
+
+module Swap = {
+
+let id = "0xcd3829a3813dc3cdd188fd3d01dcf3268c16be2fdd2dd21d0665418816e46062_2"
+let sighash = "0xcd3829a3813dc3cdd188fd3d01dcf3268c16be2fdd2dd21d0665418816e46062"
+let name = "Swap"
+let contractName = contractName
+
+@genType
+type eventArgs = {sender: Address.t, tokenIn: Address.t, tokenOut: Address.t, amountIn: bigint, amountOut: bigint}
+@genType
+type block = Block.t
+@genType
+type transaction = Transaction.t
+
+@genType
+type event = {
+  /** The parameters or arguments associated with this event. */
+  params: eventArgs,
+  /** The unique identifier of the blockchain network where this event occurred. */
+  chainId: chainId,
+  /** The address of the contract that emitted this event. */
+  srcAddress: Address.t,
+  /** The index of this event's log within the block. */
+  logIndex: int,
+  /** The transaction that triggered this event. Configurable in `config.yaml` via the `field_selection` option. */
+  transaction: transaction,
+  /** The block in which this event was recorded. Configurable in `config.yaml` via the `field_selection` option. */
+  block: block,
+}
+
+@genType
+type loaderArgs = Internal.genericLoaderArgs<event, loaderContext>
+@genType
+type loader<'loaderReturn> = Internal.genericLoader<loaderArgs, 'loaderReturn>
+@genType
+type handlerArgs<'loaderReturn> = Internal.genericHandlerArgs<event, handlerContext, 'loaderReturn>
+@genType
+type handler<'loaderReturn> = Internal.genericHandler<handlerArgs<'loaderReturn>>
+@genType
+type contractRegister = Internal.genericContractRegister<Internal.genericContractRegisterArgs<event, contractRegistrations>>
+
+let paramsRawEventSchema = S.object((s): eventArgs => {sender: s.field("sender", Address.schema), tokenIn: s.field("tokenIn", Address.schema), tokenOut: s.field("tokenOut", Address.schema), amountIn: s.field("amountIn", BigInt.schema), amountOut: s.field("amountOut", BigInt.schema)})
+let blockSchema = Block.schema
+let transactionSchema = Transaction.schema
+
+let handlerRegister: EventRegister.t = EventRegister.make(
+  ~contractName,
+  ~eventName=name,
+)
+
+@genType
+type eventFilter = {@as("sender") sender?: SingleOrMultiple.t<Address.t>}
+
+@genType type eventFiltersArgs = {/** The unique identifier of the blockchain network where this event occurred. */ chainId: chainId, /** Addresses of the contracts indexing the event. */ addresses: array<Address.t>}
+
+@genType @unboxed type eventFiltersDefinition = Single(eventFilter) | Multiple(array<eventFilter>)
+
+@genType @unboxed type eventFilters = | ...eventFiltersDefinition | Dynamic(eventFiltersArgs => eventFiltersDefinition)
+
+let register = (): Internal.evmEventConfig => {
+  let {getEventFiltersOrThrow, filterByAddresses} = LogSelection.parseEventFiltersOrThrow(~eventFilters=handlerRegister->EventRegister.getEventFilters, ~sighash, ~params=["sender",], ~topic1=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("sender")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)))
+  {
+    getEventFiltersOrThrow,
+    filterByAddresses,
+    dependsOnAddresses: !(handlerRegister->EventRegister.isWildcard) || filterByAddresses,
+    blockSchema: blockSchema->(Utils.magic: S.t<block> => S.t<Internal.eventBlock>),
+    transactionSchema: transactionSchema->(Utils.magic: S.t<transaction> => S.t<Internal.eventTransaction>),
+    convertHyperSyncEventArgs: (decodedEvent: HyperSyncClient.Decoder.decodedEvent) => {sender: decodedEvent.indexed->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, tokenIn: decodedEvent.body->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, tokenOut: decodedEvent.body->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, amountIn: decodedEvent.body->Js.Array2.unsafe_get(2)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, amountOut: decodedEvent.body->Js.Array2.unsafe_get(3)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, }->(Utils.magic: eventArgs => Internal.eventParams),
+    id,
+  name,
+  contractName,
+  isWildcard: (handlerRegister->EventRegister.isWildcard),
+  handler: handlerRegister->EventRegister.getHandler,
+  contractRegister: handlerRegister->EventRegister.getContractRegister,
+  paramsRawEventSchema: paramsRawEventSchema->(Utils.magic: S.t<eventArgs> => S.t<Internal.eventParams>),
+  }
+}
+}
+}
+
+module NablaUSDTPool = {
+let abi = Ethers.makeAbi((%raw(`[{"type":"event","name":"Deposit","inputs":[{"name":"user","type":"address","indexed":true},{"name":"assets","type":"uint256","indexed":false},{"name":"shares","type":"uint256","indexed":false}],"anonymous":false},{"type":"event","name":"Swap","inputs":[{"name":"sender","type":"address","indexed":true},{"name":"tokenIn","type":"address","indexed":false},{"name":"tokenOut","type":"address","indexed":false},{"name":"amountIn","type":"uint256","indexed":false},{"name":"amountOut","type":"uint256","indexed":false}],"anonymous":false},{"type":"event","name":"Withdraw","inputs":[{"name":"user","type":"address","indexed":true},{"name":"assets","type":"uint256","indexed":false},{"name":"shares","type":"uint256","indexed":false}],"anonymous":false}]`): Js.Json.t))
+let eventSignatures = ["Deposit(address indexed user, uint256 assets, uint256 shares)", "Swap(address indexed sender, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut)", "Withdraw(address indexed user, uint256 assets, uint256 shares)"]
+@genType type chainId = [#10143]
+let contractName = "NablaUSDTPool"
+
+module Deposit = {
+
+let id = "0x90890809c654f11d6e72a28fa60149770a0d11ec6c92319d6ceb2bb0a4ea1a15_2"
+let sighash = "0x90890809c654f11d6e72a28fa60149770a0d11ec6c92319d6ceb2bb0a4ea1a15"
+let name = "Deposit"
+let contractName = contractName
+
+@genType
+type eventArgs = {user: Address.t, assets: bigint, shares: bigint}
+@genType
+type block = Block.t
+@genType
+type transaction = Transaction.t
+
+@genType
+type event = {
+  /** The parameters or arguments associated with this event. */
+  params: eventArgs,
+  /** The unique identifier of the blockchain network where this event occurred. */
+  chainId: chainId,
+  /** The address of the contract that emitted this event. */
+  srcAddress: Address.t,
+  /** The index of this event's log within the block. */
+  logIndex: int,
+  /** The transaction that triggered this event. Configurable in `config.yaml` via the `field_selection` option. */
+  transaction: transaction,
+  /** The block in which this event was recorded. Configurable in `config.yaml` via the `field_selection` option. */
+  block: block,
+}
+
+@genType
+type loaderArgs = Internal.genericLoaderArgs<event, loaderContext>
+@genType
+type loader<'loaderReturn> = Internal.genericLoader<loaderArgs, 'loaderReturn>
+@genType
+type handlerArgs<'loaderReturn> = Internal.genericHandlerArgs<event, handlerContext, 'loaderReturn>
+@genType
+type handler<'loaderReturn> = Internal.genericHandler<handlerArgs<'loaderReturn>>
+@genType
+type contractRegister = Internal.genericContractRegister<Internal.genericContractRegisterArgs<event, contractRegistrations>>
+
+let paramsRawEventSchema = S.object((s): eventArgs => {user: s.field("user", Address.schema), assets: s.field("assets", BigInt.schema), shares: s.field("shares", BigInt.schema)})
+let blockSchema = Block.schema
+let transactionSchema = Transaction.schema
+
+let handlerRegister: EventRegister.t = EventRegister.make(
+  ~contractName,
+  ~eventName=name,
+)
+
+@genType
+type eventFilter = {@as("user") user?: SingleOrMultiple.t<Address.t>}
+
+@genType type eventFiltersArgs = {/** The unique identifier of the blockchain network where this event occurred. */ chainId: chainId, /** Addresses of the contracts indexing the event. */ addresses: array<Address.t>}
+
+@genType @unboxed type eventFiltersDefinition = Single(eventFilter) | Multiple(array<eventFilter>)
+
+@genType @unboxed type eventFilters = | ...eventFiltersDefinition | Dynamic(eventFiltersArgs => eventFiltersDefinition)
+
+let register = (): Internal.evmEventConfig => {
+  let {getEventFiltersOrThrow, filterByAddresses} = LogSelection.parseEventFiltersOrThrow(~eventFilters=handlerRegister->EventRegister.getEventFilters, ~sighash, ~params=["user",], ~topic1=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("user")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)))
+  {
+    getEventFiltersOrThrow,
+    filterByAddresses,
+    dependsOnAddresses: !(handlerRegister->EventRegister.isWildcard) || filterByAddresses,
+    blockSchema: blockSchema->(Utils.magic: S.t<block> => S.t<Internal.eventBlock>),
+    transactionSchema: transactionSchema->(Utils.magic: S.t<transaction> => S.t<Internal.eventTransaction>),
+    convertHyperSyncEventArgs: (decodedEvent: HyperSyncClient.Decoder.decodedEvent) => {user: decodedEvent.indexed->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, assets: decodedEvent.body->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, shares: decodedEvent.body->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, }->(Utils.magic: eventArgs => Internal.eventParams),
+    id,
+  name,
+  contractName,
+  isWildcard: (handlerRegister->EventRegister.isWildcard),
+  handler: handlerRegister->EventRegister.getHandler,
+  contractRegister: handlerRegister->EventRegister.getContractRegister,
+  paramsRawEventSchema: paramsRawEventSchema->(Utils.magic: S.t<eventArgs> => S.t<Internal.eventParams>),
+  }
+}
+}
+
+module Withdraw = {
+
+let id = "0xf279e6a1f5e320cca91135676d9cb6e44ca8a08c0b88342bcdb1144f6511b568_2"
+let sighash = "0xf279e6a1f5e320cca91135676d9cb6e44ca8a08c0b88342bcdb1144f6511b568"
+let name = "Withdraw"
+let contractName = contractName
+
+@genType
+type eventArgs = {user: Address.t, assets: bigint, shares: bigint}
+@genType
+type block = Block.t
+@genType
+type transaction = Transaction.t
+
+@genType
+type event = {
+  /** The parameters or arguments associated with this event. */
+  params: eventArgs,
+  /** The unique identifier of the blockchain network where this event occurred. */
+  chainId: chainId,
+  /** The address of the contract that emitted this event. */
+  srcAddress: Address.t,
+  /** The index of this event's log within the block. */
+  logIndex: int,
+  /** The transaction that triggered this event. Configurable in `config.yaml` via the `field_selection` option. */
+  transaction: transaction,
+  /** The block in which this event was recorded. Configurable in `config.yaml` via the `field_selection` option. */
+  block: block,
+}
+
+@genType
+type loaderArgs = Internal.genericLoaderArgs<event, loaderContext>
+@genType
+type loader<'loaderReturn> = Internal.genericLoader<loaderArgs, 'loaderReturn>
+@genType
+type handlerArgs<'loaderReturn> = Internal.genericHandlerArgs<event, handlerContext, 'loaderReturn>
+@genType
+type handler<'loaderReturn> = Internal.genericHandler<handlerArgs<'loaderReturn>>
+@genType
+type contractRegister = Internal.genericContractRegister<Internal.genericContractRegisterArgs<event, contractRegistrations>>
+
+let paramsRawEventSchema = S.object((s): eventArgs => {user: s.field("user", Address.schema), assets: s.field("assets", BigInt.schema), shares: s.field("shares", BigInt.schema)})
+let blockSchema = Block.schema
+let transactionSchema = Transaction.schema
+
+let handlerRegister: EventRegister.t = EventRegister.make(
+  ~contractName,
+  ~eventName=name,
+)
+
+@genType
+type eventFilter = {@as("user") user?: SingleOrMultiple.t<Address.t>}
+
+@genType type eventFiltersArgs = {/** The unique identifier of the blockchain network where this event occurred. */ chainId: chainId, /** Addresses of the contracts indexing the event. */ addresses: array<Address.t>}
+
+@genType @unboxed type eventFiltersDefinition = Single(eventFilter) | Multiple(array<eventFilter>)
+
+@genType @unboxed type eventFilters = | ...eventFiltersDefinition | Dynamic(eventFiltersArgs => eventFiltersDefinition)
+
+let register = (): Internal.evmEventConfig => {
+  let {getEventFiltersOrThrow, filterByAddresses} = LogSelection.parseEventFiltersOrThrow(~eventFilters=handlerRegister->EventRegister.getEventFilters, ~sighash, ~params=["user",], ~topic1=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("user")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)))
+  {
+    getEventFiltersOrThrow,
+    filterByAddresses,
+    dependsOnAddresses: !(handlerRegister->EventRegister.isWildcard) || filterByAddresses,
+    blockSchema: blockSchema->(Utils.magic: S.t<block> => S.t<Internal.eventBlock>),
+    transactionSchema: transactionSchema->(Utils.magic: S.t<transaction> => S.t<Internal.eventTransaction>),
+    convertHyperSyncEventArgs: (decodedEvent: HyperSyncClient.Decoder.decodedEvent) => {user: decodedEvent.indexed->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, assets: decodedEvent.body->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, shares: decodedEvent.body->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, }->(Utils.magic: eventArgs => Internal.eventParams),
+    id,
+  name,
+  contractName,
+  isWildcard: (handlerRegister->EventRegister.isWildcard),
+  handler: handlerRegister->EventRegister.getHandler,
+  contractRegister: handlerRegister->EventRegister.getContractRegister,
+  paramsRawEventSchema: paramsRawEventSchema->(Utils.magic: S.t<eventArgs> => S.t<Internal.eventParams>),
+  }
+}
+}
+
+module Swap = {
+
+let id = "0xcd3829a3813dc3cdd188fd3d01dcf3268c16be2fdd2dd21d0665418816e46062_2"
+let sighash = "0xcd3829a3813dc3cdd188fd3d01dcf3268c16be2fdd2dd21d0665418816e46062"
+let name = "Swap"
+let contractName = contractName
+
+@genType
+type eventArgs = {sender: Address.t, tokenIn: Address.t, tokenOut: Address.t, amountIn: bigint, amountOut: bigint}
+@genType
+type block = Block.t
+@genType
+type transaction = Transaction.t
+
+@genType
+type event = {
+  /** The parameters or arguments associated with this event. */
+  params: eventArgs,
+  /** The unique identifier of the blockchain network where this event occurred. */
+  chainId: chainId,
+  /** The address of the contract that emitted this event. */
+  srcAddress: Address.t,
+  /** The index of this event's log within the block. */
+  logIndex: int,
+  /** The transaction that triggered this event. Configurable in `config.yaml` via the `field_selection` option. */
+  transaction: transaction,
+  /** The block in which this event was recorded. Configurable in `config.yaml` via the `field_selection` option. */
+  block: block,
+}
+
+@genType
+type loaderArgs = Internal.genericLoaderArgs<event, loaderContext>
+@genType
+type loader<'loaderReturn> = Internal.genericLoader<loaderArgs, 'loaderReturn>
+@genType
+type handlerArgs<'loaderReturn> = Internal.genericHandlerArgs<event, handlerContext, 'loaderReturn>
+@genType
+type handler<'loaderReturn> = Internal.genericHandler<handlerArgs<'loaderReturn>>
+@genType
+type contractRegister = Internal.genericContractRegister<Internal.genericContractRegisterArgs<event, contractRegistrations>>
+
+let paramsRawEventSchema = S.object((s): eventArgs => {sender: s.field("sender", Address.schema), tokenIn: s.field("tokenIn", Address.schema), tokenOut: s.field("tokenOut", Address.schema), amountIn: s.field("amountIn", BigInt.schema), amountOut: s.field("amountOut", BigInt.schema)})
+let blockSchema = Block.schema
+let transactionSchema = Transaction.schema
+
+let handlerRegister: EventRegister.t = EventRegister.make(
+  ~contractName,
+  ~eventName=name,
+)
+
+@genType
+type eventFilter = {@as("sender") sender?: SingleOrMultiple.t<Address.t>}
+
+@genType type eventFiltersArgs = {/** The unique identifier of the blockchain network where this event occurred. */ chainId: chainId, /** Addresses of the contracts indexing the event. */ addresses: array<Address.t>}
+
+@genType @unboxed type eventFiltersDefinition = Single(eventFilter) | Multiple(array<eventFilter>)
+
+@genType @unboxed type eventFilters = | ...eventFiltersDefinition | Dynamic(eventFiltersArgs => eventFiltersDefinition)
+
+let register = (): Internal.evmEventConfig => {
+  let {getEventFiltersOrThrow, filterByAddresses} = LogSelection.parseEventFiltersOrThrow(~eventFilters=handlerRegister->EventRegister.getEventFilters, ~sighash, ~params=["sender",], ~topic1=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("sender")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)))
+  {
+    getEventFiltersOrThrow,
+    filterByAddresses,
+    dependsOnAddresses: !(handlerRegister->EventRegister.isWildcard) || filterByAddresses,
+    blockSchema: blockSchema->(Utils.magic: S.t<block> => S.t<Internal.eventBlock>),
+    transactionSchema: transactionSchema->(Utils.magic: S.t<transaction> => S.t<Internal.eventTransaction>),
+    convertHyperSyncEventArgs: (decodedEvent: HyperSyncClient.Decoder.decodedEvent) => {sender: decodedEvent.indexed->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, tokenIn: decodedEvent.body->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, tokenOut: decodedEvent.body->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, amountIn: decodedEvent.body->Js.Array2.unsafe_get(2)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, amountOut: decodedEvent.body->Js.Array2.unsafe_get(3)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, }->(Utils.magic: eventArgs => Internal.eventParams),
+    id,
+  name,
+  contractName,
+  isWildcard: (handlerRegister->EventRegister.isWildcard),
+  handler: handlerRegister->EventRegister.getHandler,
+  contractRegister: handlerRegister->EventRegister.getContractRegister,
+  paramsRawEventSchema: paramsRawEventSchema->(Utils.magic: S.t<eventArgs> => S.t<Internal.eventParams>),
+  }
+}
+}
+}
+
+module NablaWBTCPool = {
+let abi = Ethers.makeAbi((%raw(`[{"type":"event","name":"Deposit","inputs":[{"name":"user","type":"address","indexed":true},{"name":"assets","type":"uint256","indexed":false},{"name":"shares","type":"uint256","indexed":false}],"anonymous":false},{"type":"event","name":"Swap","inputs":[{"name":"sender","type":"address","indexed":true},{"name":"tokenIn","type":"address","indexed":false},{"name":"tokenOut","type":"address","indexed":false},{"name":"amountIn","type":"uint256","indexed":false},{"name":"amountOut","type":"uint256","indexed":false}],"anonymous":false},{"type":"event","name":"Withdraw","inputs":[{"name":"user","type":"address","indexed":true},{"name":"assets","type":"uint256","indexed":false},{"name":"shares","type":"uint256","indexed":false}],"anonymous":false}]`): Js.Json.t))
+let eventSignatures = ["Deposit(address indexed user, uint256 assets, uint256 shares)", "Swap(address indexed sender, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut)", "Withdraw(address indexed user, uint256 assets, uint256 shares)"]
+@genType type chainId = [#10143]
+let contractName = "NablaWBTCPool"
+
+module Deposit = {
+
+let id = "0x90890809c654f11d6e72a28fa60149770a0d11ec6c92319d6ceb2bb0a4ea1a15_2"
+let sighash = "0x90890809c654f11d6e72a28fa60149770a0d11ec6c92319d6ceb2bb0a4ea1a15"
+let name = "Deposit"
+let contractName = contractName
+
+@genType
+type eventArgs = {user: Address.t, assets: bigint, shares: bigint}
+@genType
+type block = Block.t
+@genType
+type transaction = Transaction.t
+
+@genType
+type event = {
+  /** The parameters or arguments associated with this event. */
+  params: eventArgs,
+  /** The unique identifier of the blockchain network where this event occurred. */
+  chainId: chainId,
+  /** The address of the contract that emitted this event. */
+  srcAddress: Address.t,
+  /** The index of this event's log within the block. */
+  logIndex: int,
+  /** The transaction that triggered this event. Configurable in `config.yaml` via the `field_selection` option. */
+  transaction: transaction,
+  /** The block in which this event was recorded. Configurable in `config.yaml` via the `field_selection` option. */
+  block: block,
+}
+
+@genType
+type loaderArgs = Internal.genericLoaderArgs<event, loaderContext>
+@genType
+type loader<'loaderReturn> = Internal.genericLoader<loaderArgs, 'loaderReturn>
+@genType
+type handlerArgs<'loaderReturn> = Internal.genericHandlerArgs<event, handlerContext, 'loaderReturn>
+@genType
+type handler<'loaderReturn> = Internal.genericHandler<handlerArgs<'loaderReturn>>
+@genType
+type contractRegister = Internal.genericContractRegister<Internal.genericContractRegisterArgs<event, contractRegistrations>>
+
+let paramsRawEventSchema = S.object((s): eventArgs => {user: s.field("user", Address.schema), assets: s.field("assets", BigInt.schema), shares: s.field("shares", BigInt.schema)})
+let blockSchema = Block.schema
+let transactionSchema = Transaction.schema
+
+let handlerRegister: EventRegister.t = EventRegister.make(
+  ~contractName,
+  ~eventName=name,
+)
+
+@genType
+type eventFilter = {@as("user") user?: SingleOrMultiple.t<Address.t>}
+
+@genType type eventFiltersArgs = {/** The unique identifier of the blockchain network where this event occurred. */ chainId: chainId, /** Addresses of the contracts indexing the event. */ addresses: array<Address.t>}
+
+@genType @unboxed type eventFiltersDefinition = Single(eventFilter) | Multiple(array<eventFilter>)
+
+@genType @unboxed type eventFilters = | ...eventFiltersDefinition | Dynamic(eventFiltersArgs => eventFiltersDefinition)
+
+let register = (): Internal.evmEventConfig => {
+  let {getEventFiltersOrThrow, filterByAddresses} = LogSelection.parseEventFiltersOrThrow(~eventFilters=handlerRegister->EventRegister.getEventFilters, ~sighash, ~params=["user",], ~topic1=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("user")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)))
+  {
+    getEventFiltersOrThrow,
+    filterByAddresses,
+    dependsOnAddresses: !(handlerRegister->EventRegister.isWildcard) || filterByAddresses,
+    blockSchema: blockSchema->(Utils.magic: S.t<block> => S.t<Internal.eventBlock>),
+    transactionSchema: transactionSchema->(Utils.magic: S.t<transaction> => S.t<Internal.eventTransaction>),
+    convertHyperSyncEventArgs: (decodedEvent: HyperSyncClient.Decoder.decodedEvent) => {user: decodedEvent.indexed->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, assets: decodedEvent.body->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, shares: decodedEvent.body->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, }->(Utils.magic: eventArgs => Internal.eventParams),
+    id,
+  name,
+  contractName,
+  isWildcard: (handlerRegister->EventRegister.isWildcard),
+  handler: handlerRegister->EventRegister.getHandler,
+  contractRegister: handlerRegister->EventRegister.getContractRegister,
+  paramsRawEventSchema: paramsRawEventSchema->(Utils.magic: S.t<eventArgs> => S.t<Internal.eventParams>),
+  }
+}
+}
+
+module Withdraw = {
+
+let id = "0xf279e6a1f5e320cca91135676d9cb6e44ca8a08c0b88342bcdb1144f6511b568_2"
+let sighash = "0xf279e6a1f5e320cca91135676d9cb6e44ca8a08c0b88342bcdb1144f6511b568"
+let name = "Withdraw"
+let contractName = contractName
+
+@genType
+type eventArgs = {user: Address.t, assets: bigint, shares: bigint}
+@genType
+type block = Block.t
+@genType
+type transaction = Transaction.t
+
+@genType
+type event = {
+  /** The parameters or arguments associated with this event. */
+  params: eventArgs,
+  /** The unique identifier of the blockchain network where this event occurred. */
+  chainId: chainId,
+  /** The address of the contract that emitted this event. */
+  srcAddress: Address.t,
+  /** The index of this event's log within the block. */
+  logIndex: int,
+  /** The transaction that triggered this event. Configurable in `config.yaml` via the `field_selection` option. */
+  transaction: transaction,
+  /** The block in which this event was recorded. Configurable in `config.yaml` via the `field_selection` option. */
+  block: block,
+}
+
+@genType
+type loaderArgs = Internal.genericLoaderArgs<event, loaderContext>
+@genType
+type loader<'loaderReturn> = Internal.genericLoader<loaderArgs, 'loaderReturn>
+@genType
+type handlerArgs<'loaderReturn> = Internal.genericHandlerArgs<event, handlerContext, 'loaderReturn>
+@genType
+type handler<'loaderReturn> = Internal.genericHandler<handlerArgs<'loaderReturn>>
+@genType
+type contractRegister = Internal.genericContractRegister<Internal.genericContractRegisterArgs<event, contractRegistrations>>
+
+let paramsRawEventSchema = S.object((s): eventArgs => {user: s.field("user", Address.schema), assets: s.field("assets", BigInt.schema), shares: s.field("shares", BigInt.schema)})
+let blockSchema = Block.schema
+let transactionSchema = Transaction.schema
+
+let handlerRegister: EventRegister.t = EventRegister.make(
+  ~contractName,
+  ~eventName=name,
+)
+
+@genType
+type eventFilter = {@as("user") user?: SingleOrMultiple.t<Address.t>}
+
+@genType type eventFiltersArgs = {/** The unique identifier of the blockchain network where this event occurred. */ chainId: chainId, /** Addresses of the contracts indexing the event. */ addresses: array<Address.t>}
+
+@genType @unboxed type eventFiltersDefinition = Single(eventFilter) | Multiple(array<eventFilter>)
+
+@genType @unboxed type eventFilters = | ...eventFiltersDefinition | Dynamic(eventFiltersArgs => eventFiltersDefinition)
+
+let register = (): Internal.evmEventConfig => {
+  let {getEventFiltersOrThrow, filterByAddresses} = LogSelection.parseEventFiltersOrThrow(~eventFilters=handlerRegister->EventRegister.getEventFilters, ~sighash, ~params=["user",], ~topic1=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("user")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)))
+  {
+    getEventFiltersOrThrow,
+    filterByAddresses,
+    dependsOnAddresses: !(handlerRegister->EventRegister.isWildcard) || filterByAddresses,
+    blockSchema: blockSchema->(Utils.magic: S.t<block> => S.t<Internal.eventBlock>),
+    transactionSchema: transactionSchema->(Utils.magic: S.t<transaction> => S.t<Internal.eventTransaction>),
+    convertHyperSyncEventArgs: (decodedEvent: HyperSyncClient.Decoder.decodedEvent) => {user: decodedEvent.indexed->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, assets: decodedEvent.body->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, shares: decodedEvent.body->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, }->(Utils.magic: eventArgs => Internal.eventParams),
+    id,
+  name,
+  contractName,
+  isWildcard: (handlerRegister->EventRegister.isWildcard),
+  handler: handlerRegister->EventRegister.getHandler,
+  contractRegister: handlerRegister->EventRegister.getContractRegister,
+  paramsRawEventSchema: paramsRawEventSchema->(Utils.magic: S.t<eventArgs> => S.t<Internal.eventParams>),
+  }
+}
+}
+
+module Swap = {
+
+let id = "0xcd3829a3813dc3cdd188fd3d01dcf3268c16be2fdd2dd21d0665418816e46062_2"
+let sighash = "0xcd3829a3813dc3cdd188fd3d01dcf3268c16be2fdd2dd21d0665418816e46062"
+let name = "Swap"
+let contractName = contractName
+
+@genType
+type eventArgs = {sender: Address.t, tokenIn: Address.t, tokenOut: Address.t, amountIn: bigint, amountOut: bigint}
+@genType
+type block = Block.t
+@genType
+type transaction = Transaction.t
+
+@genType
+type event = {
+  /** The parameters or arguments associated with this event. */
+  params: eventArgs,
+  /** The unique identifier of the blockchain network where this event occurred. */
+  chainId: chainId,
+  /** The address of the contract that emitted this event. */
+  srcAddress: Address.t,
+  /** The index of this event's log within the block. */
+  logIndex: int,
+  /** The transaction that triggered this event. Configurable in `config.yaml` via the `field_selection` option. */
+  transaction: transaction,
+  /** The block in which this event was recorded. Configurable in `config.yaml` via the `field_selection` option. */
+  block: block,
+}
+
+@genType
+type loaderArgs = Internal.genericLoaderArgs<event, loaderContext>
+@genType
+type loader<'loaderReturn> = Internal.genericLoader<loaderArgs, 'loaderReturn>
+@genType
+type handlerArgs<'loaderReturn> = Internal.genericHandlerArgs<event, handlerContext, 'loaderReturn>
+@genType
+type handler<'loaderReturn> = Internal.genericHandler<handlerArgs<'loaderReturn>>
+@genType
+type contractRegister = Internal.genericContractRegister<Internal.genericContractRegisterArgs<event, contractRegistrations>>
+
+let paramsRawEventSchema = S.object((s): eventArgs => {sender: s.field("sender", Address.schema), tokenIn: s.field("tokenIn", Address.schema), tokenOut: s.field("tokenOut", Address.schema), amountIn: s.field("amountIn", BigInt.schema), amountOut: s.field("amountOut", BigInt.schema)})
+let blockSchema = Block.schema
+let transactionSchema = Transaction.schema
+
+let handlerRegister: EventRegister.t = EventRegister.make(
+  ~contractName,
+  ~eventName=name,
+)
+
+@genType
+type eventFilter = {@as("sender") sender?: SingleOrMultiple.t<Address.t>}
+
+@genType type eventFiltersArgs = {/** The unique identifier of the blockchain network where this event occurred. */ chainId: chainId, /** Addresses of the contracts indexing the event. */ addresses: array<Address.t>}
+
+@genType @unboxed type eventFiltersDefinition = Single(eventFilter) | Multiple(array<eventFilter>)
+
+@genType @unboxed type eventFilters = | ...eventFiltersDefinition | Dynamic(eventFiltersArgs => eventFiltersDefinition)
+
+let register = (): Internal.evmEventConfig => {
+  let {getEventFiltersOrThrow, filterByAddresses} = LogSelection.parseEventFiltersOrThrow(~eventFilters=handlerRegister->EventRegister.getEventFilters, ~sighash, ~params=["sender",], ~topic1=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("sender")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)))
+  {
+    getEventFiltersOrThrow,
+    filterByAddresses,
+    dependsOnAddresses: !(handlerRegister->EventRegister.isWildcard) || filterByAddresses,
+    blockSchema: blockSchema->(Utils.magic: S.t<block> => S.t<Internal.eventBlock>),
+    transactionSchema: transactionSchema->(Utils.magic: S.t<transaction> => S.t<Internal.eventTransaction>),
+    convertHyperSyncEventArgs: (decodedEvent: HyperSyncClient.Decoder.decodedEvent) => {sender: decodedEvent.indexed->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, tokenIn: decodedEvent.body->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, tokenOut: decodedEvent.body->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, amountIn: decodedEvent.body->Js.Array2.unsafe_get(2)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, amountOut: decodedEvent.body->Js.Array2.unsafe_get(3)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, }->(Utils.magic: eventArgs => Internal.eventParams),
     id,
   name,
   contractName,
@@ -870,6 +2138,730 @@ let register = (): Internal.evmEventConfig => {
     blockSchema: blockSchema->(Utils.magic: S.t<block> => S.t<Internal.eventBlock>),
     transactionSchema: transactionSchema->(Utils.magic: S.t<transaction> => S.t<Internal.eventTransaction>),
     convertHyperSyncEventArgs: (decodedEvent: HyperSyncClient.Decoder.decodedEvent) => {user: decodedEvent.indexed->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, protocol: decodedEvent.indexed->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, valueUsd: decodedEvent.body->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, spentToday: decodedEvent.body->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, }->(Utils.magic: eventArgs => Internal.eventParams),
+    id,
+  name,
+  contractName,
+  isWildcard: (handlerRegister->EventRegister.isWildcard),
+  handler: handlerRegister->EventRegister.getHandler,
+  contractRegister: handlerRegister->EventRegister.getContractRegister,
+  paramsRawEventSchema: paramsRawEventSchema->(Utils.magic: S.t<eventArgs> => S.t<Internal.eventParams>),
+  }
+}
+}
+}
+
+module UniswapV2Factory = {
+let abi = Ethers.makeAbi((%raw(`[{"type":"event","name":"PairCreated","inputs":[{"name":"token0","type":"address","indexed":true},{"name":"token1","type":"address","indexed":true},{"name":"pair","type":"address","indexed":false},{"name":"_3","type":"uint256","indexed":false}],"anonymous":false}]`): Js.Json.t))
+let eventSignatures = ["PairCreated(address indexed token0, address indexed token1, address pair, uint256 _3)"]
+@genType type chainId = [#10143]
+let contractName = "UniswapV2Factory"
+
+module PairCreated = {
+
+let id = "0x0d3648bd0f6ba80134a33ba9275ac585d9d315f0ad8355cddefde31afa28d0e9_3"
+let sighash = "0x0d3648bd0f6ba80134a33ba9275ac585d9d315f0ad8355cddefde31afa28d0e9"
+let name = "PairCreated"
+let contractName = contractName
+
+@genType
+type eventArgs = {token0: Address.t, token1: Address.t, pair: Address.t, _3: bigint}
+@genType
+type block = Block.t
+@genType
+type transaction = Transaction.t
+
+@genType
+type event = {
+  /** The parameters or arguments associated with this event. */
+  params: eventArgs,
+  /** The unique identifier of the blockchain network where this event occurred. */
+  chainId: chainId,
+  /** The address of the contract that emitted this event. */
+  srcAddress: Address.t,
+  /** The index of this event's log within the block. */
+  logIndex: int,
+  /** The transaction that triggered this event. Configurable in `config.yaml` via the `field_selection` option. */
+  transaction: transaction,
+  /** The block in which this event was recorded. Configurable in `config.yaml` via the `field_selection` option. */
+  block: block,
+}
+
+@genType
+type loaderArgs = Internal.genericLoaderArgs<event, loaderContext>
+@genType
+type loader<'loaderReturn> = Internal.genericLoader<loaderArgs, 'loaderReturn>
+@genType
+type handlerArgs<'loaderReturn> = Internal.genericHandlerArgs<event, handlerContext, 'loaderReturn>
+@genType
+type handler<'loaderReturn> = Internal.genericHandler<handlerArgs<'loaderReturn>>
+@genType
+type contractRegister = Internal.genericContractRegister<Internal.genericContractRegisterArgs<event, contractRegistrations>>
+
+let paramsRawEventSchema = S.object((s): eventArgs => {token0: s.field("token0", Address.schema), token1: s.field("token1", Address.schema), pair: s.field("pair", Address.schema), _3: s.field("_3", BigInt.schema)})
+let blockSchema = Block.schema
+let transactionSchema = Transaction.schema
+
+let handlerRegister: EventRegister.t = EventRegister.make(
+  ~contractName,
+  ~eventName=name,
+)
+
+@genType
+type eventFilter = {@as("token0") token0?: SingleOrMultiple.t<Address.t>, @as("token1") token1?: SingleOrMultiple.t<Address.t>}
+
+@genType type eventFiltersArgs = {/** The unique identifier of the blockchain network where this event occurred. */ chainId: chainId, /** Addresses of the contracts indexing the event. */ addresses: array<Address.t>}
+
+@genType @unboxed type eventFiltersDefinition = Single(eventFilter) | Multiple(array<eventFilter>)
+
+@genType @unboxed type eventFilters = | ...eventFiltersDefinition | Dynamic(eventFiltersArgs => eventFiltersDefinition)
+
+let register = (): Internal.evmEventConfig => {
+  let {getEventFiltersOrThrow, filterByAddresses} = LogSelection.parseEventFiltersOrThrow(~eventFilters=handlerRegister->EventRegister.getEventFilters, ~sighash, ~params=["token0","token1",], ~topic1=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("token0")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)), ~topic2=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("token1")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)))
+  {
+    getEventFiltersOrThrow,
+    filterByAddresses,
+    dependsOnAddresses: !(handlerRegister->EventRegister.isWildcard) || filterByAddresses,
+    blockSchema: blockSchema->(Utils.magic: S.t<block> => S.t<Internal.eventBlock>),
+    transactionSchema: transactionSchema->(Utils.magic: S.t<transaction> => S.t<Internal.eventTransaction>),
+    convertHyperSyncEventArgs: (decodedEvent: HyperSyncClient.Decoder.decodedEvent) => {token0: decodedEvent.indexed->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, token1: decodedEvent.indexed->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, pair: decodedEvent.body->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, _3: decodedEvent.body->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, }->(Utils.magic: eventArgs => Internal.eventParams),
+    id,
+  name,
+  contractName,
+  isWildcard: (handlerRegister->EventRegister.isWildcard),
+  handler: handlerRegister->EventRegister.getHandler,
+  contractRegister: handlerRegister->EventRegister.getContractRegister,
+  paramsRawEventSchema: paramsRawEventSchema->(Utils.magic: S.t<eventArgs> => S.t<Internal.eventParams>),
+  }
+}
+}
+}
+
+module UniswapV2Pair_USDC_USDT = {
+let abi = Ethers.makeAbi((%raw(`[{"type":"event","name":"Burn","inputs":[{"name":"sender","type":"address","indexed":true},{"name":"amount0","type":"uint256","indexed":false},{"name":"amount1","type":"uint256","indexed":false},{"name":"to","type":"address","indexed":true}],"anonymous":false},{"type":"event","name":"Mint","inputs":[{"name":"sender","type":"address","indexed":true},{"name":"amount0","type":"uint256","indexed":false},{"name":"amount1","type":"uint256","indexed":false}],"anonymous":false},{"type":"event","name":"Swap","inputs":[{"name":"sender","type":"address","indexed":true},{"name":"amount0In","type":"uint256","indexed":false},{"name":"amount1In","type":"uint256","indexed":false},{"name":"amount0Out","type":"uint256","indexed":false},{"name":"amount1Out","type":"uint256","indexed":false},{"name":"to","type":"address","indexed":true}],"anonymous":false},{"type":"event","name":"Sync","inputs":[{"name":"reserve0","type":"uint112","indexed":false},{"name":"reserve1","type":"uint112","indexed":false}],"anonymous":false}]`): Js.Json.t))
+let eventSignatures = ["Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed to)", "Mint(address indexed sender, uint256 amount0, uint256 amount1)", "Swap(address indexed sender, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out, address indexed to)", "Sync(uint112 reserve0, uint112 reserve1)"]
+@genType type chainId = [#10143]
+let contractName = "UniswapV2Pair_USDC_USDT"
+
+module Mint = {
+
+let id = "0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f_2"
+let sighash = "0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f"
+let name = "Mint"
+let contractName = contractName
+
+@genType
+type eventArgs = {sender: Address.t, amount0: bigint, amount1: bigint}
+@genType
+type block = Block.t
+@genType
+type transaction = Transaction.t
+
+@genType
+type event = {
+  /** The parameters or arguments associated with this event. */
+  params: eventArgs,
+  /** The unique identifier of the blockchain network where this event occurred. */
+  chainId: chainId,
+  /** The address of the contract that emitted this event. */
+  srcAddress: Address.t,
+  /** The index of this event's log within the block. */
+  logIndex: int,
+  /** The transaction that triggered this event. Configurable in `config.yaml` via the `field_selection` option. */
+  transaction: transaction,
+  /** The block in which this event was recorded. Configurable in `config.yaml` via the `field_selection` option. */
+  block: block,
+}
+
+@genType
+type loaderArgs = Internal.genericLoaderArgs<event, loaderContext>
+@genType
+type loader<'loaderReturn> = Internal.genericLoader<loaderArgs, 'loaderReturn>
+@genType
+type handlerArgs<'loaderReturn> = Internal.genericHandlerArgs<event, handlerContext, 'loaderReturn>
+@genType
+type handler<'loaderReturn> = Internal.genericHandler<handlerArgs<'loaderReturn>>
+@genType
+type contractRegister = Internal.genericContractRegister<Internal.genericContractRegisterArgs<event, contractRegistrations>>
+
+let paramsRawEventSchema = S.object((s): eventArgs => {sender: s.field("sender", Address.schema), amount0: s.field("amount0", BigInt.schema), amount1: s.field("amount1", BigInt.schema)})
+let blockSchema = Block.schema
+let transactionSchema = Transaction.schema
+
+let handlerRegister: EventRegister.t = EventRegister.make(
+  ~contractName,
+  ~eventName=name,
+)
+
+@genType
+type eventFilter = {@as("sender") sender?: SingleOrMultiple.t<Address.t>}
+
+@genType type eventFiltersArgs = {/** The unique identifier of the blockchain network where this event occurred. */ chainId: chainId, /** Addresses of the contracts indexing the event. */ addresses: array<Address.t>}
+
+@genType @unboxed type eventFiltersDefinition = Single(eventFilter) | Multiple(array<eventFilter>)
+
+@genType @unboxed type eventFilters = | ...eventFiltersDefinition | Dynamic(eventFiltersArgs => eventFiltersDefinition)
+
+let register = (): Internal.evmEventConfig => {
+  let {getEventFiltersOrThrow, filterByAddresses} = LogSelection.parseEventFiltersOrThrow(~eventFilters=handlerRegister->EventRegister.getEventFilters, ~sighash, ~params=["sender",], ~topic1=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("sender")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)))
+  {
+    getEventFiltersOrThrow,
+    filterByAddresses,
+    dependsOnAddresses: !(handlerRegister->EventRegister.isWildcard) || filterByAddresses,
+    blockSchema: blockSchema->(Utils.magic: S.t<block> => S.t<Internal.eventBlock>),
+    transactionSchema: transactionSchema->(Utils.magic: S.t<transaction> => S.t<Internal.eventTransaction>),
+    convertHyperSyncEventArgs: (decodedEvent: HyperSyncClient.Decoder.decodedEvent) => {sender: decodedEvent.indexed->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, amount0: decodedEvent.body->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, amount1: decodedEvent.body->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, }->(Utils.magic: eventArgs => Internal.eventParams),
+    id,
+  name,
+  contractName,
+  isWildcard: (handlerRegister->EventRegister.isWildcard),
+  handler: handlerRegister->EventRegister.getHandler,
+  contractRegister: handlerRegister->EventRegister.getContractRegister,
+  paramsRawEventSchema: paramsRawEventSchema->(Utils.magic: S.t<eventArgs> => S.t<Internal.eventParams>),
+  }
+}
+}
+
+module Burn = {
+
+let id = "0xdccd412f0b1252819cb1fd330b93224ca42612892bb3f4f789976e6d81936496_3"
+let sighash = "0xdccd412f0b1252819cb1fd330b93224ca42612892bb3f4f789976e6d81936496"
+let name = "Burn"
+let contractName = contractName
+
+@genType
+type eventArgs = {sender: Address.t, amount0: bigint, amount1: bigint, to: Address.t}
+@genType
+type block = Block.t
+@genType
+type transaction = Transaction.t
+
+@genType
+type event = {
+  /** The parameters or arguments associated with this event. */
+  params: eventArgs,
+  /** The unique identifier of the blockchain network where this event occurred. */
+  chainId: chainId,
+  /** The address of the contract that emitted this event. */
+  srcAddress: Address.t,
+  /** The index of this event's log within the block. */
+  logIndex: int,
+  /** The transaction that triggered this event. Configurable in `config.yaml` via the `field_selection` option. */
+  transaction: transaction,
+  /** The block in which this event was recorded. Configurable in `config.yaml` via the `field_selection` option. */
+  block: block,
+}
+
+@genType
+type loaderArgs = Internal.genericLoaderArgs<event, loaderContext>
+@genType
+type loader<'loaderReturn> = Internal.genericLoader<loaderArgs, 'loaderReturn>
+@genType
+type handlerArgs<'loaderReturn> = Internal.genericHandlerArgs<event, handlerContext, 'loaderReturn>
+@genType
+type handler<'loaderReturn> = Internal.genericHandler<handlerArgs<'loaderReturn>>
+@genType
+type contractRegister = Internal.genericContractRegister<Internal.genericContractRegisterArgs<event, contractRegistrations>>
+
+let paramsRawEventSchema = S.object((s): eventArgs => {sender: s.field("sender", Address.schema), amount0: s.field("amount0", BigInt.schema), amount1: s.field("amount1", BigInt.schema), to: s.field("to", Address.schema)})
+let blockSchema = Block.schema
+let transactionSchema = Transaction.schema
+
+let handlerRegister: EventRegister.t = EventRegister.make(
+  ~contractName,
+  ~eventName=name,
+)
+
+@genType
+type eventFilter = {@as("sender") sender?: SingleOrMultiple.t<Address.t>, @as("to") to?: SingleOrMultiple.t<Address.t>}
+
+@genType type eventFiltersArgs = {/** The unique identifier of the blockchain network where this event occurred. */ chainId: chainId, /** Addresses of the contracts indexing the event. */ addresses: array<Address.t>}
+
+@genType @unboxed type eventFiltersDefinition = Single(eventFilter) | Multiple(array<eventFilter>)
+
+@genType @unboxed type eventFilters = | ...eventFiltersDefinition | Dynamic(eventFiltersArgs => eventFiltersDefinition)
+
+let register = (): Internal.evmEventConfig => {
+  let {getEventFiltersOrThrow, filterByAddresses} = LogSelection.parseEventFiltersOrThrow(~eventFilters=handlerRegister->EventRegister.getEventFilters, ~sighash, ~params=["sender","to",], ~topic1=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("sender")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)), ~topic2=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("to")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)))
+  {
+    getEventFiltersOrThrow,
+    filterByAddresses,
+    dependsOnAddresses: !(handlerRegister->EventRegister.isWildcard) || filterByAddresses,
+    blockSchema: blockSchema->(Utils.magic: S.t<block> => S.t<Internal.eventBlock>),
+    transactionSchema: transactionSchema->(Utils.magic: S.t<transaction> => S.t<Internal.eventTransaction>),
+    convertHyperSyncEventArgs: (decodedEvent: HyperSyncClient.Decoder.decodedEvent) => {sender: decodedEvent.indexed->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, to: decodedEvent.indexed->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, amount0: decodedEvent.body->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, amount1: decodedEvent.body->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, }->(Utils.magic: eventArgs => Internal.eventParams),
+    id,
+  name,
+  contractName,
+  isWildcard: (handlerRegister->EventRegister.isWildcard),
+  handler: handlerRegister->EventRegister.getHandler,
+  contractRegister: handlerRegister->EventRegister.getContractRegister,
+  paramsRawEventSchema: paramsRawEventSchema->(Utils.magic: S.t<eventArgs> => S.t<Internal.eventParams>),
+  }
+}
+}
+
+module Swap = {
+
+let id = "0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822_3"
+let sighash = "0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822"
+let name = "Swap"
+let contractName = contractName
+
+@genType
+type eventArgs = {sender: Address.t, amount0In: bigint, amount1In: bigint, amount0Out: bigint, amount1Out: bigint, to: Address.t}
+@genType
+type block = Block.t
+@genType
+type transaction = Transaction.t
+
+@genType
+type event = {
+  /** The parameters or arguments associated with this event. */
+  params: eventArgs,
+  /** The unique identifier of the blockchain network where this event occurred. */
+  chainId: chainId,
+  /** The address of the contract that emitted this event. */
+  srcAddress: Address.t,
+  /** The index of this event's log within the block. */
+  logIndex: int,
+  /** The transaction that triggered this event. Configurable in `config.yaml` via the `field_selection` option. */
+  transaction: transaction,
+  /** The block in which this event was recorded. Configurable in `config.yaml` via the `field_selection` option. */
+  block: block,
+}
+
+@genType
+type loaderArgs = Internal.genericLoaderArgs<event, loaderContext>
+@genType
+type loader<'loaderReturn> = Internal.genericLoader<loaderArgs, 'loaderReturn>
+@genType
+type handlerArgs<'loaderReturn> = Internal.genericHandlerArgs<event, handlerContext, 'loaderReturn>
+@genType
+type handler<'loaderReturn> = Internal.genericHandler<handlerArgs<'loaderReturn>>
+@genType
+type contractRegister = Internal.genericContractRegister<Internal.genericContractRegisterArgs<event, contractRegistrations>>
+
+let paramsRawEventSchema = S.object((s): eventArgs => {sender: s.field("sender", Address.schema), amount0In: s.field("amount0In", BigInt.schema), amount1In: s.field("amount1In", BigInt.schema), amount0Out: s.field("amount0Out", BigInt.schema), amount1Out: s.field("amount1Out", BigInt.schema), to: s.field("to", Address.schema)})
+let blockSchema = Block.schema
+let transactionSchema = Transaction.schema
+
+let handlerRegister: EventRegister.t = EventRegister.make(
+  ~contractName,
+  ~eventName=name,
+)
+
+@genType
+type eventFilter = {@as("sender") sender?: SingleOrMultiple.t<Address.t>, @as("to") to?: SingleOrMultiple.t<Address.t>}
+
+@genType type eventFiltersArgs = {/** The unique identifier of the blockchain network where this event occurred. */ chainId: chainId, /** Addresses of the contracts indexing the event. */ addresses: array<Address.t>}
+
+@genType @unboxed type eventFiltersDefinition = Single(eventFilter) | Multiple(array<eventFilter>)
+
+@genType @unboxed type eventFilters = | ...eventFiltersDefinition | Dynamic(eventFiltersArgs => eventFiltersDefinition)
+
+let register = (): Internal.evmEventConfig => {
+  let {getEventFiltersOrThrow, filterByAddresses} = LogSelection.parseEventFiltersOrThrow(~eventFilters=handlerRegister->EventRegister.getEventFilters, ~sighash, ~params=["sender","to",], ~topic1=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("sender")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)), ~topic2=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("to")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)))
+  {
+    getEventFiltersOrThrow,
+    filterByAddresses,
+    dependsOnAddresses: !(handlerRegister->EventRegister.isWildcard) || filterByAddresses,
+    blockSchema: blockSchema->(Utils.magic: S.t<block> => S.t<Internal.eventBlock>),
+    transactionSchema: transactionSchema->(Utils.magic: S.t<transaction> => S.t<Internal.eventTransaction>),
+    convertHyperSyncEventArgs: (decodedEvent: HyperSyncClient.Decoder.decodedEvent) => {sender: decodedEvent.indexed->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, to: decodedEvent.indexed->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, amount0In: decodedEvent.body->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, amount1In: decodedEvent.body->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, amount0Out: decodedEvent.body->Js.Array2.unsafe_get(2)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, amount1Out: decodedEvent.body->Js.Array2.unsafe_get(3)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, }->(Utils.magic: eventArgs => Internal.eventParams),
+    id,
+  name,
+  contractName,
+  isWildcard: (handlerRegister->EventRegister.isWildcard),
+  handler: handlerRegister->EventRegister.getHandler,
+  contractRegister: handlerRegister->EventRegister.getContractRegister,
+  paramsRawEventSchema: paramsRawEventSchema->(Utils.magic: S.t<eventArgs> => S.t<Internal.eventParams>),
+  }
+}
+}
+
+module Sync = {
+
+let id = "0x1c411e9a96e071241c2f21f7726b17ae89e3cab4c78be50e062b03a9fffbbad1_1"
+let sighash = "0x1c411e9a96e071241c2f21f7726b17ae89e3cab4c78be50e062b03a9fffbbad1"
+let name = "Sync"
+let contractName = contractName
+
+@genType
+type eventArgs = {reserve0: bigint, reserve1: bigint}
+@genType
+type block = Block.t
+@genType
+type transaction = Transaction.t
+
+@genType
+type event = {
+  /** The parameters or arguments associated with this event. */
+  params: eventArgs,
+  /** The unique identifier of the blockchain network where this event occurred. */
+  chainId: chainId,
+  /** The address of the contract that emitted this event. */
+  srcAddress: Address.t,
+  /** The index of this event's log within the block. */
+  logIndex: int,
+  /** The transaction that triggered this event. Configurable in `config.yaml` via the `field_selection` option. */
+  transaction: transaction,
+  /** The block in which this event was recorded. Configurable in `config.yaml` via the `field_selection` option. */
+  block: block,
+}
+
+@genType
+type loaderArgs = Internal.genericLoaderArgs<event, loaderContext>
+@genType
+type loader<'loaderReturn> = Internal.genericLoader<loaderArgs, 'loaderReturn>
+@genType
+type handlerArgs<'loaderReturn> = Internal.genericHandlerArgs<event, handlerContext, 'loaderReturn>
+@genType
+type handler<'loaderReturn> = Internal.genericHandler<handlerArgs<'loaderReturn>>
+@genType
+type contractRegister = Internal.genericContractRegister<Internal.genericContractRegisterArgs<event, contractRegistrations>>
+
+let paramsRawEventSchema = S.object((s): eventArgs => {reserve0: s.field("reserve0", BigInt.schema), reserve1: s.field("reserve1", BigInt.schema)})
+let blockSchema = Block.schema
+let transactionSchema = Transaction.schema
+
+let handlerRegister: EventRegister.t = EventRegister.make(
+  ~contractName,
+  ~eventName=name,
+)
+
+@genType
+type eventFilter = {}
+
+@genType type eventFilters = Internal.noEventFilters
+
+let register = (): Internal.evmEventConfig => {
+  let {getEventFiltersOrThrow, filterByAddresses} = LogSelection.parseEventFiltersOrThrow(~eventFilters=handlerRegister->EventRegister.getEventFilters, ~sighash, ~params=[])
+  {
+    getEventFiltersOrThrow,
+    filterByAddresses,
+    dependsOnAddresses: !(handlerRegister->EventRegister.isWildcard) || filterByAddresses,
+    blockSchema: blockSchema->(Utils.magic: S.t<block> => S.t<Internal.eventBlock>),
+    transactionSchema: transactionSchema->(Utils.magic: S.t<transaction> => S.t<Internal.eventTransaction>),
+    convertHyperSyncEventArgs: (decodedEvent: HyperSyncClient.Decoder.decodedEvent) => {reserve0: decodedEvent.body->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, reserve1: decodedEvent.body->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, }->(Utils.magic: eventArgs => Internal.eventParams),
+    id,
+  name,
+  contractName,
+  isWildcard: (handlerRegister->EventRegister.isWildcard),
+  handler: handlerRegister->EventRegister.getHandler,
+  contractRegister: handlerRegister->EventRegister.getContractRegister,
+  paramsRawEventSchema: paramsRawEventSchema->(Utils.magic: S.t<eventArgs> => S.t<Internal.eventParams>),
+  }
+}
+}
+}
+
+module UniswapV2Pair_USDC_WMON = {
+let abi = Ethers.makeAbi((%raw(`[{"type":"event","name":"Burn","inputs":[{"name":"sender","type":"address","indexed":true},{"name":"amount0","type":"uint256","indexed":false},{"name":"amount1","type":"uint256","indexed":false},{"name":"to","type":"address","indexed":true}],"anonymous":false},{"type":"event","name":"Mint","inputs":[{"name":"sender","type":"address","indexed":true},{"name":"amount0","type":"uint256","indexed":false},{"name":"amount1","type":"uint256","indexed":false}],"anonymous":false},{"type":"event","name":"Swap","inputs":[{"name":"sender","type":"address","indexed":true},{"name":"amount0In","type":"uint256","indexed":false},{"name":"amount1In","type":"uint256","indexed":false},{"name":"amount0Out","type":"uint256","indexed":false},{"name":"amount1Out","type":"uint256","indexed":false},{"name":"to","type":"address","indexed":true}],"anonymous":false},{"type":"event","name":"Sync","inputs":[{"name":"reserve0","type":"uint112","indexed":false},{"name":"reserve1","type":"uint112","indexed":false}],"anonymous":false}]`): Js.Json.t))
+let eventSignatures = ["Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed to)", "Mint(address indexed sender, uint256 amount0, uint256 amount1)", "Swap(address indexed sender, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out, address indexed to)", "Sync(uint112 reserve0, uint112 reserve1)"]
+@genType type chainId = [#10143]
+let contractName = "UniswapV2Pair_USDC_WMON"
+
+module Mint = {
+
+let id = "0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f_2"
+let sighash = "0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f"
+let name = "Mint"
+let contractName = contractName
+
+@genType
+type eventArgs = {sender: Address.t, amount0: bigint, amount1: bigint}
+@genType
+type block = Block.t
+@genType
+type transaction = Transaction.t
+
+@genType
+type event = {
+  /** The parameters or arguments associated with this event. */
+  params: eventArgs,
+  /** The unique identifier of the blockchain network where this event occurred. */
+  chainId: chainId,
+  /** The address of the contract that emitted this event. */
+  srcAddress: Address.t,
+  /** The index of this event's log within the block. */
+  logIndex: int,
+  /** The transaction that triggered this event. Configurable in `config.yaml` via the `field_selection` option. */
+  transaction: transaction,
+  /** The block in which this event was recorded. Configurable in `config.yaml` via the `field_selection` option. */
+  block: block,
+}
+
+@genType
+type loaderArgs = Internal.genericLoaderArgs<event, loaderContext>
+@genType
+type loader<'loaderReturn> = Internal.genericLoader<loaderArgs, 'loaderReturn>
+@genType
+type handlerArgs<'loaderReturn> = Internal.genericHandlerArgs<event, handlerContext, 'loaderReturn>
+@genType
+type handler<'loaderReturn> = Internal.genericHandler<handlerArgs<'loaderReturn>>
+@genType
+type contractRegister = Internal.genericContractRegister<Internal.genericContractRegisterArgs<event, contractRegistrations>>
+
+let paramsRawEventSchema = S.object((s): eventArgs => {sender: s.field("sender", Address.schema), amount0: s.field("amount0", BigInt.schema), amount1: s.field("amount1", BigInt.schema)})
+let blockSchema = Block.schema
+let transactionSchema = Transaction.schema
+
+let handlerRegister: EventRegister.t = EventRegister.make(
+  ~contractName,
+  ~eventName=name,
+)
+
+@genType
+type eventFilter = {@as("sender") sender?: SingleOrMultiple.t<Address.t>}
+
+@genType type eventFiltersArgs = {/** The unique identifier of the blockchain network where this event occurred. */ chainId: chainId, /** Addresses of the contracts indexing the event. */ addresses: array<Address.t>}
+
+@genType @unboxed type eventFiltersDefinition = Single(eventFilter) | Multiple(array<eventFilter>)
+
+@genType @unboxed type eventFilters = | ...eventFiltersDefinition | Dynamic(eventFiltersArgs => eventFiltersDefinition)
+
+let register = (): Internal.evmEventConfig => {
+  let {getEventFiltersOrThrow, filterByAddresses} = LogSelection.parseEventFiltersOrThrow(~eventFilters=handlerRegister->EventRegister.getEventFilters, ~sighash, ~params=["sender",], ~topic1=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("sender")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)))
+  {
+    getEventFiltersOrThrow,
+    filterByAddresses,
+    dependsOnAddresses: !(handlerRegister->EventRegister.isWildcard) || filterByAddresses,
+    blockSchema: blockSchema->(Utils.magic: S.t<block> => S.t<Internal.eventBlock>),
+    transactionSchema: transactionSchema->(Utils.magic: S.t<transaction> => S.t<Internal.eventTransaction>),
+    convertHyperSyncEventArgs: (decodedEvent: HyperSyncClient.Decoder.decodedEvent) => {sender: decodedEvent.indexed->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, amount0: decodedEvent.body->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, amount1: decodedEvent.body->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, }->(Utils.magic: eventArgs => Internal.eventParams),
+    id,
+  name,
+  contractName,
+  isWildcard: (handlerRegister->EventRegister.isWildcard),
+  handler: handlerRegister->EventRegister.getHandler,
+  contractRegister: handlerRegister->EventRegister.getContractRegister,
+  paramsRawEventSchema: paramsRawEventSchema->(Utils.magic: S.t<eventArgs> => S.t<Internal.eventParams>),
+  }
+}
+}
+
+module Burn = {
+
+let id = "0xdccd412f0b1252819cb1fd330b93224ca42612892bb3f4f789976e6d81936496_3"
+let sighash = "0xdccd412f0b1252819cb1fd330b93224ca42612892bb3f4f789976e6d81936496"
+let name = "Burn"
+let contractName = contractName
+
+@genType
+type eventArgs = {sender: Address.t, amount0: bigint, amount1: bigint, to: Address.t}
+@genType
+type block = Block.t
+@genType
+type transaction = Transaction.t
+
+@genType
+type event = {
+  /** The parameters or arguments associated with this event. */
+  params: eventArgs,
+  /** The unique identifier of the blockchain network where this event occurred. */
+  chainId: chainId,
+  /** The address of the contract that emitted this event. */
+  srcAddress: Address.t,
+  /** The index of this event's log within the block. */
+  logIndex: int,
+  /** The transaction that triggered this event. Configurable in `config.yaml` via the `field_selection` option. */
+  transaction: transaction,
+  /** The block in which this event was recorded. Configurable in `config.yaml` via the `field_selection` option. */
+  block: block,
+}
+
+@genType
+type loaderArgs = Internal.genericLoaderArgs<event, loaderContext>
+@genType
+type loader<'loaderReturn> = Internal.genericLoader<loaderArgs, 'loaderReturn>
+@genType
+type handlerArgs<'loaderReturn> = Internal.genericHandlerArgs<event, handlerContext, 'loaderReturn>
+@genType
+type handler<'loaderReturn> = Internal.genericHandler<handlerArgs<'loaderReturn>>
+@genType
+type contractRegister = Internal.genericContractRegister<Internal.genericContractRegisterArgs<event, contractRegistrations>>
+
+let paramsRawEventSchema = S.object((s): eventArgs => {sender: s.field("sender", Address.schema), amount0: s.field("amount0", BigInt.schema), amount1: s.field("amount1", BigInt.schema), to: s.field("to", Address.schema)})
+let blockSchema = Block.schema
+let transactionSchema = Transaction.schema
+
+let handlerRegister: EventRegister.t = EventRegister.make(
+  ~contractName,
+  ~eventName=name,
+)
+
+@genType
+type eventFilter = {@as("sender") sender?: SingleOrMultiple.t<Address.t>, @as("to") to?: SingleOrMultiple.t<Address.t>}
+
+@genType type eventFiltersArgs = {/** The unique identifier of the blockchain network where this event occurred. */ chainId: chainId, /** Addresses of the contracts indexing the event. */ addresses: array<Address.t>}
+
+@genType @unboxed type eventFiltersDefinition = Single(eventFilter) | Multiple(array<eventFilter>)
+
+@genType @unboxed type eventFilters = | ...eventFiltersDefinition | Dynamic(eventFiltersArgs => eventFiltersDefinition)
+
+let register = (): Internal.evmEventConfig => {
+  let {getEventFiltersOrThrow, filterByAddresses} = LogSelection.parseEventFiltersOrThrow(~eventFilters=handlerRegister->EventRegister.getEventFilters, ~sighash, ~params=["sender","to",], ~topic1=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("sender")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)), ~topic2=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("to")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)))
+  {
+    getEventFiltersOrThrow,
+    filterByAddresses,
+    dependsOnAddresses: !(handlerRegister->EventRegister.isWildcard) || filterByAddresses,
+    blockSchema: blockSchema->(Utils.magic: S.t<block> => S.t<Internal.eventBlock>),
+    transactionSchema: transactionSchema->(Utils.magic: S.t<transaction> => S.t<Internal.eventTransaction>),
+    convertHyperSyncEventArgs: (decodedEvent: HyperSyncClient.Decoder.decodedEvent) => {sender: decodedEvent.indexed->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, to: decodedEvent.indexed->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, amount0: decodedEvent.body->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, amount1: decodedEvent.body->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, }->(Utils.magic: eventArgs => Internal.eventParams),
+    id,
+  name,
+  contractName,
+  isWildcard: (handlerRegister->EventRegister.isWildcard),
+  handler: handlerRegister->EventRegister.getHandler,
+  contractRegister: handlerRegister->EventRegister.getContractRegister,
+  paramsRawEventSchema: paramsRawEventSchema->(Utils.magic: S.t<eventArgs> => S.t<Internal.eventParams>),
+  }
+}
+}
+
+module Swap = {
+
+let id = "0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822_3"
+let sighash = "0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822"
+let name = "Swap"
+let contractName = contractName
+
+@genType
+type eventArgs = {sender: Address.t, amount0In: bigint, amount1In: bigint, amount0Out: bigint, amount1Out: bigint, to: Address.t}
+@genType
+type block = Block.t
+@genType
+type transaction = Transaction.t
+
+@genType
+type event = {
+  /** The parameters or arguments associated with this event. */
+  params: eventArgs,
+  /** The unique identifier of the blockchain network where this event occurred. */
+  chainId: chainId,
+  /** The address of the contract that emitted this event. */
+  srcAddress: Address.t,
+  /** The index of this event's log within the block. */
+  logIndex: int,
+  /** The transaction that triggered this event. Configurable in `config.yaml` via the `field_selection` option. */
+  transaction: transaction,
+  /** The block in which this event was recorded. Configurable in `config.yaml` via the `field_selection` option. */
+  block: block,
+}
+
+@genType
+type loaderArgs = Internal.genericLoaderArgs<event, loaderContext>
+@genType
+type loader<'loaderReturn> = Internal.genericLoader<loaderArgs, 'loaderReturn>
+@genType
+type handlerArgs<'loaderReturn> = Internal.genericHandlerArgs<event, handlerContext, 'loaderReturn>
+@genType
+type handler<'loaderReturn> = Internal.genericHandler<handlerArgs<'loaderReturn>>
+@genType
+type contractRegister = Internal.genericContractRegister<Internal.genericContractRegisterArgs<event, contractRegistrations>>
+
+let paramsRawEventSchema = S.object((s): eventArgs => {sender: s.field("sender", Address.schema), amount0In: s.field("amount0In", BigInt.schema), amount1In: s.field("amount1In", BigInt.schema), amount0Out: s.field("amount0Out", BigInt.schema), amount1Out: s.field("amount1Out", BigInt.schema), to: s.field("to", Address.schema)})
+let blockSchema = Block.schema
+let transactionSchema = Transaction.schema
+
+let handlerRegister: EventRegister.t = EventRegister.make(
+  ~contractName,
+  ~eventName=name,
+)
+
+@genType
+type eventFilter = {@as("sender") sender?: SingleOrMultiple.t<Address.t>, @as("to") to?: SingleOrMultiple.t<Address.t>}
+
+@genType type eventFiltersArgs = {/** The unique identifier of the blockchain network where this event occurred. */ chainId: chainId, /** Addresses of the contracts indexing the event. */ addresses: array<Address.t>}
+
+@genType @unboxed type eventFiltersDefinition = Single(eventFilter) | Multiple(array<eventFilter>)
+
+@genType @unboxed type eventFilters = | ...eventFiltersDefinition | Dynamic(eventFiltersArgs => eventFiltersDefinition)
+
+let register = (): Internal.evmEventConfig => {
+  let {getEventFiltersOrThrow, filterByAddresses} = LogSelection.parseEventFiltersOrThrow(~eventFilters=handlerRegister->EventRegister.getEventFilters, ~sighash, ~params=["sender","to",], ~topic1=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("sender")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)), ~topic2=(_eventFilter) => _eventFilter->Utils.Dict.dangerouslyGetNonOption("to")->Belt.Option.mapWithDefault([], topicFilters => topicFilters->Obj.magic->SingleOrMultiple.normalizeOrThrow->Belt.Array.map(TopicFilter.fromAddress)))
+  {
+    getEventFiltersOrThrow,
+    filterByAddresses,
+    dependsOnAddresses: !(handlerRegister->EventRegister.isWildcard) || filterByAddresses,
+    blockSchema: blockSchema->(Utils.magic: S.t<block> => S.t<Internal.eventBlock>),
+    transactionSchema: transactionSchema->(Utils.magic: S.t<transaction> => S.t<Internal.eventTransaction>),
+    convertHyperSyncEventArgs: (decodedEvent: HyperSyncClient.Decoder.decodedEvent) => {sender: decodedEvent.indexed->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, to: decodedEvent.indexed->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, amount0In: decodedEvent.body->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, amount1In: decodedEvent.body->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, amount0Out: decodedEvent.body->Js.Array2.unsafe_get(2)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, amount1Out: decodedEvent.body->Js.Array2.unsafe_get(3)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, }->(Utils.magic: eventArgs => Internal.eventParams),
+    id,
+  name,
+  contractName,
+  isWildcard: (handlerRegister->EventRegister.isWildcard),
+  handler: handlerRegister->EventRegister.getHandler,
+  contractRegister: handlerRegister->EventRegister.getContractRegister,
+  paramsRawEventSchema: paramsRawEventSchema->(Utils.magic: S.t<eventArgs> => S.t<Internal.eventParams>),
+  }
+}
+}
+
+module Sync = {
+
+let id = "0x1c411e9a96e071241c2f21f7726b17ae89e3cab4c78be50e062b03a9fffbbad1_1"
+let sighash = "0x1c411e9a96e071241c2f21f7726b17ae89e3cab4c78be50e062b03a9fffbbad1"
+let name = "Sync"
+let contractName = contractName
+
+@genType
+type eventArgs = {reserve0: bigint, reserve1: bigint}
+@genType
+type block = Block.t
+@genType
+type transaction = Transaction.t
+
+@genType
+type event = {
+  /** The parameters or arguments associated with this event. */
+  params: eventArgs,
+  /** The unique identifier of the blockchain network where this event occurred. */
+  chainId: chainId,
+  /** The address of the contract that emitted this event. */
+  srcAddress: Address.t,
+  /** The index of this event's log within the block. */
+  logIndex: int,
+  /** The transaction that triggered this event. Configurable in `config.yaml` via the `field_selection` option. */
+  transaction: transaction,
+  /** The block in which this event was recorded. Configurable in `config.yaml` via the `field_selection` option. */
+  block: block,
+}
+
+@genType
+type loaderArgs = Internal.genericLoaderArgs<event, loaderContext>
+@genType
+type loader<'loaderReturn> = Internal.genericLoader<loaderArgs, 'loaderReturn>
+@genType
+type handlerArgs<'loaderReturn> = Internal.genericHandlerArgs<event, handlerContext, 'loaderReturn>
+@genType
+type handler<'loaderReturn> = Internal.genericHandler<handlerArgs<'loaderReturn>>
+@genType
+type contractRegister = Internal.genericContractRegister<Internal.genericContractRegisterArgs<event, contractRegistrations>>
+
+let paramsRawEventSchema = S.object((s): eventArgs => {reserve0: s.field("reserve0", BigInt.schema), reserve1: s.field("reserve1", BigInt.schema)})
+let blockSchema = Block.schema
+let transactionSchema = Transaction.schema
+
+let handlerRegister: EventRegister.t = EventRegister.make(
+  ~contractName,
+  ~eventName=name,
+)
+
+@genType
+type eventFilter = {}
+
+@genType type eventFilters = Internal.noEventFilters
+
+let register = (): Internal.evmEventConfig => {
+  let {getEventFiltersOrThrow, filterByAddresses} = LogSelection.parseEventFiltersOrThrow(~eventFilters=handlerRegister->EventRegister.getEventFilters, ~sighash, ~params=[])
+  {
+    getEventFiltersOrThrow,
+    filterByAddresses,
+    dependsOnAddresses: !(handlerRegister->EventRegister.isWildcard) || filterByAddresses,
+    blockSchema: blockSchema->(Utils.magic: S.t<block> => S.t<Internal.eventBlock>),
+    transactionSchema: transactionSchema->(Utils.magic: S.t<transaction> => S.t<Internal.eventTransaction>),
+    convertHyperSyncEventArgs: (decodedEvent: HyperSyncClient.Decoder.decodedEvent) => {reserve0: decodedEvent.body->Js.Array2.unsafe_get(0)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, reserve1: decodedEvent.body->Js.Array2.unsafe_get(1)->HyperSyncClient.Decoder.toUnderlying->Utils.magic, }->(Utils.magic: eventArgs => Internal.eventParams),
     id,
   name,
   contractName,

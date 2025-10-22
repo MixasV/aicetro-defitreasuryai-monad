@@ -112,7 +112,7 @@ describe('MonitoringPoller', () => {
     const poller = new MonitoringPoller(10_000)
 
     const firstRun = poller.runOnce('manual')
-    await expect(poller.runOnce('manual')).rejects.toThrow('Monitoring poller iteration уже выполняется.')
+    await expect(poller.runOnce('manual')).rejects.toThrow('Monitoring poller iteration already running.')
 
     await firstRun
   })

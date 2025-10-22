@@ -2,12 +2,11 @@ import Link from 'next/link';
 import { useMemo } from 'react';
 import type { ApplicationMode } from '@defitreasuryai/types';
 import { useSmartAccount } from '../../hooks/useSmartAccount';
-import { useAppMode } from '../../hooks/useAppMode';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/pools', label: 'Pools' },
-  { href: '/wizard', label: 'Onboarding' },
+  { href: '/wizard', label: 'AI Control' },
   { href: '/ai-controls', label: 'AI Orchestration' },
   { href: '/emergency', label: 'Emergency' },
   { href: '/demo', label: 'Live Demo' }
@@ -22,7 +21,7 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
     connectWallet,
     disconnectWallet
   } = useSmartAccount();
-  const { mode, isSwitching, setMode } = useAppMode();
+
 
   const activeAccountLabel = useMemo(() => formatAddress(account.address), [account.address]);
   const connectedWalletLabel = useMemo(() => formatAddress(connectedEOA ?? undefined), [connectedEOA]);
@@ -50,7 +49,6 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
             </nav>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <ModeToggle mode={mode} isSwitching={isSwitching} onSwitch={setMode} />
             <WalletIndicator
               isConnected={isConnected}
               isConnecting={isConnecting}
@@ -117,56 +115,4 @@ const WalletIndicator = ({
   </div>
 );
 
-const ModeToggle = ({
-  mode,
-  isSwitching,
-  onSwitch
-}: {
-  mode: ApplicationMode;
-  isSwitching: boolean;
-  onSwitch: (mode: ApplicationMode) => Promise<void>;
-}) => {
-  console.log('[ModeToggle] Current mode:', mode, 'isSwitching:', isSwitching);
-  
-  return (
-    <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-[11px] text-slate-300">
-      <span className="uppercase tracking-wide text-slate-400">Mode</span>
-      <button
-        type="button"
-        onClick={() => {
-          console.log('[ModeToggle] Real Trading clicked, current mode:', mode);
-          if (mode !== 'real') {
-            console.log('[ModeToggle] Switching to real...');
-            void onSwitch('real');
-          }
-        }}
-        disabled={isSwitching || mode === 'real'}
-        className={`rounded-full px-3 py-1 font-medium transition ${
-          mode === 'real'
-            ? 'bg-primary-500/20 text-primary-100'
-            : 'text-slate-300 hover:text-white'
-        } disabled:opacity-50`}
-      >
-        Real Trading
-      </button>
-      <button
-        type="button"
-        onClick={() => {
-          console.log('[ModeToggle] Preview clicked, current mode:', mode);
-          if (mode !== 'preview') {
-            console.log('[ModeToggle] Switching to preview...');
-            void onSwitch('preview');
-          }
-        }}
-        disabled={isSwitching || mode === 'preview'}
-        className={`rounded-full px-3 py-1 font-medium transition ${
-          mode === 'preview'
-            ? 'bg-amber-400/20 text-amber-100'
-            : 'text-slate-300 hover:text-white'
-        } disabled:opacity-50`}
-      >
-        Preview
-      </button>
-    </div>
-  );
-};
+

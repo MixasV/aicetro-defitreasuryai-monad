@@ -1,9 +1,10 @@
 import axios from 'axios'
 import type { PreviewCategorySummary, PreviewDataOverview, PreviewProtocolMetric } from '@defitreasuryai/types'
 import { PREVIEW_PROTOCOL_CONFIG } from '../../config/preview.protocols'
+import { alchemyPricesService } from '../alchemy/alchemy-prices.service'
 
 const DEFI_LLAMA_POOLS_ENDPOINT = 'https://yields.llama.fi/pools'
-const COINGECKO_SIMPLE_PRICE_ENDPOINT = 'https://api.coingecko.com/api/v3/simple/price'
+// Replaced CoinGecko with Alchemy Prices API
 
 interface DefiLlamaPoolResponse {
   pool: string
@@ -18,11 +19,8 @@ interface DefiLlamaPoolResponse {
   tvlUsdChange1h?: number
 }
 
-interface CoinGeckoPriceEntry {
-  usd: number
-}
-
-type CoinGeckoPriceMap = Record<string, CoinGeckoPriceEntry>
+// Removed CoinGecko types - using Alchemy Prices API
+type TokenPriceMap = Map<string, number>
 
 const shouldFetchRemoteData = process.env.NODE_ENV !== 'test'
 
@@ -46,11 +44,11 @@ class PreviewDataAggregator {
   private async buildOverview (): Promise<PreviewDataOverview> {
     const [llamaMap, priceMap] = await Promise.all([
       this.loadDefiLlamaPools(),
-      this.loadCoinGeckoPrices()
+      this.loadAlchemyPrices()
     ])
 
     let usedLlama = false
-    let usedCoinGecko = false
+    let usedAlchemy = false
     let usedFallback = false
 
     const metrics: PreviewProtocolMetric[] = PREVIEW_PROTOCOL_CONFIG.map((config) => {
@@ -58,8 +56,9 @@ class PreviewDataAggregator {
         ? llamaMap.get(config.sources.defiLlamaPoolId)
         : undefined
 
-      const priceEntry = config.sources?.coinGeckoId != null
-        ? priceMap.get(config.sources.coinGeckoId)
+      // Get price by symbol (using Alchemy)
+      const priceEntry = config.symbol != null
+        ? priceMap.get(config.symbol.toUpperCase())
         : undefined
 
       if (llamaPool != null) {
@@ -69,7 +68,7 @@ class PreviewDataAggregator {
       }
 
       if (priceEntry != null) {
-        usedCoinGecko = true
+        usedAlchemy = true
       }
 
       const apy = llamaPool?.apy ?? config.fallbackApy
@@ -96,7 +95,7 @@ class PreviewDataAggregator {
         dataQuality,
         // optional enrichment: risk-adjusted APY scaled by price if available
         ...(priceEntry != null
-          ? { volume24hUsd: volume24hUsd ?? priceEntry.usd * (llamaPool?.tvlUsdChange1h ?? 0) }
+          ? { volume24hUsd: volume24hUsd ?? priceEntry * (llamaPool?.tvlUsdChange1h ?? 0) }
           : {})
       }
     })
@@ -121,7 +120,7 @@ class PreviewDataAggregator {
       generatedAt: new Date().toISOString(),
       source: {
         defiLlama: usedLlama,
-        coinGecko: usedCoinGecko,
+        coinGecko: usedAlchemy, // Using Alchemy now
         oneInch: PREVIEW_PROTOCOL_CONFIG.some((config) => config.sources?.oneInchAddress != null),
         fallbackApplied: usedFallback
       },
@@ -160,50 +159,41 @@ class PreviewDataAggregator {
     }
   }
 
-  private async loadCoinGeckoPrices (): Promise<Map<string, { usd: number }>> {
+  /**
+   * Load token prices from Alchemy Prices API
+   * Replaced CoinGecko with Alchemy for better reliability
+   */
+  private async loadAlchemyPrices (): Promise<TokenPriceMap> {
     if (!shouldFetchRemoteData) {
       return new Map()
     }
 
-    const ids = Array.from(new Set(
-      PREVIEW_PROTOCOL_CONFIG
-        .map((config) => config.sources?.coinGeckoId)
-        .filter((value): value is string => value != null)
-    ))
+    try {
+      // Get all unique symbols from config
+      const symbols = PREVIEW_PROTOCOL_CONFIG
+        .map((c) => c.symbol)
+        .filter((s): s is string => s != null && s.length > 0)
+        .map(s => s.toUpperCase())
+      
+      // Remove duplicates
+      const uniqueSymbols = Array.from(new Set(symbols))
 
-    if (ids.length === 0) {
+      if (uniqueSymbols.length === 0) {
+        return new Map()
+      }
+
+      console.log('[PreviewService] Fetching prices from Alchemy for:', uniqueSymbols)
+      
+      // Batch fetch prices from Alchemy
+      const priceMap = await alchemyPricesService.getBatchPrices(uniqueSymbols, 'USD')
+      
+      console.log('[PreviewService] ✅ Fetched', priceMap.size, 'prices from Alchemy')
+      
+      return priceMap
+    } catch (err) {
+      console.error('[PreviewService] Failed to fetch Alchemy prices:', err)
       return new Map()
     }
-
-    const chunks: string[][] = []
-    const chunkSize = 30
-    for (let i = 0; i < ids.length; i += chunkSize) {
-      chunks.push(ids.slice(i, i + chunkSize))
-    }
-
-    const results = await Promise.all(chunks.map(async (chunk) => {
-      try {
-        const response = await axios.get<CoinGeckoPriceMap>(COINGECKO_SIMPLE_PRICE_ENDPOINT, {
-          params: {
-            ids: chunk.join(','),
-            vs_currencies: 'usd'
-          },
-          timeout: 6000
-        })
-        return response.data
-      } catch (error) {
-        console.warn('[preview] Failed to load CoinGecko prices', error instanceof Error ? error.message : error)
-        return {}
-      }
-    }))
-
-    const map = new Map<string, { usd: number }>()
-    for (const result of results) {
-      for (const [key, value] of Object.entries(result)) {
-        map.set(key, value)
-      }
-    }
-    return map
   }
 
   private computeMedian (values: number[]): number {

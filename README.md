@@ -1,412 +1,343 @@
-# Aicetro (DeFiTreasury AI)
+# Aicetro DeFiTreasury AI
 
-> AI-powered autonomous treasury management for corporate DeFi portfolios
+> AI-powered autonomous treasury management for DeFi portfolios on Monad Testnet
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Monad](https://img.shields.io/badge/Blockchain-Monad-purple)](https://docs.monad.xyz/)
-[![MetaMask](https://img.shields.io/badge/SDK-MetaMask-orange)](https://metamask.io/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Monad Testnet](https://img.shields.io/badge/Network-Monad%20Testnet-purple)](https://testnet.monadscan.io)
+[![MetaMask](https://img.shields.io/badge/MetaMask-Delegation-orange)](https://docs.metamask.io/delegation-toolkit/)
 
-## 🏆 Hackathon Submission
-
-**Built for:** MetaMask x Monad Hackathon  
-**Category:** Corporate DeFi Innovation  
-**Stack:** MetaMask Smart Accounts + Delegation Toolkit + Monad + Envio HyperIndex + OpenRouter AI
+**Built for:** [MetaMask Smart Accounts x Monad Dev Cook-Off Hackathon](https://www.hackquest.io/hackathons/MetaMask-Smart-Accounts-x-Monad-Dev-Cook-Off)
 
 ---
 
-## 🎯 Problem Statement
+## 🎯 Overview
 
-Corporate treasuries hold billions in idle cash earning ~0-2% APY. Meanwhile, DeFi protocols offer 5-15% yields with institutional-grade security. **But CFOs won't touch DeFi** because:
+Aicetro DeFiTreasury is a **non-custodial AI portfolio manager** that optimizes DeFi yields using MetaMask's Delegation Framework. Users delegate limited permissions to an AI agent which executes trades on their behalf while they maintain full control over their funds.
 
-- ❌ Technical complexity (keys, wallets, protocols)
-- ❌ Security concerns (smart contract risks, admin backdoors)
-- ❌ Time-consuming (24/7 market monitoring required)
-- ❌ Compliance requirements (manual audit trails)
+### Key Features
 
-**The Gap:** Traditional finance earns 0-2%, DeFi offers 8-15%, but adoption is <1% of corporate cash.
-
----
-
-## 💡 Solution
-
-**Aicetro** = Trustless AI Agent + Corporate Smart Accounts + Real-time Protocol Intelligence
-
-We enable **CFOs to earn DeFi yields without touching crypto**, through:
-
-1. **MetaMask Smart Accounts** - Corporate wallets with multi-sig, no private keys exposure
-2. **Trustless Delegation** - AI agent with strict limits, instant revoke, zero admin backdoors
-3. **AI Autopilot** - OpenRouter-powered strategy optimizer analyzing 50+ protocols
-4. **Real-time Monitoring** - Envio HyperIndex tracking every transaction and risk metric
-5. **Monad Performance** - 10,000 TPS enables micro-optimizations and instant responses
-
-### Key Innovation: **100% Trustless + Hybrid AI Execution**
-
-Unlike competitors with admin keys or upgrade contracts, Aicetro has:
-- ✅ **Zero admin access** - only user can control funds
-- ✅ **Instant revoke** - stop AI in <1 second
-- ✅ **On-chain limits** - daily caps, protocol whitelist, expiry enforced by smart contracts
-- ✅ **Open source** - fully auditable code
-- 🆕 **Hybrid Mode** - allocate % of portfolio for full AI automation (optional)
-
-**New:** Users can enable auto-execution and allocate 5-50% of their portfolio for AI to manage autonomously. See [HYBRID_AI_EXECUTION.md](./HYBRID_AI_EXECUTION.md) for details.
-
----
-
-## 🚀 Live Demo
-
-**Testnet Deployment:** Monad Testnet (Chain ID: 2814)
-
-**Try it yourself:** See [TESTNET_GUIDE.md](./TESTNET_GUIDE.md) for step-by-step instructions
-
-**Video Walkthrough:** [Coming Soon]
-
-### Smart Contracts (Monad Testnet)
-
-```
-Network: Monad Testnet
-Chain ID: 2814
-RPC URL: https://testnet-rpc.monad.xyz
-
-Smart Contracts:
-  - TrustlessDeFiTreasury: 0x98691ae190682dddBde3cd4c493B2249D2086E5B
-  - TreasuryManager: 0x98691ae190682dddBde3cd4c493B2249D2086E5B
-  - EmergencyController: 0x4BE4FE572bAce94aaFF05e4a0c03ff79212C20e5
-
-Block Explorer: https://testnet.monadscan.io
-```
+- 🤖 **AI-Powered Optimization** - Multi-model AI (Claude, DeepSeek, GPT-4) analyzes 50+ DeFi protocols
+- 🔐 **Non-Custodial** - User retains full ownership via MetaMask Smart Accounts
+- ⚡ **Monad Testnet** - 10,000 TPS, sub-second finality
+- 🏦 **Vault Architecture** - Secure fund management via smart contract vault
+- 🛡️ **Safety Controls** - Daily limits, protocol whitelists, emergency pause
+- 📊 **Real-Time Analytics** - Powered by Envio HyperIndex
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     CORPORATE USER                          │
-│                    (CFO / Treasury)                         │
-└────────────────────┬────────────────────────────────────────┘
-                     │
-          ┌──────────▼──────────┐
-          │  MetaMask Wallet    │
-          │  Smart Account      │
-          │  (Multi-sig 2-of-3) │
-          └──────────┬──────────┘
-                     │
-          ┌──────────▼──────────────────────────┐
-          │  Delegation Toolkit                 │
-          │  ✓ Daily Limit: $10K               │
-          │  ✓ Whitelist: [Nabla, Uniswap]    │
-          │  ✓ Valid Until: 30 days            │
-          │  ✓ Revoke: Instant                 │
-          └──────────┬──────────────────────────┘
-                     │
-    ┌────────────────┼────────────────┐
-    │                │                │
-┌───▼────┐   ┌──────▼──────┐   ┌────▼─────┐
-│ Monad  │   │  AI Agent   │   │  Envio   │
-│ Testnet│◄──┤  (OpenRouter│──►│ HyperIndex│
-│        │   │   DeepSeek) │   │          │
-└────────┘   └─────────────┘   └──────────┘
-    │               │                 │
-    │    Executes   │   Monitors      │
-    ▼    Strategy   ▼   Real-time     ▼
-┌─────────────────────────────────────────┐
-│     DeFi Protocols on Monad             │
-│  • Nabla Finance (Stablecoins)         │
-│  • UniswapV2 (DEX)                     │
-│  • More protocols coming...            │
-└─────────────────────────────────────────┘
+User EOA (MetaMask)
+  │
+  │ 1. Create Hybrid Smart Account
+  ↓
+User Smart Account
+  │
+  │ 2. Sign Delegation (EIP-712)
+  │ 3. Deposit to Vault
+  ↓
+DeFiTreasuryVault Contract
+  │ Holds user funds securely
+  │
+  │ 4. AI Agent executes via delegation
+  ↓
+DeFi Protocols
+(Uniswap V2, Aave, Nabla, Yearn)
 ```
+
+### How It Works
+
+1. **User connects MetaMask** and creates a Hybrid Smart Account
+2. **User signs delegation** granting limited permissions to AI agent
+3. **User deposits funds** into DeFiTreasuryVault smart contract
+4. **AI analyzes markets** and generates optimal rebalancing strategies
+5. **AI executes trades** via delegation (within daily limits)
+6. **User monitors portfolio** in real-time via dashboard
+7. **User can withdraw anytime** or revoke delegation instantly
 
 ---
 
-## 🎨 Features
+## 🚀 Quick Start
 
-### For CFOs (Users)
-- **5-Minute Setup** - Connect wallet → Set limits → Start earning
-- **Dual-Mode Interface**:
-  - **Real Trading Mode** - Monad testnet with real execution
-  - **Preview Mode** - Mainnet data simulation (50+ protocols)
-- **Security Dashboard** - Trustless guarantees, emergency controls, real-time status
-- **Expected Yield** - See projected earnings before committing funds
+### Prerequisites
 
-### For Developers (Tech Stack)
-- **Frontend**: Next.js 14, React 18, TailwindCSS, Framer Motion
-- **Backend**: Node.js, Express, TypeScript, Prisma ORM
-- **Blockchain**: Solidity ^0.8.24, Hardhat, MetaMask SDK
-- **Indexer**: Envio HyperSync + PostgreSQL
-- **AI**: OpenRouter API (DeepSeek-v3, Claude-3.5, GPT-4o)
+- Node.js 18+
+- pnpm 8+
+- Docker & Docker Compose
+- MetaMask wallet
+- Monad Testnet MON tokens
 
----
-
-## 📊 Market Opportunity
-
-**Total Addressable Market:**
-- Corporate cash holdings: **$5.8 trillion** (US alone)
-- Current DeFi yield advantage: **6-8% vs traditional 0-2%**
-- Potential annual value unlock: **$348 billion**
-
-**Target Customers:**
-1. **Mid-size companies** ($10M-100M cash)
-2. **Crypto-native startups** (already hold stables)
-3. **Family offices** (high-net-worth individuals)
-
-**Revenue Model** (Post-MVP):
-- Performance fee: 10% of profit
-- Subscription tiers: $99-$2,999/month
-- Projected Year 2: **$1.96M ARR** with 200 clients
-
----
-
-## 🛠️ Technology Stack
-
-### Hackathon Technologies (Required)
-
-#### 1. **MetaMask Smart Accounts**
-```typescript
-// Corporate wallet with programmable permissions
-const smartAccount = await createSmartAccount({
-  owners: [cfo, cto, treasurer],
-  threshold: 2,
-  features: ['delegation', 'timelock']
-});
-```
-
-#### 2. **MetaMask Delegation Toolkit**
-```typescript
-// Grant limited permissions to AI agent
-const delegation = await grantDelegation({
-  aiAgent: AI_AGENT_ADDRESS,
-  dailyLimitUSD: 10000,
-  protocolWhitelist: [NABLA_FINANCE, UNISWAP_V2],
-  validUntil: Date.now() + 30 * 24 * 60 * 60 * 1000
-});
-```
-
-#### 3. **Monad Network**
-- **10,000 TPS** - Enables high-frequency rebalancing
-- **400ms blocks** - Near-instant confirmations
-- **EVM compatible** - Seamless Solidity deployment
-
-#### 4. **Envio HyperIndex**
-```typescript
-// Real-time portfolio tracking
-const portfolio = await envioClient.query({
-  portfolioPositions: {
-    owner: account,
-    valueUSD: true,
-    currentAPY: true
-  }
-});
-```
-
-#### 5. **OpenRouter AI**
-```typescript
-// AI decision engine
-const recommendation = await openRouter.complete({
-  model: 'deepseek/deepseek-chat',
-  prompt: `Analyze portfolio and recommend optimal allocation...`
-});
-```
-
----
-
-## 📦 Installation
-
-**For developers:** See **[INSTALL.md](./INSTALL.md)** for detailed setup instructions.
-
-**For end users:** See **[TESTNET_GUIDE.md](./TESTNET_GUIDE.md)** to connect MetaMask and use the app.
-
-### Quick Start (Development)
+### Installation
 
 ```bash
-# 1. Clone repository
-git clone https://github.com/yourusername/aicetro-defitreasuryai.git
+# Clone repository
+git clone https://github.com/MixasV/aicetro-defitreasuryai.git
 cd aicetro-defitreasuryai
 
-# 2. Install dependencies
+# Install dependencies
 pnpm install
 
-# 3. Set up environment variables
+# Copy environment variables
 cp .env.example .env
-# Edit .env with your API keys
 
-# 4. Start PostgreSQL & Redis
-docker-compose up -d postgres redis
+# Fill in required API keys:
+# - ALCHEMY_API_KEY (for gas sponsorship)
+# - OPENROUTER_API_KEY (for AI models)
+# - MASTER_ENCRYPTION_PASSWORD (generate random)
 
-# 5. Run migrations
-cd apps/backend
-pnpm prisma migrate deploy
-cd ../..
+# Start all services
+docker-compose up -d
 
-# 6. Start all services
-pnpm dev
+# Check status
+docker-compose ps
+curl http://localhost:4000/api/health
+```
 
-# Frontend: http://localhost:3000
-# Backend: http://localhost:4000
-# Envio Indexer: Running in background
+### Access
+
+- **Frontend:** http://localhost:3000
+- **Backend API:** http://localhost:4000/api
+- **Envio GraphQL:** http://localhost:8081/v1/graphql
+
+---
+
+## 📦 Tech Stack
+
+### Smart Contracts
+- **Solidity 0.8.24** - DeFiTreasuryVault, Smart Account integration
+- **MetaMask Delegation Toolkit** - Hybrid Smart Accounts (ERC-7710)
+- **Hardhat** - Development & deployment
+
+### Frontend
+- **Next.js 14** - React framework with App Router
+- **wagmi + viem** - Ethereum interactions
+- **RainbowKit** - Wallet connection UI
+- **TailwindCSS** - Styling
+
+### Backend
+- **Node.js + Express** - REST API server
+- **Prisma ORM** - Database management
+- **PostgreSQL 16** - Main database
+- **Redis 7** - Caching layer
+
+### Infrastructure
+- **Monad Testnet** - High-performance blockchain (10,000 TPS)
+- **Envio HyperIndex** - Real-time blockchain indexing
+- **Alchemy** - Gas Manager & Bundler (ERC-4337)
+- **OpenRouter** - Multi-model AI API
+
+---
+
+## 📝 Smart Contracts (Monad Testnet)
+
+| Contract | Address | Description |
+|----------|---------|-------------|
+| **DeFiTreasuryVault** | [`0x00f78267767f788548AC5A78452E3cF4163Ae721`](https://testnet.monadscan.io/address/0x00f78267767f788548AC5A78452E3cF4163Ae721) | Main vault holding user deposits |
+| **DelegationManager** | [`0xFe66de7d0E0DF2Ef3e343ee6511dA27d149d8e2a`](https://testnet.monadscan.io/address/0xFe66de7d0E0DF2Ef3e343ee6511dA27d149d8e2a) | MetaMask delegation manager |
+| **Hybrid Delegator** | [`0x0fb901F876C65d4cc2491Cd2a0be8117E159dFee`](https://testnet.monadscan.io/address/0x0fb901F876C65d4cc2491Cd2a0be8117E159dFee) | Hybrid Smart Account impl |
+| **EntryPoint** | [`0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789`](https://testnet.monadscan.io/address/0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789) | ERC-4337 EntryPoint |
+
+---
+
+## 🎮 Usage
+
+### 1. Setup Wallet
+
+Connect your MetaMask wallet to Monad Testnet:
+- **Network:** Monad Testnet
+- **Chain ID:** 10143
+- **RPC:** https://testnet-rpc.monad.xyz
+- **Explorer:** https://testnet.monadscan.io
+
+Get test tokens from [Monad Discord faucet](https://discord.gg/monad).
+
+### 2. Create Delegation
+
+1. Navigate to `/setup/simple`
+2. Select networks and tokens to manage
+3. Set AI capital allocation (e.g., 15% of portfolio)
+4. Configure risk limits and protocol whitelist
+5. Sign delegation with MetaMask (EIP-712)
+
+### 3. Deposit Funds
+
+After creating delegation:
+1. Deposit funds into DeFiTreasuryVault
+2. Transaction calls `vault.deposit(amount, userSA)`
+3. Funds are credited to your User Smart Account balance
+
+### 4. Start AI Agent
+
+1. Review delegation parameters
+2. Start AI agent execution
+3. Monitor dashboard for recommendations
+4. AI rebalances portfolio within limits
+
+### 5. Monitor & Control
+
+- **Dashboard:** Real-time portfolio analytics
+- **AI Controls:** Pause/resume AI anytime
+- **Emergency Stop:** Instant halt all operations
+- **Withdraw:** Pull funds anytime (no AI approval needed)
+
+---
+
+## 🛡️ Security
+
+### Non-Custodial Design
+
+- ✅ **User owns Smart Account** - Full control at all times
+- ✅ **Delegation is revocable** - Cancel anytime via MetaMask
+- ✅ **On-chain limits enforced** - Daily spending caps, protocol whitelist
+- ✅ **Emergency controls** - Global pause mechanism
+- ✅ **Encrypted keys** - AI agent keys encrypted with AES-256-CBC
+
+### What AI Agent CAN'T Do
+
+- ❌ Withdraw funds to external addresses
+- ❌ Exceed daily spending limits
+- ❌ Use non-whitelisted protocols
+- ❌ Continue after delegation revoked
+- ❌ Access your private keys
+
+### Security Best Practices
+
+1. **Start with small amounts** - Test with minimal funds first
+2. **Set conservative limits** - Low daily limits, strict whitelists
+3. **Monitor regularly** - Check dashboard for unexpected activity
+4. **Use emergency stop** - If anything looks wrong, pause immediately
+5. **Revoke delegation** - When done, revoke to prevent future executions
+
+---
+
+## 📊 Project Structure
+
+```
+aicetro-defitreasuryai/
+├── apps/
+│   ├── backend/              # Express API server
+│   │   ├── src/
+│   │   │   ├── routes/       # API endpoints
+│   │   │   ├── services/     # Business logic
+│   │   │   └── utils/        # Helpers
+│   │   └── prisma/           # Database schema
+│   │
+│   └── frontend/             # Next.js application
+│       ├── src/
+│       │   ├── app/          # Pages (App Router)
+│       │   ├── components/   # React components
+│       │   └── hooks/        # Custom hooks
+│       └── public/           # Static assets
+│
+├── contracts/                # Smart contracts
+│   ├── src/                  # Solidity files
+│   └── scripts/              # Deployment scripts
+│
+├── envio-indexers/           # Envio HyperIndex
+│   └── defitreasury/
+│       ├── config.yaml       # Indexer config
+│       └── schema.graphql    # GraphQL schema
+│
+├── docker-compose.yml        # Docker services
+└── README.md                 # This file
 ```
 
 ---
 
 ## 🧪 Testing
 
+### Run Tests
+
 ```bash
-# Run all tests (140 unit tests)
+# Backend tests
+cd apps/backend
 pnpm test
 
-# Lint check
-pnpm lint
-
-# Build production
-pnpm build
+# Smart contract tests
+cd contracts
+pnpm test
 ```
 
-**Test Coverage:**
-- ✅ 140 unit tests (100% passing)
-- ✅ 0 lint errors
-- ✅ 0 TypeScript errors
-- ✅ Smart contract tests included
+### Manual Testing
+
+1. Start local environment: `docker-compose up -d`
+2. Open frontend: http://localhost:3000
+3. Follow setup wizard
+4. Test delegation creation
+5. Test vault deposit
+6. Test AI execution
 
 ---
 
-## 🔐 Security
+## 🤝 Contributing
 
-### Trustless Guarantees
+Contributions are welcome! This is a hackathon project, so expect rough edges.
 
-1. **No Admin Keys**
-```solidity
-// ❌ No ownable pattern
-// ❌ No upgradeable proxies
-// ❌ No pause/unpause by admin
-// ✅ Only user controls their funds
-```
+### Development Setup
 
-2. **On-chain Enforcement**
-```solidity
-modifier onlyAuthorizedAgent(address user) {
-    if (!config.isActive) revert DelegationInactive(user);
-    if (block.timestamp > config.validUntil) revert DelegationExpired();
-    if (config.spentToday + valueUsd > config.dailyLimitUSD) 
-        revert DailyLimitExceeded();
-    _;
-}
-```
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open Pull Request
 
-3. **Instant Emergency Stop**
-```solidity
-function emergencyStop() external {
-    // User can stop AI in 1 transaction
-    config.isActive = false;
-    emit DelegationPaused(msg.sender);
-}
-```
+### Code Style
+
+- TypeScript for all code
+- ESLint + Prettier for formatting
+- Conventional commits
+- Update tests for new features
 
 ---
 
-## 📈 Metrics & Results
+## 📄 License
 
-### Demo Performance (Testnet)
-
-**MockCorp Treasury:**
-- Initial: $100,000 USDC idle (0% APY)
-- After AI optimization: $100,000 across Nabla + Uniswap
-- **Expected APY: 8.2%** ($8,200/year)
-- **Risk Score: Low** (both protocols whitelisted, audited)
-
-### Efficiency Gains
-- **Setup Time:** 5 minutes (vs 5 days manual research)
-- **Monitoring:** 24/7 automated (vs 0 hours CFO time)
-- **Rebalancing:** <400ms (vs manual hours)
-- **Emergency Response:** <1 second (vs minutes/hours)
+This project is licensed under the MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🗺️ Roadmap
+## 🏆 Hackathon Submission
 
-### ✅ Phase 1: MVP (Current - Hackathon)
-- MetaMask Smart Accounts integration
-- Trustless delegation framework
-- AI strategy engine (3-5 protocols)
-- Envio real-time monitoring
-- Monad testnet deployment
+**Hackathon:** MetaMask Smart Accounts x Monad Dev Cook-Off  
+**Team:** Solo Developer + AI Assistant (Factory Droid)  
+**Submission Date:** January 22, 2025
 
-### 🚧 Phase 2: Beta (Post-Hackathon, 0-3 months)
-- Mainnet deployment (Ethereum, Polygon)
-- 20+ protocol integrations
-- Professional security audit
-- Beta customer onboarding (10 companies)
+### Compliance Checklist
 
-### 🔮 Phase 3: Production (3-12 months)
-- Insurance partnerships (Nexus Mutual)
-- Multi-chain expansion (Arbitrum, Optimism, Base)
-- Enterprise features (ERP integration, compliance automation)
-- 100+ protocols supported
+- ✅ Uses MetaMask Smart Accounts (Hybrid implementation)
+- ✅ Deployed on Monad Testnet (Chain ID: 10143)
+- ✅ Uses MetaMask Delegation Toolkit SDK
+- ✅ Implements delegation as core feature (ERC-7710)
+- ✅ Non-custodial architecture (user maintains control)
 
-### 🌟 Phase 4: Scale (12+ months)
-- Institutional custody partnerships
-- Regulatory compliance automation
-- Cross-chain liquidity optimization
-- 1,000+ corporate clients
+### Resources
 
----
-
-## 👥 Team
-
-**Solo Developer** (Hackathon MVP)
-
-Future roles needed:
-- Smart Contract Auditor
-- Full-stack Engineer
-- Blockchain DevOps
-- Business Development
-
----
-
-## 📜 License
-
-MIT License - see [LICENSE](./LICENSE) file for details.
-
----
-
-## 🙏 Acknowledgments
-
-**Hackathon Sponsors:**
-- MetaMask Team - Smart Accounts & Delegation Toolkit
-- Monad Labs - High-performance blockchain
-- Envio - Real-time indexing infrastructure
-- OpenRouter - AI model access
-
-**Open Source:**
-- OpenZeppelin - Smart contract libraries
-- Hardhat - Development environment
-- Next.js - Frontend framework
-- Prisma - Database ORM
+- **Delegation Toolkit:** https://docs.metamask.io/delegation-toolkit/
+- **Monad Docs:** https://docs.monad.xyz/
+- **Envio Docs:** https://docs.envio.dev/
+- **Alchemy:** https://docs.alchemy.com/
 
 ---
 
 ## 📞 Contact
 
-**Project:** Aicetro (DeFiTreasury AI)  
-**GitHub:** [github.com/yourusername/aicetro](https://github.com/yourusername/aicetro)  
-**Demo:** [Coming Soon]  
-**Email:** [Your Email]
+**Developer:** [@MixasV](https://github.com/MixasV)  
+**Project:** https://github.com/MixasV/aicetro-defitreasuryai  
+
+**Issues & Questions:** [GitHub Issues](https://github.com/MixasV/aicetro-defitreasuryai/issues)
 
 ---
 
-## 🎬 Demo Scenario
+## 🙏 Acknowledgments
 
-**Watch our 10-minute demo walkthrough:**
-
-1. **Setup** (2 min) - CFO creates Smart Account, configures delegation
-2. **AI Analysis** (3 min) - Real-time protocol comparison, risk scoring
-3. **Execution** (2 min) - Automated strategy deployment on Monad
-4. **Monitoring** (2 min) - Envio dashboard, performance tracking
-5. **Emergency** (1 min) - Instant stop demonstration
-
-**Key Takeaway:** CFOs can earn 8-15% DeFi yields without touching crypto, with 100% trustless guarantees.
+- **MetaMask** - Delegation Framework and Hybrid Smart Accounts
+- **Monad** - High-performance blockchain testnet
+- **FiYield** - Reference implementation inspiration
+- **Envio** - Real-time blockchain indexing
+- **Alchemy** - Gas sponsorship and bundler services
+- **Factory Droid** - AI development assistant
 
 ---
 
-<p align="center">
-  <strong>Built with ❤️ for corporate treasurers everywhere</strong>
-</p>
+**Built with ❤️ for the MetaMask x Monad Hackathon**

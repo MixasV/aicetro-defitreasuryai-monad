@@ -3,9 +3,11 @@ import { AppShell } from '../../components/layout/AppShell';
 import { EmergencyPanel } from '../../components/emergency/EmergencyPanel';
 import { DEMO_CORPORATE_ACCOUNT } from '../../config/demo';
 import { useCorporateAccount } from '../../hooks/useCorporateAccount';
+import { usePageTitle } from '../../hooks/usePageTitle';
 import { SecurityDashboard } from '../../components/security/SecurityDashboard';
 
 export default function EmergencyPage() {
+  usePageTitle('Emergency Controls');
   const { account } = useCorporateAccount();
   const accountAddress = account.address ?? DEMO_CORPORATE_ACCOUNT;
 
